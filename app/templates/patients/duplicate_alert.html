@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Possible Duplicate Patient Detected - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <!-- Warning Banner -->
+  <div class="alert alert-warning border-start border-4 border-warning shadow-sm rounded-4 mb-4 p-4">
+    <div class="d-flex align-items-center">
+      <i class="bi bi-exclamation-triangle-fill text-warning fs-1 me-3"></i>
+      <div>
+        <h4 class="fw-bold mb-1">Possible Duplicate Patient Record Detected!</h4>
+        <p class="mb-0 text-dark">
+          Our Fuzzy Duplicate Engine matched the current intake details against existing registered patients in the database.
+          Please review the side-by-side comparison below to decide whether to <strong>Merge / Select Existing Patient</strong> or <strong>Override & Create New Profile</strong>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <!-- Intake Details Column -->
+    <div class="col-md-5">
+      <div class="card border-primary shadow-sm rounded-4 h-100">
+        <div class="card-header bg-primary text-white py-3">
+          <h5 class="card-title mb-0"><i class="bi bi-person-plus-fill me-2"></i> Current Intake Attempt</h5>
+        </div>
+        <div class="card-body">
+          <table class="table table-sm table-borderless">
+            <tr>
+              <td class="fw-bold text-muted" style="width: 35%;">Full Name:</td>
+              <td class="fw-bold fs-5 text-primary">{{ form_data.first_name }} {{ form_data.last_name }}</td>
+            </tr>
+            <tr>
+              <td class="fw-bold text-muted">DOB:</td>
+              <td class="fw-semibold">{{ form_data.dob }}</td>
+            </tr>
+            <tr>
+              <td class="fw-bold text-muted">Gender:</td>
+              <td>{{ form_data.gender }}</td>
+            </tr>
+            <tr>
+              <td class="fw-bold text-muted">Mobile:</td>
+              <td><code>{{ form_data.mobile }}</code></td>
+            </tr>
+            <tr>
+              <td class="fw-bold text-muted">Aadhaar:</td>
+              <td><code>{{ form_data.aadhaar_number or 'Not provided' }}</code></td>
+            </tr>
+            <tr>
+              <td class="fw-bold text-muted">Address:</td>
+              <td><small>{{ form_data.address or 'Not provided' }}</small></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Matches Column -->
+    <div class="col-md-7">
+      <div class="card border-warning shadow-sm rounded-4 h-100">
+        <div class="card-header bg-warning text-dark py-3">
+          <h5 class="card-title mb-0"><i class="bi bi-people-fill me-2"></i> Matched Existing Database Records</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush">
+            {% for match in dup_matches %}
+            {% set p = match.patient %}
+            <div class="list-group-item p-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                  <span class="badge bg-dark font-monospace fs-6 me-2">{{ p.patient_code }}</span>
+                  <strong class="fs-5">{{ p.full_name }}</strong>
+                </div>
+                <span class="badge bg-danger fs-6">
+                  <i class="bi bi-percent me-1"></i> {{ match.similarity_score }}% Match Score
+                </span>
+              </div>
+
+              <!-- Match Reasons -->
+              <div class="mb-2">
+                {% for reason in match.match_reasons %}
+                <span class="badge bg-warning-subtle text-dark border border-warning me-1"><i class="bi bi-check2-circle"></i> {{ reason }}</span>
+                {% endfor %}
+              </div>
+
+              <div class="row g-2 text-muted small mb-3">
+                <div class="col-md-6"><strong>DOB:</strong> {{ p.dob.strftime('%d %b %Y') }}</div>
+                <div class="col-md-6"><strong>Mobile:</strong> <code>{{ p.mobile }}</code></div>
+                <div class="col-md-6"><strong>Aadhaar Masked:</strong> <code>{{ p.aadhaar_masked }}</code></div>
+                <div class="col-md-6"><strong>Registered On:</strong> {{ p.created_at.strftime('%Y-%m-%d') }}</div>
+              </div>
+
+              <div class="d-flex gap-2">
+                <a href="{{ url_for('patients.view_patient', patient_id=p.id) }}" class="btn btn-sm btn-success fw-bold">
+                  <i class="bi bi-box-arrow-in-right me-1"></i> Select Existing Patient ({{ p.patient_code }})
+                </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Receptionist Choice Actions -->
+  <div class="card border-0 shadow-sm rounded-4 p-4 bg-white text-center">
+    <h5 class="fw-bold mb-3">How would you like to proceed?</h5>
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+      <a href="{{ url_for('patients.register_patient') }}" class="btn btn-outline-secondary px-4 py-2">
+        <i class="bi bi-x-circle me-1"></i> Cancel Intake
+      </a>
+      
+      <!-- Force Create Form -->
+      <form method="POST" action="{{ url_for('patients.register_patient', force_create='1') }}">
+        {% for key, value in form_data.items() %}
+          {% if key != 'csrf_token' %}
+          <input type="hidden" name="{{ key }}" value="{{ value }}">
+          {% endif %}
+        {% endfor %}
+        <button type="submit" class="btn btn-danger px-4 py-2">
+          <i class="bi bi-person-plus-fill me-1"></i> Override Duplicate Warning & Create New Patient
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

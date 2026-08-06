@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Patient Directory - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-people-fill text-teal me-2" style="color: var(--primary-color);"></i> Patient Master Directory</h3>
+      <p class="text-muted mb-0">Search and manage registered patients, medical records, and demographic baselines</p>
+    </div>
+    {% if current_user.role.name in ['Admin', 'Receptionist'] %}
+    <a href="{{ url_for('patients.register_patient') }}" class="btn btn-primary-custom" style="width: auto;">
+      <i class="bi bi-person-plus-fill me-1"></i> Register New Patient
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Search Bar -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-3">
+      <form method="GET" action="{{ url_for('patients.list_patients') }}" class="row g-2">
+        <div class="col-md-10">
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" placeholder="Search by Patient ID (IPCMS-2026-...), Name, Mobile, or Aadhaar...">
+          </div>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-primary-custom w-100 py-2">Search</button>
+          {% if query %}
+          <a href="{{ url_for('patients.list_patients') }}" class="btn btn-outline-secondary py-2">Clear</a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Patient Table -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+      <table class="table custom-table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Patient ID</th>
+            <th>Name & Gender</th>
+            <th>DOB / Age</th>
+            <th>Mobile Number</th>
+            <th>Aadhaar Number</th>
+            <th>Blood Group</th>
+            <th>BMI (Baseline)</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for patient in patients %}
+          <tr>
+            <td>
+              <span class="badge bg-dark fs-7 font-monospace py-2 px-3">{{ patient.patient_code }}</span>
+            </td>
+            <td>
+              <div class="fw-bold">{{ patient.full_name }}</div>
+              <small class="text-muted">{{ patient.gender }}</small>
+            </td>
+            <td>
+              <div class="fw-semibold">{{ patient.dob.strftime('%d %b %Y') }}</div>
+              <small class="text-muted">Registered {{ patient.created_at.strftime('%Y-%m-%d') }}</small>
+            </td>
+            <td><code>{{ patient.mobile }}</code></td>
+            <td><small class="text-secondary fw-semibold">{{ patient.aadhaar_masked or 'N/A' }}</small></td>
+            <td>
+              {% if patient.blood_group %}
+              <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3">{{ patient.blood_group }}</span>
+              {% else %}
+              <span class="text-muted">--</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if patient.bmi %}
+                <span class="fw-bold 
+                  {% if patient.bmi < 18.5 %}text-info
+                  {% elif patient.bmi < 25.0 %}text-success
+                  {% elif patient.bmi < 30.0 %}text-warning
+                  {% else %}text-danger{% endif %}">
+                  {{ patient.bmi }}
+                </span>
+                <small class="d-block text-muted" style="font-size: 0.72rem;">{{ patient.get_bmi_category() }}</small>
+              {% else %}
+                <span class="text-muted">N/A</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <a href="{{ url_for('patients.view_patient', patient_id=patient.id) }}" class="btn btn-sm btn-outline-primary me-1">
+                <i class="bi bi-eye-fill"></i> View Profile
+              </a>
+              {% if current_user.role.name in ['Admin', 'Receptionist'] %}
+              <a href="{{ url_for('patients.edit_patient', patient_id=patient.id) }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-pencil-fill"></i> Edit
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8" class="text-center py-5 text-muted">
+              <i class="bi bi-person-x fs-1 d-block mb-2 text-secondary"></i>
+              No patient records found. Click "Register New Patient" to add intake details.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination and pagination.pages > 1 %}
+    <div class="card-footer bg-white py-3">
+      <nav>
+        <ul class="pagination justify-content-center mb-0">
+          <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('patients.list_patients', page=pagination.prev_num, q=query) }}">Previous</a>
+          </li>
+          {% for p in pagination.iter_pages() %}
+            {% if p %}
+              <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('patients.list_patients', page=p, q=query) }}">{{ p }}</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+          {% endfor %}
+          <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('patients.list_patients', page=pagination.next_num, q=query) }}">Next</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

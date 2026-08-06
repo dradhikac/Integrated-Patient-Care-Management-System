@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block title %}Register New Patient - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container" style="max-width: 900px;">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-person-plus-fill text-teal me-2" style="color: var(--primary-color);"></i> Patient Intake & Registration</h3>
+      <p class="text-muted mb-0">Module 2 — Real-time duplicate detection, Aadhaar encryption, and BMI calculation</p>
+    </div>
+    <a href="{{ url_for('patients.list_patients') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Patient Directory
+    </a>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-4">
+      <form method="POST" action="{{ url_for('patients.register_patient') }}" id="patientRegForm">
+        {{ form.csrf_token }}
+
+        <!-- Section 1: Demographics -->
+        <h5 class="fw-bold text-teal mb-3 pb-2 border-bottom" style="color: var(--primary-color);">
+          <i class="bi bi-card-text me-2"></i> 1. Personal Demographics
+        </h5>
+        
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
+            {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else ""), placeholder="e.g. Ananya") }}
+            {% for err in form.first_name.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Last Name <span class="text-danger">*</span></label>
+            {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else ""), placeholder="e.g. Verma") }}
+            {% for err in form.last_name.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Date of Birth <span class="text-danger">*</span></label>
+            {{ form.dob(class="form-control" + (" is-invalid" if form.dob.errors else ""), type="date") }}
+            {% for err in form.dob.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Gender <span class="text-danger">*</span></label>
+            {{ form.gender(class="form-select" + (" is-invalid" if form.gender.errors else "")) }}
+            {% for err in form.gender.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Preferred Language</label>
+            {{ form.preferred_language(class="form-select") }}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Mobile Number <span class="text-danger">*</span></label>
+            {{ form.mobile(class="form-control" + (" is-invalid" if form.mobile.errors else ""), placeholder="+91-9876543210") }}
+            {% for err in form.mobile.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Email Address</label>
+            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="ananya@example.com") }}
+            {% for err in form.email.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold">Residential Address</label>
+            {{ form.address(class="form-control", rows="2", placeholder="Full house no, street, city, state, pin code") }}
+          </div>
+        </div>
+
+        <!-- Section 2: Aadhaar & Clinical Baseline -->
+        <h5 class="fw-bold text-teal mb-3 pb-2 border-bottom" style="color: var(--primary-color);">
+          <i class="bi bi-shield-lock-fill me-2"></i> 2. Aadhaar Identity & Vitals Baseline
+        </h5>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Aadhaar Number (Stored Encrypted)</label>
+            {{ form.aadhaar_number(class="form-control" + (" is-invalid" if form.aadhaar_number.errors else ""), placeholder="12 digit Aadhaar (e.g. 123456789012)", maxlength="12") }}
+            <small class="form-text text-muted"><i class="bi bi-lock me-1"></i> Masked in UI as XXXX-XXXX-9012; encrypted via AES-Fernet.</small>
+            {% for err in form.aadhaar_number.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Blood Group</label>
+            {{ form.blood_group(class="form-select") }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Height (cm)</label>
+            {{ form.height_cm(class="form-control", id="height_cm", placeholder="e.g. 175", type="number", step="0.1") }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Weight (kg)</label>
+            {{ form.weight_kg(class="form-control", id="weight_kg", placeholder="e.g. 70", type="number", step="0.1") }}
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Calculated BMI</label>
+            <div class="input-group">
+              <input type="text" id="bmi_display" class="form-control bg-light fw-bold" readonly placeholder="--">
+              <span id="bmi_category_badge" class="input-group-text bg-secondary text-white font-monospace">--</span>
+            </div>
+            <small class="form-text text-muted">Auto-calculated using $\text{weight} / (\text{height}/100)^2$</small>
+          </div>
+        </div>
+
+        <!-- Section 3: Emergency Contact & Insurance -->
+        <h5 class="fw-bold text-teal mb-3 pb-2 border-bottom" style="color: var(--primary-color);">
+          <i class="bi bi-hospital me-2"></i> 3. Emergency Contacts & Insurance
+        </h5>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Emergency Contact Name</label>
+            {{ form.emergency_contact_name(class="form-control", placeholder="Kin / Guardian Name") }}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Emergency Contact Mobile</label>
+            {{ form.emergency_contact_mobile(class="form-control", placeholder="+91-9876500000") }}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Insurance Provider Name</label>
+            {{ form.insurance_provider(class="form-control", placeholder="e.g. Star Health / Max Bupa") }}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Policy / TPA Card Number</label>
+            {{ form.insurance_policy_no(class="form-control", placeholder="e.g. POL-99887766") }}
+          </div>
+        </div>
+
+        <!-- Section 4: Clinical History & Allergies -->
+        <h5 class="fw-bold text-teal mb-3 pb-2 border-bottom" style="color: var(--primary-color);">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i> 4. Allergies & Medical History
+        </h5>
+
+        <div class="row g-3 mb-4">
+          <div class="col-12">
+            <label class="form-label fw-semibold">Known Allergies</label>
+            {{ form.allergies(class="form-control", placeholder="e.g. Penicillin, Peanuts, Sulfa drugs") }}
+            <small class="form-text text-muted">Separate multiple allergens with commas.</small>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Chronic Diseases / Medical History</label>
+            {{ form.chronic_diseases(class="form-control", rows="2", placeholder="Diabetes Type 2, Hypertension, Asthma...") }}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Vaccination Records</label>
+            {{ form.vaccination_records(class="form-control", rows="2", placeholder="COVID-19 Booster, Hepatitis B, Tetanus...") }}
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+          <a href="{{ url_for('patients.list_patients') }}" class="btn btn-outline-secondary px-4">Cancel</a>
+          <button type="submit" class="btn btn-primary-custom px-5" style="width: auto;">
+            <i class="bi bi-check-circle-fill me-2"></i> Register Patient Profile
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const heightInput = document.getElementById('height_cm');
+  const weightInput = document.getElementById('weight_kg');
+  const bmiDisplay = document.getElementById('bmi_display');
+  const bmiBadge = document.getElementById('bmi_category_badge');
+
+  function calculateBMI() {
+    const h = parseFloat(heightInput.value);
+    const w = parseFloat(weightInput.value);
+
+    if (h > 0 && w > 0) {
+      const heightMeters = h / 100.0;
+      const bmi = (w / (heightMeters * heightMeters)).toFixed(2);
+      bmiDisplay.value = bmi;
+
+      if (bmi < 18.5) {
+        bmiBadge.textContent = 'Underweight';
+        bmiBadge.className = 'input-group-text bg-info text-white font-monospace';
+      } else if (bmi >= 18.5 && bmi < 25.0) {
+        bmiBadge.textContent = 'Normal';
+        bmiBadge.className = 'input-group-text bg-success text-white font-monospace';
+      } else if (bmi >= 25.0 && bmi < 30.0) {
+        bmiBadge.textContent = 'Overweight';
+        bmiBadge.className = 'input-group-text bg-warning text-dark font-monospace';
+      } else {
+        bmiBadge.textContent = 'Obese';
+        bmiBadge.className = 'input-group-text bg-danger text-white font-monospace';
+      }
+    } else {
+      bmiDisplay.value = '--';
+      bmiBadge.textContent = '--';
+      bmiBadge.className = 'input-group-text bg-secondary text-white font-monospace';
+    }
+  }
+
+  if (heightInput && weightInput) {
+    heightInput.addEventListener('input', calculateBMI);
+    weightInput.addEventListener('input', calculateBMI);
+  }
+});
+</script>
+{% endblock %}

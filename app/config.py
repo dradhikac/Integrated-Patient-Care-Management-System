@@ -16,7 +16,9 @@ class Config:
     DB_NAME = os.environ.get('DB_NAME', 'ipcms_db')
 
     if DB_TYPE == 'mysql':
-        SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+        from urllib.parse import quote_plus
+        encoded_password = quote_plus(DB_PASSWORD)
+        SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USER}:{encoded_password}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     else:
         # SQLite local file
         basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
