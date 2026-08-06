@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}IPCMS - Integrated Patient Care Management System{% endblock %}</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{{ url_for('auth.dashboard') if current_user.is_authenticated else url_for('auth.login') }}">
+        <i class="bi bi-hospital"></i> IPCMS
+      </a>
+      
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      
+      <div class="collapse navbar-collapse" id="navbarMain">
+        {% if current_user.is_authenticated %}
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+          <li class="nav-item">
+            <a class="nav-link text-white fw-semibold" href="{{ url_for('auth.dashboard') }}">
+              <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+          </li>
+          
+          {% if current_user.role.name == 'Admin' %}
+          <li class="nav-item">
+            <a class="nav-link text-white-50" href="{{ url_for('auth.audit_logs') }}">
+              <i class="bi bi-journal-text"></i> Audit Logs
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+        
+        <div class="d-flex align-items-center gap-3 ms-auto">
+          <div class="text-end text-white">
+            <div class="fw-bold">{{ current_user.name }}</div>
+            <small class="badge 
+              {% if current_user.role.name == 'Admin' %}badge-role-admin
+              {% elif current_user.role.name == 'Receptionist' %}badge-role-receptionist
+              {% elif current_user.role.name == 'Doctor' %}badge-role-doctor
+              {% elif current_user.role.name == 'Lab Technician' %}badge-role-lab
+              {% else %}badge-role-patient{% endif %}">
+              {{ current_user.role.name }} ({{ current_user.user_code }})
+            </small>
+          </div>
+          <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm px-3">
+            <i class="bi bi-box-arrow-right"></i> Logout
+          </a>
+        </div>
+        {% else %}
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link text-white" href="{{ url_for('auth.login') }}">
+              <i class="bi bi-shield-lock"></i> Staff / Patient Login
+            </a>
+          </li>
+        </ul>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- Flash Messages -->
+  <div class="container mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi 
+              {% if category == 'success' %}bi-check-circle-fill
+              {% elif category == 'danger' %}bi-exclamation-triangle-fill
+              {% elif category == 'warning' %}bi-exclamation-circle-fill
+              {% else %}bi-info-circle-fill{% endif %} me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Content Block -->
+  {% block content %}{% endblock %}
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p class="mb-0">Integrated Patient Care Management System (IPCMS) &copy; 2026. Production Ready Healthcare Architecture.</p>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Custom JS -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

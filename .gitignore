@@ -1,0 +1,25 @@
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Local Environment & Database
+.env
+*.db
+*.sqlite
+*.sqlite3
+
+# Exclude docs directory from git (as requested)
+docs/
+
+# IDE & OS Junk
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
