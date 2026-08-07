@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Token Receipt - {{ check_in.token_no }}{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printableToken, #printableToken * {
+    visibility: visible;
+  }
+  #printableToken {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+.token-receipt-card {
+  max-width: 420px;
+  margin: 0 auto;
+  border: 2px dashed #0d9488;
+  background: #ffffff;
+  border-radius: 1.25rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <div class="text-center mb-4 no-print">
+    <button onclick="window.print()" class="btn btn-primary-custom px-4 py-2" style="width: auto;">
+      <i class="bi bi-printer-fill me-2"></i> Print Thermal Receipt Token
+    </button>
+    <a href="{{ url_for('reception.dashboard') }}" class="btn btn-outline-secondary px-4 py-2 ms-2">
+      <i class="bi bi-arrow-left me-1"></i> Return to Reception Desk
+    </a>
+  </div>
+
+  <div id="printableToken" class="token-receipt-card shadow-lg p-4 text-center">
+    <div class="mb-2">
+      <h4 class="fw-bold mb-0 text-teal" style="color: #0d9488;"><i class="bi bi-hospital me-1"></i> IPCMS HEALTHCARE</h4>
+      <small class="text-muted">Integrated Patient Care Management System</small>
+    </div>
+    
+    <hr class="my-2">
+    
+    <div class="py-2">
+      <small class="text-muted text-uppercase fw-bold letter-spacing-1 d-block">OPD QUEUE TOKEN NUMBER</small>
+      <div class="display-3 fw-bold my-1 text-teal" style="color: #0d9488;">{{ check_in.token_no }}</div>
+      <span class="badge 
+        {% if check_in.priority == 'Emergency' %}bg-danger
+        {% elif check_in.priority == 'Senior Citizen' %}bg-warning text-dark
+        {% else %}bg-secondary{% endif %} px-3 py-2 fs-6">
+        Priority: {{ check_in.priority }}
+      </span>
+    </div>
+
+    <hr class="my-2">
+
+    <div class="text-start bg-light p-3 rounded-3 mb-3 small">
+      <div class="d-flex justify-content-between mb-1">
+        <span class="text-muted">Patient Code:</span>
+        <strong class="font-monospace">{{ check_in.patient.patient_code }}</strong>
+      </div>
+      <div class="d-flex justify-content-between mb-1">
+        <span class="text-muted">Patient Name:</span>
+        <strong class="fw-bold">{{ check_in.patient.full_name }}</strong>
+      </div>
+      <div class="d-flex justify-content-between mb-1">
+        <span class="text-muted">Department:</span>
+        <strong class="fw-semibold">{{ check_in.department }}</strong>
+      </div>
+      <div class="d-flex justify-content-between mb-1">
+        <span class="text-muted">Assigned Doctor:</span>
+        <strong class="fw-bold text-dark">{{ check_in.doctor.name }}</strong>
+      </div>
+      <div class="d-flex justify-content-between mb-1">
+        <span class="text-muted">Check-In Time:</span>
+        <span>{{ check_in.check_in_time.strftime('%Y-%m-%d %I:%M %p') }}</span>
+      </div>
+      <div class="d-flex justify-content-between">
+        <span class="text-muted">Est. Wait Time:</span>
+        <strong class="text-primary">~{{ check_in.estimated_wait_minutes() }} Minutes</strong>
+      </div>
+    </div>
+
+    <div class="text-center">
+      <small class="text-muted d-block" style="font-size: 0.75rem;">Please watch the OPD display screen for your token call.</small>
+      <small class="text-muted font-monospace" style="font-size: 0.7rem;">Issued by: {{ check_in.checked_in_by.name }}</small>
+    </div>
+  </div>
+</div>
+{% endblock %}

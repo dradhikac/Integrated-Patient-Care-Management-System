@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+{% block title %}Receptionist Operational Desk - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <!-- Header Bar -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-person-workspace text-primary me-2"></i> Receptionist Operational Desk</h3>
+      <p class="text-muted mb-0">Module 3 — Patient check-in, OPD queue management & token receipt issuing</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('patients.register_patient') }}" class="btn btn-outline-success">
+        <i class="bi bi-person-plus-fill me-1"></i> New Walk-In Patient Registration
+      </a>
+      <a href="{{ url_for('patients.list_patients') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-folder-fill me-1"></i> Patient Directory
+      </a>
+    </div>
+  </div>
+
+  <!-- Operational Stats Summary Cards -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-3">
+      <div class="metric-card border-primary">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="metric-label">Checked-In Today</span>
+          <i class="bi bi-person-check-fill text-primary fs-3"></i>
+        </div>
+        <div class="metric-value">{{ count_total }}</div>
+        <small class="text-muted">Total intake for today's shift</small>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="metric-card border-warning">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="metric-label">Waiting in Queue</span>
+          <i class="bi bi-hourglass-split text-warning fs-3"></i>
+        </div>
+        <div class="metric-value text-warning">{{ count_waiting }}</div>
+        <small class="text-muted">Awaiting doctor consultation</small>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="metric-card border-info">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="metric-label">In Consultation</span>
+          <i class="bi bi-stethoscope text-info fs-3"></i>
+        </div>
+        <div class="metric-value text-info">{{ count_consulting }}</div>
+        <small class="text-muted">Currently inside doctor's cabin</small>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="metric-card border-success">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="metric-label">Completed Visits</span>
+          <i class="bi bi-check-circle-fill text-success fs-3"></i>
+        </div>
+        <div class="metric-value text-success">{{ count_completed }}</div>
+        <small class="text-muted">Consultation finished</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Patient Search & Check-in Intake Card -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white py-3">
+      <h5 class="card-title fw-bold mb-0 text-primary">
+        <i class="bi bi-search me-2"></i> Patient Quick Check-In Lookup
+      </h5>
+    </div>
+    <div class="card-body">
+      <form method="GET" action="{{ url_for('reception.dashboard') }}" class="row g-2 mb-3">
+        <div class="col-md-9">
+          <div class="input-group">
+            <span class="input-group-text bg-white"><i class="bi bi-person-bounding-box text-muted"></i></span>
+            <input type="text" name="q" value="{{ search_q }}" class="form-control" placeholder="Search by Patient Code (IPCMS-2026-...), Name, or Mobile Number to Check In...">
+          </div>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+          <button type="submit" class="btn btn-primary-custom w-100 py-2">Search Patient</button>
+          {% if search_q %}
+          <a href="{{ url_for('reception.dashboard') }}" class="btn btn-outline-secondary py-2">Clear</a>
+          {% endif %}
+        </div>
+      </form>
+
+      <!-- Search Results Dropdown/List -->
+      {% if searched_patients %}
+      <div class="table-responsive border rounded-3">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Patient Code</th>
+              <th>Full Name</th>
+              <th>Gender / DOB</th>
+              <th>Mobile</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in searched_patients %}
+            <tr>
+              <td><span class="badge bg-dark font-monospace">{{ p.patient_code }}</span></td>
+              <td class="fw-bold">{{ p.full_name }}</td>
+              <td>{{ p.gender }} | {{ p.dob.strftime('%Y-%m-%d') }}</td>
+              <td><code>{{ p.mobile }}</code></td>
+              <td class="text-end">
+                <a href="{{ url_for('reception.check_in', patient_id=p.id) }}" class="btn btn-sm btn-success fw-bold px-3">
+                  <i class="bi bi-arrow-right-circle-fill me-1"></i> Check-In Now
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% elif search_q %}
+      <div class="alert alert-info mb-0">
+        <i class="bi bi-info-circle me-2"></i> No patient found matching "{{ search_q }}". 
+        <a href="{{ url_for('patients.register_patient') }}" class="fw-bold text-decoration-underline">Register new walk-in patient?</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Today's Queue Management Table -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <h5 class="card-title fw-bold mb-0 text-primary">
+        <i class="bi bi-list-ol me-2"></i> Today's Active OPD Queue
+      </h5>
+      <span class="badge bg-primary px-3 py-2">Live Token List</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table custom-table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Token No</th>
+            <th>Patient ID & Name</th>
+            <th>Assigned Doctor</th>
+            <th>Department</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Check-in Time</th>
+            <th>Est. Wait</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in today_check_ins %}
+          <tr>
+            <td>
+              <span class="badge bg-primary fs-6 font-monospace py-2 px-3">{{ c.token_no }}</span>
+            </td>
+            <td>
+              <div class="fw-bold">{{ c.patient.full_name }}</div>
+              <small class="text-muted font-monospace">{{ c.patient.patient_code }} | <code>{{ c.patient.mobile }}</code></small>
+            </td>
+            <td>
+              <div class="fw-semibold text-dark">{{ c.doctor.name }}</div>
+              <small class="text-muted">{{ c.doctor.user_code }}</small>
+            </td>
+            <td><small class="fw-semibold text-secondary">{{ c.department }}</small></td>
+            <td>
+              {% if c.priority == 'Emergency' %}
+                <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> Emergency</span>
+              {% elif c.priority == 'Senior Citizen' %}
+                <span class="badge bg-warning text-dark"><i class="bi bi-person-heart me-1"></i> Senior Citizen</span>
+              {% elif c.priority == 'Pregnant Woman' %}
+                <span class="badge bg-purple text-white" style="background-color: #8b5cf6;"><i class="bi bi-heart-fill me-1"></i> Pregnant</span>
+              {% elif c.priority == 'Child' %}
+                <span class="badge bg-info text-dark"><i class="bi bi-emoji-smile me-1"></i> Child</span>
+              {% else %}
+                <span class="badge bg-secondary">Regular</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if c.status == 'WAITING' %}
+                <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-clock-history me-1"></i> Waiting</span>
+              {% elif c.status == 'IN_CONSULTATION' %}
+                <span class="badge bg-info text-dark px-3 py-2"><i class="bi bi-stethoscope me-1"></i> In Cabin</span>
+              {% elif c.status == 'COMPLETED' %}
+                <span class="badge bg-success px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i> Completed</span>
+              {% else %}
+                <span class="badge bg-danger px-3 py-2"><i class="bi bi-x-circle-fill me-1"></i> {{ c.status }}</span>
+              {% endif %}
+            </td>
+            <td><small class="text-muted fw-semibold">{{ c.check_in_time.strftime('%I:%M %p') }}</small></td>
+            <td>
+              {% if c.status == 'WAITING' %}
+                <small class="fw-bold text-primary">~{{ c.estimated_wait_minutes() }} mins</small>
+              {% else %}
+                <small class="text-muted">--</small>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <div class="d-inline-flex gap-1">
+                <a href="{{ url_for('reception.print_token', check_in_id=c.id) }}" class="btn btn-sm btn-outline-dark" title="Print Token Receipt">
+                  <i class="bi bi-printer-fill"></i> Token
+                </a>
+                
+                <!-- Change Status Dropdown -->
+                <div class="dropdown d-inline-block">
+                  <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    Status
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    <li>
+                      <form method="POST" action="{{ url_for('reception.update_status', check_in_id=c.id) }}">
+                        <input type="hidden" name="status" value="WAITING">
+                        <button type="submit" class="dropdown-item">Set Waiting</button>
+                      </form>
+                    </li>
+                    <li>
+                      <form method="POST" action="{{ url_for('reception.update_status', check_in_id=c.id) }}">
+                        <input type="hidden" name="status" value="IN_CONSULTATION">
+                        <button type="submit" class="dropdown-item">Call into Cabin</button>
+                      </form>
+                    </li>
+                    <li>
+                      <form method="POST" action="{{ url_for('reception.update_status', check_in_id=c.id) }}">
+                        <input type="hidden" name="status" value="COMPLETED">
+                        <button type="submit" class="dropdown-item text-success">Mark Completed</button>
+                      </form>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <form method="POST" action="{{ url_for('reception.update_status', check_in_id=c.id) }}">
+                        <input type="hidden" name="status" value="NO_SHOW">
+                        <button type="submit" class="dropdown-item text-danger">Mark No-Show</button>
+                      </form>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="9" class="text-center py-5 text-muted">
+              <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+              No check-in queue tokens issued today. Use the lookup bar above to check in a patient.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
