@@ -34,6 +34,14 @@
               <i class="bi bi-speedometer2"></i> Dashboard
             </a>
           </li>
+          {% if current_user.role.name in ['Admin', 'Receptionist'] %}
+          <li class="nav-item">
+            <a class="nav-link text-white fw-semibold" href="{{ url_for('reception.dashboard') }}">
+              <i class="bi bi-person-workspace"></i> Reception Desk
+            </a>
+          </li>
+          {% endif %}
+          
           {% if current_user.role.name in ['Admin', 'Receptionist', 'Doctor', 'Lab Technician'] %}
           <li class="nav-item">
             <a class="nav-link text-white fw-semibold" href="{{ url_for('patients.list_patients') }}">
@@ -41,6 +49,12 @@
             </a>
           </li>
           {% endif %}
+
+          <li class="nav-item">
+            <a class="nav-link text-white fw-semibold" href="{{ url_for('appointments.list_appointments') }}">
+              <i class="bi bi-calendar-event"></i> Appointments
+            </a>
+          </li>
           
           {% if current_user.role.name == 'Admin' %}
           <li class="nav-item">

@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Shift Availability & Holidays Manager - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-gear-fill text-teal me-2" style="color: var(--primary-color);"></i> Shift Availability & Holiday Manager</h3>
+      <p class="text-muted mb-0">Configure doctor weekly shift schedules, slot durations, and hospital holiday blackouts</p>
+    </div>
+    <a href="{{ url_for('appointments.list_appointments') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-calendar-event me-1"></i> View Appointments
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <!-- Doctor Shift Availability Form -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-white py-3">
+          <h5 class="card-title fw-bold mb-0 text-primary"><i class="bi bi-clock-history me-2"></i> Configure Doctor Weekly Shift</h5>
+        </div>
+        <div class="card-body p-4">
+          <form method="POST" action="{{ url_for('appointments.schedule') }}">
+            {{ avail_form.csrf_token }}
+            <input type="hidden" name="submit_availability" value="1">
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Doctor</label>
+              <select name="doctor_id" class="form-select" required>
+                {% for d in doctors %}
+                <option value="{{ d.id }}">{{ d.name }} ({{ d.user_code }})</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Day of Week</label>
+              {{ avail_form.day_of_week(class="form-select") }}
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label fw-semibold">Shift Start</label>
+                {{ avail_form.start_time(class="form-control", type="time") }}
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Shift End</label>
+                {{ avail_form.end_time(class="form-control", type="time") }}
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Slot Duration (Minutes)</label>
+              {{ avail_form.slot_duration_minutes(class="form-control", type="number") }}
+            </div>
+
+            <button type="submit" class="btn btn-primary-custom w-100 py-2 fw-bold">
+              <i class="bi bi-check-circle-fill me-2"></i> Save Availability Schedule
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Existing Availability Table -->
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white py-3">
+          <h6 class="card-title fw-bold mb-0">Active Doctor Schedules</h6>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Doctor</th>
+                <th>Day</th>
+                <th>Shift Time</th>
+                <th>Slot</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in availabilities %}
+              <tr>
+                <td class="fw-bold">{{ a.doctor.name }}</td>
+                <td><span class="badge bg-secondary">{{ a.day_name() }}</span></td>
+                <td><small>{{ a.start_time.strftime('%I:%M %p') }} - {{ a.end_time.strftime('%I:%M %p') }}</small></td>
+                <td><code>{{ a.slot_duration_minutes }}m</code></td>
+              </tr>
+              {% else %}
+              <tr><td colspan="4" class="text-center py-3 text-muted">No custom shift schedules saved yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hospital Holiday Manager Form -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-white py-3">
+          <h5 class="card-title fw-bold mb-0 text-danger"><i class="bi bi-calendar-x me-2"></i> Add Hospital Holiday Blackout</h5>
+        </div>
+        <div class="card-body p-4">
+          <form method="POST" action="{{ url_for('appointments.schedule') }}">
+            {{ holiday_form.csrf_token }}
+            <input type="hidden" name="submit_holiday" value="1">
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Holiday Date</label>
+              {{ holiday_form.holiday_date(class="form-control", type="date") }}
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Holiday Reason / Event Name</label>
+              {{ holiday_form.description(class="form-control", placeholder="e.g. Independence Day, Annual Maintenance") }}
+            </div>
+
+            <button type="submit" class="btn btn-danger w-100 py-2 fw-bold">
+              <i class="bi bi-plus-circle me-2"></i> Add Holiday Blackout
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Existing Holidays Table -->
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white py-3">
+          <h6 class="card-title fw-bold mb-0">Configured Hospital Holidays</h6>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Date</th>
+                <th>Reason / Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for h in holidays %}
+              <tr>
+                <td><span class="badge bg-danger font-monospace">{{ h.holiday_date.strftime('%Y-%m-%d') }}</span></td>
+                <td class="fw-semibold">{{ h.description }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="2" class="text-center py-3 text-muted">No hospital holiday blackouts configured.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

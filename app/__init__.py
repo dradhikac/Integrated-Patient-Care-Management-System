@@ -19,10 +19,12 @@ def create_app(config_class=Config):
     from app.auth.routes import auth_bp
     from app.patients.routes import patients_bp
     from app.reception.routes import reception_bp
+    from app.appointments.routes import appointments_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(patients_bp)
     app.register_blueprint(reception_bp)
+    app.register_blueprint(appointments_bp)
 
     # CLI Command to seed database roles and demo users
     @app.cli.command("seed-db")
@@ -31,6 +33,7 @@ def create_app(config_class=Config):
         from app.auth.models import Role, User
         from app.patients.models import Patient, PatientMedicalHistory, PatientAllergy
         from app.reception.models import CheckIn
+        from app.appointments.models import DoctorAvailability, Holiday, Appointment, Waitlist
 
         db.create_all()
 

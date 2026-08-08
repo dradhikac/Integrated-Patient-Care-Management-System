@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Book Appointment - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-calendar-plus-fill text-teal me-2" style="color: var(--primary-color);"></i> Smart Appointment Booking</h3>
+      <p class="text-muted mb-0">Module 4 — Unified booking pool, emergency slot reservation, and auto-waitlist promotion</p>
+    </div>
+    <a href="{{ url_for('appointments.list_appointments') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-calendar-event me-1"></i> View Appointments
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Booking Form -->
+    <div class="col-md-5">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white py-3">
+          <h5 class="card-title fw-bold mb-0 text-teal" style="color: var(--primary-color);">
+            <i class="bi bi-sliders me-2"></i> Select Doctor & Date
+          </h5>
+        </div>
+        <div class="card-body p-4">
+          <form method="GET" action="{{ url_for('appointments.book_appointment') }}" id="filterForm" class="mb-4">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Consulting Doctor</label>
+              <select name="doctor_id" class="form-select" onchange="document.getElementById('filterForm').submit()">
+                {% for d in doctors %}
+                <option value="{{ d.id }}" {% if d.id == selected_doc_id %}selected{% endif %}>{{ d.name }} ({{ d.user_code }})</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Target Appointment Date</label>
+              <input type="date" name="date" value="{{ selected_date.strftime('%Y-%m-%d') }}" class="form-control" onchange="document.getElementById('filterForm').submit()">
+            </div>
+          </form>
+
+          <hr>
+
+          <form method="POST" action="{{ url_for('appointments.book_appointment', doctor_id=selected_doc_id, date=selected_date.strftime('%Y-%m-%d')) }}">
+            {{ form.csrf_token }}
+
+            <input type="hidden" name="doctor_id" value="{{ selected_doc_id }}">
+            <input type="hidden" name="appointment_date" value="{{ selected_date.strftime('%Y-%m-%d') }}">
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Select Patient <span class="text-danger">*</span></label>
+              {{ form.patient_id(class="form-select") }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Chosen Slot Time <span class="text-danger">*</span></label>
+              {{ form.slot_time(class="form-control font-monospace fw-bold", id="selected_slot_input", readonly=True, placeholder="Click a slot pill on the right...") }}
+              {% for err in form.slot_time.errors %}<div class="invalid-feedback d-block">{{ err }}</div>{% endfor %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Booking Channel</label>
+              {{ form.booking_type(class="form-select") }}
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Chief Complaints / Notes</label>
+              {{ form.notes(class="form-control", rows="2", placeholder="Symptoms e.g. Fever, Cough for 2 days...") }}
+            </div>
+
+            <button type="submit" class="btn btn-primary-custom w-100 py-3 fw-bold" id="submitBookBtn" disabled>
+              <i class="bi bi-check-circle-fill me-2"></i> Confirm Appointment Booking
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Interactive Slot Generator Pills -->
+    <div class="col-md-7">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+          <h5 class="card-title fw-bold mb-0 text-teal" style="color: var(--primary-color);">
+            <i class="bi bi-grid-3x3-gap-fill me-2"></i> Available Time Slot Pool
+          </h5>
+          <span class="badge bg-dark">{{ selected_date.strftime('%d %b %Y') }}</span>
+        </div>
+        <div class="card-body p-4">
+          {% if slot_info.is_holiday %}
+          <div class="alert alert-danger p-4 rounded-3 text-center">
+            <i class="bi bi-calendar-x fs-1 d-block mb-2 text-danger"></i>
+            <h5 class="fw-bold">Hospital Holiday Notice</h5>
+            <p class="mb-0">{{ slot_info.holiday_reason }}</p>
+          </div>
+          {% elif not slot_info.slots %}
+          <div class="alert alert-secondary p-4 rounded-3 text-center">
+            <i class="bi bi-slash-circle fs-1 d-block mb-2 text-secondary"></i>
+            <h5 class="fw-bold">No Availability Configured</h5>
+            <p class="mb-0">Doctor is not available on this day or no shift schedule was set.</p>
+          </div>
+          {% else %}
+          
+          <div class="d-flex flex-wrap gap-2 mb-4">
+            <small class="me-3"><span class="badge bg-success-subtle text-success border border-success me-1">Available</span> Available</small>
+            <small class="me-3"><span class="badge bg-secondary me-1">Booked</span> Booked</small>
+            <small class="me-3"><span class="badge bg-warning-subtle text-dark border border-warning me-1">Emergency</span> Emergency Reserved</small>
+            <small><span class="badge bg-light text-muted border me-1">Past</span> Past</small>
+          </div>
+
+          <div class="row g-2">
+            {% for s in slot_info.slots %}
+            <div class="col-6 col-sm-4 col-md-3">
+              {% if s.is_available %}
+              <button type="button" class="btn btn-outline-success w-100 py-2 font-monospace slot-pill" data-slot="{{ s.time.strftime('%H:%M:%S') }}" data-display="{{ s.time_str }}">
+                <i class="bi bi-clock me-1"></i> {{ s.time_str }}
+              </button>
+              {% elif s.reason == 'Emergency Held' %}
+              <button type="button" class="btn btn-warning text-dark w-100 py-2 font-monospace disabled opacity-75" title="Held for Emergency Intake">
+                <i class="bi bi-shield-exclamation"></i> {{ s.time_str }}
+              </button>
+              {% elif s.reason == 'Booked' %}
+              <button type="button" class="btn btn-secondary w-100 py-2 font-monospace disabled" title="Already Booked">
+                <i class="bi bi-lock-fill"></i> {{ s.time_str }}
+              </button>
+              {% else %}
+              <button type="button" class="btn btn-light text-muted w-100 py-2 font-monospace disabled">
+                {{ s.time_str }}
+              </button>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <!-- Waitlist Alert Option -->
+          <div class="mt-4 p-3 bg-light rounded-3 border">
+            <h6 class="fw-bold mb-1"><i class="bi bi-hourglass-bottom me-1 text-primary"></i> Can't find a suitable slot?</h6>
+            <small class="text-muted d-block mb-2">Join Doctor Waitlist to get auto-promoted when a cancellation occurs.</small>
+            <form method="POST" action="{{ url_for('appointments.add_to_waitlist') }}">
+              <input type="hidden" name="patient_id" value="{{ form.patient_id.data }}">
+              <input type="hidden" name="doctor_id" value="{{ selected_doc_id }}">
+              <input type="hidden" name="preferred_date" value="{{ selected_date.strftime('%Y-%m-%d') }}">
+              <button type="submit" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-person-plus me-1"></i> Join Doctor Waitlist
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const slotPills = document.querySelectorAll('.slot-pill');
+  const slotInput = document.getElementById('selected_slot_input');
+  const submitBtn = document.getElementById('submitBookBtn');
+
+  slotPills.forEach(pill => {
+    pill.addEventListener('click', function() {
+      slotPills.forEach(p => p.classList.remove('btn-success', 'text-white', 'active'));
+      slotPills.forEach(p => p.classList.add('btn-outline-success'));
+
+      this.classList.remove('btn-outline-success');
+      this.classList.add('btn-success', 'text-white', 'active');
+
+      const rawSlot = this.getAttribute('data-slot');
+      slotInput.value = rawSlot;
+      submitBtn.disabled = false;
+    });
+  });
+});
+</script>
+{% endblock %}
