@@ -21,12 +21,14 @@ def create_app(config_class=Config):
     from app.reception.routes import reception_bp
     from app.appointments.routes import appointments_bp
     from app.queue_mgmt.routes import queue_bp
+    from app.ehr.routes import ehr_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(patients_bp)
     app.register_blueprint(reception_bp)
     app.register_blueprint(appointments_bp)
     app.register_blueprint(queue_bp)
+    app.register_blueprint(ehr_bp)
 
     # CLI Command to seed database roles and demo users
     @app.cli.command("seed-db")

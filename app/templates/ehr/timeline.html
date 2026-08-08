@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}EHR Timeline - {{ patient.patient_code }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* EHR Vertical Timeline CSS */
+.timeline-container {
+  position: relative;
+  padding-left: 2.5rem;
+}
+.timeline-container::before {
+  content: '';
+  position: absolute;
+  left: 1rem;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #e2e8f0;
+  border-radius: 2px;
+}
+.timeline-item {
+  position: relative;
+  margin-bottom: 2rem;
+}
+.timeline-icon-badge {
+  position: absolute;
+  left: -2.5rem;
+  top: 0;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  z-index: 2;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <!-- Header Bar -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="badge bg-dark font-monospace fs-5 px-3 py-2">{{ patient.patient_code }}</span>
+        <h3 class="fw-bold mb-0"><i class="bi bi-file-earmark-medical-fill text-teal me-2" style="color: var(--primary-color);"></i> Electronic Health Record (EHR)</h3>
+        {% if patient.blood_group %}
+        <span class="badge bg-danger fs-6 rounded-pill px-3">{{ patient.blood_group }}</span>
+        {% endif %}
+      </div>
+      <p class="text-muted mb-0">360-Degree Searchable Patient Timeline — {{ patient.full_name }} ({{ patient.gender }}, DOB: {{ patient.dob.strftime('%Y-%m-%d') }})</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('patients.view_patient', patient_id=patient.id) }}" class="btn btn-outline-secondary">
+        <i class="bi bi-person-badge-fill me-1"></i> Patient Demographics Profile
+      </a>
+    </div>
+  </div>
+
+  <!-- Search & Filter Controls Card -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-3">
+      <form method="GET" action="{{ url_for('ehr.patient_timeline', patient_id=patient.id) }}" class="row g-2">
+        <div class="col-md-7">
+          <div class="input-group">
+            <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" name="q" value="{{ search_q }}" class="form-control" placeholder="Search timeline by diagnosis, medicine, doctor, or keyword...">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select name="type" class="form-select" onchange="this.form.submit()">
+            <option value="ALL" {% if event_filter == 'ALL' %}selected{% endif %}>All Timeline Events</option>
+            <option value="REGISTRATION" {% if event_filter == 'REGISTRATION' %}selected{% endif %}>Registration Intake</option>
+            <option value="CHECK_IN" {% if event_filter == 'CHECK_IN' %}selected{% endif %}>OPD Check-Ins</option>
+            <option value="APPOINTMENT" {% if event_filter == 'APPOINTMENT' %}selected{% endif %}>Appointments</option>
+          </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-primary-custom w-100 py-2">Filter</button>
+          {% if search_q or event_filter != 'ALL' %}
+          <a href="{{ url_for('ehr.patient_timeline', patient_id=patient.id) }}" class="btn btn-outline-secondary py-2">Clear</a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Vertical Timeline View -->
+  <div class="card border-0 shadow-sm rounded-4 p-4">
+    <div class="timeline-container">
+      {% for event in events %}
+      <div class="timeline-item">
+        <!-- Icon Badge -->
+        <div class="timeline-icon-badge bg-{{ event.badge_color if event.badge_color != 'teal' else 'primary' }}">
+          <i class="bi {{ event.icon_class }}"></i>
+        </div>
+
+        <!-- Event Card -->
+        <div class="card border-0 shadow-sm bg-light rounded-4 overflow-hidden">
+          <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold mb-0 text-dark">{{ event.title }}</h6>
+            <small class="badge bg-secondary font-monospace">{{ event.date_str }}</small>
+          </div>
+          <div class="card-body">
+            <p class="fw-semibold text-secondary mb-2">{{ event.summary }}</p>
+            <small class="text-muted d-block mb-3">Logged by: <strong>{{ event.actor }}</strong></small>
+
+            {% if event.details %}
+            <div class="p-3 bg-white border rounded-3 small">
+              <div class="row g-2">
+                {% for k, v in event.details.items() %}
+                <div class="col-md-6">
+                  <span class="text-muted fw-semibold">{{ k }}:</span>
+                  <span class="fw-bold text-dark me-2">{{ v }}</span>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-clock-history fs-1 d-block mb-2 text-secondary"></i>
+        No matching events found in patient EHR timeline.
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
