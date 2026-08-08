@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}Doctor OPD Queue Manager - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-stethoscope text-success me-2"></i> Doctor OPD Consultation Desk</h3>
+      <p class="text-muted mb-0">Module 5 — Live priority queue, rolling consultation duration timer, and patient call control</p>
+    </div>
+    <a href="{{ url_for('queue.public_display_board') }}" target="_blank" class="btn btn-outline-info">
+      <i class="bi bi-display-fill me-1"></i> Open Public TV Display Board
+    </a>
+  </div>
+
+  <!-- Operational Metrics Cards -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="metric-card border-info">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="metric-label">Rolling Avg Duration</span>
+          <i class="bi bi-stopwatch-fill text-info fs-3"></i>
+        </div>
+        <div class="metric-value text-info">{{ rolling_avg }} <small class="fs-6 text-muted">mins/patient</small></div>
+        <small class="text-muted">Calculated from today's completed visits</small>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="metric-card border-warning">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="metric-label">Priority Queue Length</span>
+          <i class="bi bi-people-fill text-warning fs-3"></i>
+        </div>
+        <div class="metric-value text-warning">{{ priority_queue|length }}</div>
+        <small class="text-muted">Patients waiting outside cabin</small>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="metric-card border-success">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="metric-label">Completed Consultations</span>
+          <i class="bi bi-check-circle-fill text-success fs-3"></i>
+        </div>
+        <div class="metric-value text-success">{{ completed_count }}</div>
+        <small class="text-muted">Finished today</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Currently In Cabin Patient -->
+    <div class="col-md-5">
+      <div class="card border-info shadow-sm rounded-4 h-100">
+        <div class="card-header bg-info text-dark py-3">
+          <h5 class="card-title fw-bold mb-0"><i class="bi bi-door-open-fill me-2"></i> Currently Inside Cabin</h5>
+        </div>
+        <div class="card-body p-4 text-center">
+          {% if current_patient %}
+          <span class="badge bg-dark font-monospace fs-3 px-4 py-2 mb-3">{{ current_patient.token_no }}</span>
+          
+          <h4 class="fw-bold mb-1">{{ current_patient.patient.full_name }}</h4>
+          <small class="text-muted d-block mb-3">
+            {{ current_patient.patient.patient_code }} | {{ current_patient.patient.gender }} | DOB: {{ current_patient.patient.dob.strftime('%Y-%m-%d') }}
+          </small>
+
+          {% if current_patient.patient.blood_group %}
+          <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 mb-3 fs-6">
+            Blood Group: {{ current_patient.patient.blood_group }}
+          </span>
+          {% endif %}
+
+          <div class="p-3 bg-light rounded-3 text-start small mb-4">
+            <div class="mb-1"><strong>Known Allergies:</strong> 
+              {% for a in current_patient.patient.allergies %}
+              <span class="badge bg-danger text-white me-1">{{ a.allergen }}</span>
+              {% else %}
+              <span class="text-muted">None</span>
+              {% endfor %}
+            </div>
+            <div><strong>Mobile:</strong> <code>{{ current_patient.patient.mobile }}</code></div>
+            <div><strong>Priority Tier:</strong> <span class="fw-bold text-primary">{{ current_patient.priority }}</span></div>
+            <div><strong>Called Time:</strong> {{ current_patient.called_time.strftime('%I:%M %p') if current_patient.called_time else '--' }}</div>
+          </div>
+
+          <div class="d-grid gap-2">
+            <form method="POST" action="{{ url_for('reception.update_status', check_in_id=current_patient.id) }}">
+              <input type="hidden" name="status" value="COMPLETED">
+              <button type="submit" class="btn btn-success w-100 py-3 fw-bold">
+                <i class="bi bi-check-circle-fill me-2"></i> Finish Consultation & Mark Complete
+              </button>
+            </form>
+          </div>
+          {% else %}
+          <div class="py-5 text-muted">
+            <i class="bi bi-person-slash fs-1 d-block mb-2 text-secondary"></i>
+            No patient currently in cabin. Call the next priority patient from the queue.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Priority Queue List -->
+    <div class="col-md-7">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+          <h5 class="card-title fw-bold mb-0 text-primary"><i class="bi bi-funnel-fill me-2"></i> Priority Sorted Waiting Queue</h5>
+          <small class="text-muted">Emergency ➔ Senior ➔ Pregnant ➔ Child ➔ Regular</small>
+        </div>
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush">
+            {% for item in priority_queue %}
+            <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
+              <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <span class="badge bg-primary font-monospace fs-6">{{ item.token_no }}</span>
+                  <strong class="fs-6">{{ item.patient.full_name }}</strong>
+                  {% if item.priority == 'Emergency' %}
+                    <span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill"></i> Emergency</span>
+                  {% elif item.priority == 'Senior Citizen' %}
+                    <span class="badge bg-warning text-dark"><i class="bi bi-person-heart"></i> Senior</span>
+                  {% elif item.priority == 'Pregnant Woman' %}
+                    <span class="badge bg-purple text-white" style="background-color: #8b5cf6;"><i class="bi bi-heart-fill"></i> Pregnant</span>
+                  {% elif item.priority == 'Child' %}
+                    <span class="badge bg-info text-dark">Child</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Regular</span>
+                  {% endif %}
+                </div>
+                <small class="text-muted font-monospace">{{ item.patient.patient_code }} | Check-in: {{ item.check_in_time.strftime('%I:%M %p') }}</small>
+              </div>
+
+              <div class="d-flex gap-2">
+                <form method="POST" action="{{ url_for('reception.update_status', check_in_id=item.id) }}">
+                  <input type="hidden" name="status" value="IN_CONSULTATION">
+                  <button type="submit" class="btn btn-sm btn-primary fw-bold px-3">
+                    <i class="bi bi-door-open-fill me-1"></i> Call into Cabin
+                  </button>
+                </form>
+
+                <form method="POST" action="{{ url_for('reception.update_status', check_in_id=item.id) }}">
+                  <input type="hidden" name="status" value="NO_SHOW">
+                  <button type="submit" class="btn btn-sm btn-outline-danger" title="Mark No-Show">
+                    <i class="bi bi-person-x-fill"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+              <i class="bi bi-emoji-smile fs-1 d-block mb-2 text-secondary"></i>
+              No waiting patients in queue.
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
