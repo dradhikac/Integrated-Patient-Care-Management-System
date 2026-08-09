@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Consultation Record - {{ consultation.consultation_code }}{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container" style="max-width: 900px;">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="badge bg-dark font-monospace fs-5 px-3 py-2">{{ consultation.consultation_code }}</span>
+        <h3 class="fw-bold mb-0">Clinical Consultation Record</h3>
+      </div>
+      <p class="text-muted mb-0">Date: {{ consultation.created_at.strftime('%d %B %Y, %I:%M %p') }} | Doctor: {{ consultation.doctor.name }}</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('consultations.list_consultations') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Directory
+      </a>
+      <a href="{{ url_for('ehr.patient_timeline', patient_id=consultation.patient_id) }}" class="btn btn-outline-primary">
+        <i class="bi bi-clock-history me-1"></i> Patient EHR
+      </a>
+    </div>
+  </div>
+
+  <!-- Patient & Vitals Summary Card -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white py-3 border-bottom">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center fw-bold fs-4" style="width: 50px; height: 50px;">
+            {{ consultation.patient.first_name[0] }}{{ consultation.patient.last_name[0] }}
+          </div>
+          <div>
+            <h5 class="fw-bold mb-0">{{ consultation.patient.full_name }}</h5>
+            <small class="text-muted">{{ consultation.patient.patient_code }} | {{ consultation.patient.gender }} | DOB: {{ consultation.patient.dob.strftime('%Y-%m-%d') }}</small>
+          </div>
+        </div>
+        {% if consultation.patient.blood_group %}
+        <span class="badge bg-danger fs-6 rounded-pill px-3">{{ consultation.patient.blood_group }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Vitals Display -->
+    {% if consultation.vital %}
+    <div class="card-body bg-light p-3 border-bottom">
+      <div class="row text-center g-2">
+        <div class="col-3">
+          <small class="text-muted d-block fw-bold">Blood Pressure</small>
+          <span class="fw-bold fs-6 text-primary">{{ consultation.vital.get_bp_string() }}</span>
+        </div>
+        <div class="col-3">
+          <small class="text-muted d-block fw-bold">Temperature</small>
+          <span class="fw-bold fs-6">{{ consultation.vital.temperature_f or '--' }} °F</span>
+        </div>
+        <div class="col-3">
+          <small class="text-muted d-block fw-bold">Pulse Rate</small>
+          <span class="fw-bold fs-6">{{ consultation.vital.pulse_bpm or '--' }} bpm</span>
+        </div>
+        <div class="col-3">
+          <small class="text-muted d-block fw-bold">SpO2 Saturation</small>
+          <span class="fw-bold fs-6 text-success">{{ consultation.vital.spo2_percent or '--' }} %</span>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="card-body p-4">
+      <div class="mb-4">
+        <h6 class="fw-bold text-success text-uppercase small letter-spacing-1 mb-2">Chief Complaints / Presenting Symptoms</h6>
+        <p class="fs-6 fw-semibold text-dark bg-light p-3 rounded-3">{{ consultation.symptoms }}</p>
+      </div>
+
+      <div class="mb-4">
+        <h6 class="fw-bold text-success text-uppercase small letter-spacing-1 mb-2">Primary Clinical Diagnosis</h6>
+        <div class="alert alert-success border-start border-4 border-success p-3 rounded-3 fs-5 fw-bold mb-0">
+          <i class="bi bi-file-earmark-medical me-2"></i> {{ consultation.diagnosis }}
+        </div>
+      </div>
+
+      {% if consultation.treatment_plan %}
+      <div class="mb-4">
+        <h6 class="fw-bold text-success text-uppercase small letter-spacing-1 mb-2">Treatment Plan & Clinical Advice</h6>
+        <p class="text-dark bg-light p-3 rounded-3">{{ consultation.treatment_plan }}</p>
+      </div>
+      {% endif %}
+
+      {% if consultation.notes and current_user.role.name in ['Admin', 'Doctor'] %}
+      <div class="mb-3">
+        <h6 class="fw-bold text-secondary text-uppercase small letter-spacing-1 mb-2">Doctor Clinical Notes (Private)</h6>
+        <p class="text-muted small bg-light p-3 rounded-3 border">{{ consultation.notes }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

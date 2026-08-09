@@ -78,6 +78,30 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
             }
         })
 
+    # 4. Clinical Consultations & Vitals
+    from app.consultations.models import Consultation
+    consultations = Consultation.query.filter_by(patient_id=patient_id).all()
+    for cns in consultations:
+        vitals_summary = cns.vital.get_vitals_summary() if cns.vital else "Vitals not recorded"
+        events.append({
+            'event_type': 'CONSULTATION',
+            'title': f"Clinical Consultation — {cns.consultation_code}",
+            'timestamp': cns.created_at,
+            'date_str': cns.created_at.strftime('%d %b %Y, %I:%M %p'),
+            'badge_color': 'success',
+            'icon_class': 'bi-stethoscope',
+            'actor': cns.doctor.name,
+            'summary': f"Diagnosis: {cns.diagnosis} | Symptoms: {cns.symptoms[:60]}...",
+            'details': {
+                'Consultation Code': cns.consultation_code,
+                'Doctor': cns.doctor.name,
+                'Symptoms': cns.symptoms,
+                'Diagnosis': cns.diagnosis,
+                'Vitals': vitals_summary,
+                'Treatment Plan': cns.treatment_plan or 'None'
+            }
+        })
+
     # Filter by Event Type if specified
     if event_filter and event_filter != 'ALL':
         events = [e for e in events if e['event_type'] == event_filter]
