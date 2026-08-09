@@ -29,7 +29,11 @@ class EHRTestCase(unittest.TestCase):
         db.session.commit()
 
         self.receptionist = User(user_code='REC-001', name='Receptionist Test', email='rec@test.com', role_id=rec_role.id)
+        self.receptionist.set_password('Secret123!')
+        
         self.doctor = User(user_code='DOC-001', name='Dr. Sharma', email='doc@test.com', role_id=doc_role.id)
+        self.doctor.set_password('Secret123!')
+        
         db.session.add_all([self.receptionist, self.doctor])
         db.session.commit()
 
