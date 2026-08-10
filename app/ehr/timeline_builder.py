@@ -102,6 +102,28 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
             }
         })
 
+    # 5. Digital Prescriptions
+    from app.prescriptions.models import Prescription
+    prescriptions = Prescription.query.filter_by(patient_id=patient_id).all()
+    for rx in prescriptions:
+        med_summary = ", ".join([f"{item.medicine_name} ({item.frequency})" for item in rx.items])
+        events.append({
+            'event_type': 'PRESCRIPTION',
+            'title': f"Digital Prescription Issued — {rx.prescription_code}",
+            'timestamp': rx.created_at,
+            'date_str': rx.created_at.strftime('%d %b %Y, %I:%M %p'),
+            'badge_color': 'primary',
+            'icon_class': 'bi-capsule',
+            'actor': rx.doctor.name,
+            'summary': f"Prescribed ({len(rx.items)} meds): {med_summary[:80]}...",
+            'details': {
+                'Prescription Code': rx.prescription_code,
+                'Doctor': rx.doctor.name,
+                'Medicines': med_summary,
+                'General Advice': rx.general_advice or 'None'
+            }
+        })
+
     # Filter by Event Type if specified
     if event_filter and event_filter != 'ALL':
         events = [e for e in events if e['event_type'] == event_filter]

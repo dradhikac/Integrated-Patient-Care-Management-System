@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}Issue Digital Prescription - {{ patient.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-capsule-fill text-primary me-2"></i> Digital Prescription Builder</h3>
+      <p class="text-muted mb-0">Module 8 — Issue multi-drug digital prescription with QR verification for {{ patient.full_name }}</p>
+    </div>
+    <a href="{{ url_for('consultations.list_consultations') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Consultations
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-primary text-white py-3">
+          <h5 class="card-title fw-bold mb-0"><i class="bi bi-prescription2 me-2"></i> Prescription Form (Rx)</h5>
+        </div>
+        <div class="card-body p-4">
+          <form method="POST" action="{{ url_for('prescriptions.create_prescription', patient_id=patient.id, consultation_id=consultation.id if consultation else '') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- Prescribed Medication Items Table -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="fw-bold text-primary mb-0"><i class="bi bi-list-check me-1"></i> Prescribed Medicines</h6>
+              <button type="button" class="btn btn-sm btn-outline-success fw-bold" onclick="addMedicineRow()">
+                <i class="bi bi-plus-circle-fill me-1"></i> Add Another Medicine
+              </button>
+            </div>
+
+            <div class="table-responsive mb-4">
+              <table class="table table-bordered align-middle" id="rxTable">
+                <thead class="table-light">
+                  <tr class="small fw-bold">
+                    <th style="width: 35%;">Medicine Name</th>
+                    <th style="width: 20%;">Frequency</th>
+                    <th style="width: 15%;">Duration</th>
+                    <th style="width: 20%;">Food Relation</th>
+                    <th style="width: 10%;" class="text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="rxBody">
+                  <!-- Row 1 -->
+                  <tr>
+                    <td>
+                      <input type="text" name="medicine_name[]" class="form-control form-control-sm" list="medList" placeholder="Select or type medicine..." required>
+                    </td>
+                    <td>
+                      <select name="frequency[]" class="form-select form-select-sm">
+                        <option value="1-0-1">1-0-1 (Morn & Night)</option>
+                        <option value="1-0-0">1-0-0 (Morning)</option>
+                        <option value="0-0-1">0-0-1 (Night)</option>
+                        <option value="1-1-1">1-1-1 (TID)</option>
+                        <option value="SOS">SOS (As needed)</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input type="text" name="duration[]" class="form-control form-control-sm" value="5 Days" required>
+                    </td>
+                    <td>
+                      <select name="food_relation[]" class="form-select form-select-sm">
+                        <option value="After Food">After Food</option>
+                        <option value="Before Food">Before Food</option>
+                        <option value="With Food">With Food</option>
+                      </select>
+                    </td>
+                    <td class="text-center">
+                      <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeRow(this)"><i class="bi bi-trash-fill"></i></button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <datalist id="medList">
+              {% for m in medicines %}
+              <option value="{{ m.brand_name }} ({{ m.generic_name }} {{ m.strength or '' }})"></option>
+              {% endfor %}
+            </datalist>
+
+            <!-- General Advice -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">General Dietary Advice & Lifestyle Instructions</label>
+              <textarea name="general_advice" class="form-control" rows="3" placeholder="e.g. Drink plenty of warm water, avoid cold beverages, complete the full course of antibiotics..."></textarea>
+            </div>
+
+            <div class="d-flex justify-content-end gap-3 border-top pt-3">
+              <a href="{{ url_for('consultations.list_consultations') }}" class="btn btn-outline-secondary px-4">Cancel</a>
+              <button type="submit" class="btn btn-primary-custom px-5 fw-bold" style="width: auto;">
+                <i class="bi bi-qr-code-scan me-2"></i> Issue Digital Prescription
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Consultation Context Summary -->
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-white py-3">
+          <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-person-badge-fill me-1 text-primary"></i> Patient Metadata</h6>
+        </div>
+        <div class="card-body">
+          <div class="fw-bold fs-5">{{ patient.full_name }}</div>
+          <small class="text-muted d-block mb-2 font-monospace">{{ patient.patient_code }} | {{ patient.gender }} | DOB: {{ patient.dob.strftime('%Y-%m-%d') }}</small>
+          
+          <div class="p-2 bg-light rounded-3 small mb-3">
+            <div><strong>Blood Group:</strong> {{ patient.blood_group or 'N/A' }}</div>
+            <div><strong>Mobile:</strong> <code>{{ patient.mobile }}</code></div>
+          </div>
+
+          {% if consultation %}
+          <div class="border-top pt-3">
+            <h6 class="fw-bold text-success small text-uppercase">Linked Consultation</h6>
+            <div class="small fw-semibold">Code: {{ consultation.consultation_code }}</div>
+            <div class="small text-muted mb-2">Diagnosis: <strong>{{ consultation.diagnosis }}</strong></div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function addMedicineRow() {
+    const tbody = document.getElementById('rxBody');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <input type="text" name="medicine_name[]" class="form-control form-control-sm" list="medList" placeholder="Select or type medicine..." required>
+      </td>
+      <td>
+        <select name="frequency[]" class="form-select form-select-sm">
+          <option value="1-0-1">1-0-1 (Morn & Night)</option>
+          <option value="1-0-0">1-0-0 (Morning)</option>
+          <option value="0-0-1">0-0-1 (Night)</option>
+          <option value="1-1-1">1-1-1 (TID)</option>
+          <option value="SOS">SOS (As needed)</option>
+        </select>
+      </td>
+      <td>
+        <input type="text" name="duration[]" class="form-control form-control-sm" value="5 Days" required>
+      </td>
+      <td>
+        <select name="food_relation[]" class="form-select form-select-sm">
+          <option value="After Food">After Food</option>
+          <option value="Before Food">Before Food</option>
+          <option value="With Food">With Food</option>
+        </select>
+      </td>
+      <td class="text-center">
+        <button type="button" class="btn btn-sm btn-outline-danger border-0" onclick="removeRow(this)"><i class="bi bi-trash-fill"></i></button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  function removeRow(btn) {
+    const tbody = document.getElementById('rxBody');
+    if (tbody.children.length > 1) {
+      btn.closest('tr').remove();
+    }
+  }
+</script>
+{% endblock %}

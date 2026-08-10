@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Drug Master Catalog - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-capsule text-primary me-2"></i> Drug Master Catalog</h3>
+      <p class="text-muted mb-0">Pre-seeded catalog of pharmaceutical medications, dosages, and generic names</p>
+    </div>
+    <a href="{{ url_for('prescriptions.list_prescriptions') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Prescriptions Directory
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Add Medicine Form -->
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-primary text-white py-3">
+          <h6 class="fw-bold mb-0"><i class="bi bi-plus-circle me-1"></i> Add New Medicine</h6>
+        </div>
+        <div class="card-body p-3">
+          <form method="POST" action="{{ url_for('prescriptions.manage_medicines') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Brand Name <span class="text-danger">*</span></label>
+              <input type="text" name="brand_name" class="form-control" placeholder="e.g. Dolo 650" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Generic Chemical Name <span class="text-danger">*</span></label>
+              <input type="text" name="generic_name" class="form-control" placeholder="e.g. Paracetamol" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Dosage Form</label>
+              <select name="dosage_form" class="form-select">
+                <option value="Tablet">Tablet</option>
+                <option value="Capsule">Capsule</option>
+                <option value="Syrup">Syrup</option>
+                <option value="Injection">Injection</option>
+                <option value="Ointment">Ointment</option>
+                <option value="Eye Drops">Eye Drops</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Strength</label>
+              <input type="text" name="strength" class="form-control" placeholder="e.g. 650mg, 500mg, 10ml">
+            </div>
+
+            <button type="submit" class="btn btn-primary-custom w-100 py-2 fw-bold">Add to Drug Catalog</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Drug Catalog Table -->
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+          <table class="table custom-table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Brand Name</th>
+                <th>Generic Name</th>
+                <th>Form</th>
+                <th>Strength</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for m in medicines %}
+              <tr>
+                <td><strong class="text-dark">{{ m.brand_name }}</strong></td>
+                <td><span class="text-muted">{{ m.generic_name }}</span></td>
+                <td><span class="badge bg-secondary">{{ m.dosage_form }}</span></td>
+                <td><code>{{ m.strength or 'N/A' }}</code></td>
+                <td><span class="badge bg-success-subtle text-success">Active</span></td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="5" class="text-center py-4 text-muted">No medicines in catalog yet.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

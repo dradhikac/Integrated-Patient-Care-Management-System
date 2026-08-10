@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Digital Prescriptions Directory - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-prescription2 text-primary me-2"></i> Digital Prescriptions Directory</h3>
+      <p class="text-muted mb-0">View issued prescriptions, QR verification codes, and dosage instructions</p>
+    </div>
+    {% if current_user.role.name in ['Admin', 'Doctor'] %}
+    <a href="{{ url_for('prescriptions.manage_medicines') }}" class="btn btn-outline-primary" style="width: auto;">
+      <i class="bi bi-capsule me-1"></i> Drug Master Catalog
+    </a>
+    {% endif %}
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+      <table class="table custom-table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Prescription Code</th>
+            <th>Patient</th>
+            <th>Doctor</th>
+            <th>Medication Count</th>
+            <th>Issued Date</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rx in prescriptions %}
+          <tr>
+            <td>
+              <span class="badge bg-dark font-monospace py-2 px-3">{{ rx.prescription_code }}</span>
+            </td>
+            <td>
+              <div class="fw-bold">{{ rx.patient.full_name }}</div>
+              <small class="text-muted font-monospace">{{ rx.patient.patient_code }}</small>
+            </td>
+            <td>
+              <div class="fw-semibold">{{ rx.doctor.name }}</div>
+              <small class="text-muted">{{ rx.doctor.user_code }}</small>
+            </td>
+            <td>
+              <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3">{{ rx.items|length }} Medicines</span>
+            </td>
+            <td><small class="fw-semibold text-secondary">{{ rx.created_at.strftime('%Y-%m-%d %I:%M %p') }}</small></td>
+            <td class="text-end">
+              <a href="{{ url_for('prescriptions.view_prescription', prescription_id=rx.id) }}" class="btn btn-sm btn-outline-primary me-1">
+                <i class="bi bi-eye-fill"></i> View & QR
+              </a>
+              <a href="{{ url_for('prescriptions.print_prescription', prescription_id=rx.id) }}" target="_blank" class="btn btn-sm btn-outline-dark">
+                <i class="bi bi-printer-fill"></i> Print Rx
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="text-center py-5 text-muted">
+              <i class="bi bi-capsule-slash fs-1 d-block mb-2 text-secondary"></i>
+              No prescriptions found.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

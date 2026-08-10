@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Print Rx - {{ rx.prescription_code }}</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #ffffff;
+      color: #000000;
+      font-family: Arial, sans-serif;
+    }
+    .prescription-box {
+      max-width: 800px;
+      margin: 20px auto;
+      border: 2px solid #333;
+      padding: 30px;
+      border-radius: 8px;
+    }
+    .letterhead {
+      border-bottom: 2px solid #000;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+    @media print {
+      .no-print { display: none !important; }
+      .prescription-box { border: none; padding: 0; margin: 0; }
+    }
+  </style>
+</head>
+<body onload="window.print()">
+
+  <div class="container no-print my-3 text-center">
+    <button onclick="window.print()" class="btn btn-primary btn-lg fw-bold me-2">Print Prescription / Save PDF</button>
+    <button onclick="window.close()" class="btn btn-secondary btn-lg">Close</button>
+  </div>
+
+  <div class="prescription-box">
+    <!-- Hospital Letterhead -->
+    <div class="letterhead d-flex justify-content-between align-items-center">
+      <div>
+        <h3 class="fw-bold mb-0">IPCMS HEALTHCARE NETWORK</h3>
+        <small class="d-block text-uppercase fw-bold text-secondary">Multi-Specialty Outpatient Care & EHR System</small>
+        <small>Consulting Doctor: <strong>{{ rx.doctor.name }}</strong> ({{ rx.doctor.user_code }})</small>
+      </div>
+      <div class="text-end">
+        <img src="{{ qr_base64 }}" style="width: 90px; height: 90px;" alt="Digital QR">
+        <small class="d-block font-monospace mt-1" style="font-size: 0.65rem;">Digital Verification</small>
+      </div>
+    </div>
+
+    <!-- Patient Header -->
+    <div class="row g-2 mb-4 p-2 bg-light border">
+      <div class="col-6">
+        <div><strong>Patient Name:</strong> {{ rx.patient.full_name }}</div>
+        <div><strong>Patient ID:</strong> {{ rx.patient.patient_code }}</div>
+      </div>
+      <div class="col-6 text-end">
+        <div><strong>Rx Code:</strong> {{ rx.prescription_code }}</div>
+        <div><strong>Date:</strong> {{ rx.created_at.strftime('%d-%b-%Y') }}</div>
+      </div>
+    </div>
+
+    <!-- Rx Symbol -->
+    <div class="fs-1 fw-bold mb-2">Rx</div>
+
+    <!-- Medication Schedule Table -->
+    <table class="table table-bordered align-middle mb-4">
+      <thead class="table-dark">
+        <tr>
+          <th>#</th>
+          <th>Medicine Name</th>
+          <th>Frequency</th>
+          <th>Duration</th>
+          <th>Instructions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in rx.items %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><strong>{{ item.medicine_name }}</strong></td>
+          <td><code>{{ item.frequency }}</code></td>
+          <td>{{ item.duration }}</td>
+          <td>{{ item.food_relation }} {% if item.instructions %}({{ item.instructions }}){% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% if rx.general_advice %}
+    <div class="p-3 bg-light border rounded mb-4">
+      <strong class="d-block mb-1">General Advice:</strong>
+      <p class="mb-0 small">{{ rx.general_advice }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Signature Block -->
+    <div class="row mt-5 pt-4">
+      <div class="col-6">
+        <small class="text-muted d-block font-monospace">Generated via IPCMS Module 8</small>
+      </div>
+      <div class="col-6 text-end">
+        <div class="fw-bold border-top border-dark d-inline-block pt-1 px-4">
+          Doctor Signature & Seal<br>
+          <small class="text-muted">{{ rx.doctor.name }}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

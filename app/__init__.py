@@ -23,6 +23,7 @@ def create_app(config_class=Config):
     from app.queue_mgmt.routes import queue_bp
     from app.ehr.routes import ehr_bp
     from app.consultations.routes import consultations_bp
+    from app.prescriptions.routes import prescriptions_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(patients_bp)
@@ -31,6 +32,7 @@ def create_app(config_class=Config):
     app.register_blueprint(queue_bp)
     app.register_blueprint(ehr_bp)
     app.register_blueprint(consultations_bp)
+    app.register_blueprint(prescriptions_bp)
 
     # CLI Command to seed database roles and demo users
     @app.cli.command("seed-db")
@@ -42,6 +44,7 @@ def create_app(config_class=Config):
         from app.appointments.models import DoctorAvailability, Holiday, Appointment, Waitlist
         from app.queue_mgmt.models import QueuePriorityRule
         from app.consultations.models import Consultation, Vital
+        from app.prescriptions.models import Medicine, Prescription, PrescriptionItem
 
         db.create_all()
 
@@ -64,6 +67,23 @@ def create_app(config_class=Config):
             roles_dict[r_name] = role
 
         db.session.commit()
+
+        # Seed initial Drug Master catalog if empty
+        if Medicine.query.count() == 0:
+            sample_meds = [
+                ('Dolo 650', 'Paracetamol', 'Tablet', '650mg'),
+                ('Crocin 500', 'Paracetamol', 'Tablet', '500mg'),
+                ('Mox 500', 'Amoxicillin', 'Capsule', '500mg'),
+                ('Azee 500', 'Azithromycin', 'Tablet', '500mg'),
+                ('Cetzine', 'Cetirizine', 'Tablet', '10mg'),
+                ('Pan 40', 'Pantoprazole', 'Tablet', '40mg'),
+                ('Benadryl', 'Diphenhydramine', 'Syrup', '100ml')
+            ]
+            for b_name, g_name, form_type, strn in sample_meds:
+                med = Medicine(brand_name=b_name, generic_name=g_name, dosage_form=form_type, strength=strn)
+                db.session.add(med)
+            click.echo("Seeded initial Drug Master catalog with common medications.")
+            db.session.commit()
 
         # Seed sample users for each role
         sample_users = [
