@@ -37,7 +37,7 @@ class Appointment(db.Model):
     appointment_date = db.Column(db.Date, nullable=False, index=True)
     slot_time = db.Column(db.Time, nullable=False)
     booking_type = db.Column(db.String(20), default='Online') # 'Walk-In', 'Online', 'Emergency'
-    status = db.Column(db.String(20), default='BOOKED') # 'BOOKED', 'CHECKED_IN', 'COMPLETED', 'CANCELLED', 'NO_SHOW'
+    status = db.Column(db.String(30), default='BOOKED') # 'BOOKED', 'CHECKED_IN', 'COMPLETED', 'CANCELLED', 'NO_SHOW'
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -63,7 +63,8 @@ class Waitlist(db.Model):
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
     doctor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     preferred_date = db.Column(db.Date, nullable=False)
-    status = db.Column(db.String(20), default='WAITING') # 'WAITING', 'PROMOTED', 'EXPIRED'
+    offered_slot_time = db.Column(db.Time, nullable=True)
+    status = db.Column(db.String(30), default='WAITING') # 'WAITING', 'OFFERED', 'ACCEPTED', 'DECLINED', 'EXPIRED'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     patient = db.relationship('Patient', backref='waitlists', lazy=True)

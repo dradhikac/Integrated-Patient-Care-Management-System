@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta #Used to calculate a future/past time.
 from flask_login import UserMixin
 from app.extensions import db, bcrypt, login_manager
 

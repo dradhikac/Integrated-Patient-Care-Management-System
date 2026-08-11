@@ -68,6 +68,7 @@ class ReceptionTestCase(unittest.TestCase):
             department='General OPD',
             priority='Regular',
             status='WAITING',
+            check_in_time=datetime.now(),
             checked_in_by_id=self.receptionist.id
         )
         db.session.add(check_in1)

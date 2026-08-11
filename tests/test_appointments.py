@@ -120,7 +120,7 @@ class AppointmentTestCase(unittest.TestCase):
         db.session.add(waitlist_entry)
         db.session.commit()
 
-        # Cancel Appointment 1 -> Auto-Promote Patient 2!
+        # Cancel Appointment 1 -> Extends promotion offer to Patient 2!
         res = self.client.post(f'/appointments/cancel/{apt1.id}', follow_redirects=True)
         self.assertEqual(res.status_code, 200)
 
@@ -128,11 +128,16 @@ class AppointmentTestCase(unittest.TestCase):
         updated_apt1 = db.session.get(Appointment, apt1.id)
         self.assertEqual(updated_apt1.status, 'CANCELLED')
 
-        # Verify Waitlist entry is PROMOTED
+        # Verify Waitlist entry status is OFFERED
         updated_waitlist = db.session.get(Waitlist, waitlist_entry.id)
-        self.assertEqual(updated_waitlist.status, 'PROMOTED')
+        self.assertEqual(updated_waitlist.status, 'OFFERED')
 
-        # Verify new appointment created for Patient 2 in slot 10:00 AM
+        # Patient 2 / Receptionist accepts the promotion offer!
+        res_accept = self.client.post(f'/appointments/waitlist/{waitlist_entry.id}/accept', follow_redirects=True)
+        self.assertEqual(res_accept.status_code, 200)
+
+        # Verify Waitlist entry is ACCEPTED and appointment is created for Patient 2 in slot 10:00 AM
+        self.assertEqual(db.session.get(Waitlist, waitlist_entry.id).status, 'ACCEPTED')
         promoted_apt = Appointment.query.filter_by(patient_id=self.patient2.id, appointment_date=target_date).first()
         self.assertIsNotNone(promoted_apt)
         self.assertEqual(promoted_apt.slot_time, slot_t)

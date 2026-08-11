@@ -25,7 +25,9 @@ class CheckIn(db.Model):
     def generate_token_number():
         """Generates sequential token for today e.g. TK-001, TK-002"""
         today_start = datetime.combine(date.today(), datetime.min.time())
-        today_count = CheckIn.query.filter(CheckIn.check_in_time >= today_start).count()
+        today_count = CheckIn.query.filter(
+            (CheckIn.check_in_time >= today_start) | (CheckIn.check_in_time.is_(None))
+        ).count()
         return f"TK-{(today_count + 1):03d}"
 
     def estimated_wait_minutes(self):
