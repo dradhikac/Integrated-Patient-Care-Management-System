@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Print Lab Report - {{ lab_req.request_code }}</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #ffffff;
+      color: #000000;
+      font-family: Arial, sans-serif;
+    }
+    .report-box {
+      max-width: 850px;
+      margin: 20px auto;
+      border: 2px solid #333;
+      padding: 30px;
+      border-radius: 8px;
+    }
+    .letterhead {
+      border-bottom: 2px solid #000;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+    @media print {
+      .no-print { display: none !important; }
+      .report-box { border: none; padding: 0; margin: 0; }
+    }
+  </style>
+</head>
+<body onload="window.print()">
+
+  <div class="container no-print my-3 text-center">
+    <button onclick="window.print()" class="btn btn-primary btn-lg fw-bold me-2">Print Report / Save PDF</button>
+    <button onclick="window.close()" class="btn btn-secondary btn-lg">Close</button>
+  </div>
+
+  <div class="report-box">
+    <!-- Header -->
+    <div class="letterhead d-flex justify-content-between align-items-center">
+      <div>
+        <h3 class="fw-bold mb-0">IPCMS CLINICAL DIAGNOSTICS LABORATORY</h3>
+        <small class="d-block text-uppercase fw-bold text-secondary">Accredited Pathology & Radiology Center</small>
+      </div>
+      <div class="text-end">
+        <h5 class="fw-bold mb-0 font-monospace">{{ lab_req.request_code }}</h5>
+        <small class="text-muted">Date: {{ lab_req.created_at.strftime('%d-%b-%Y') }}</small>
+      </div>
+    </div>
+
+    <!-- Patient Metadata -->
+    <div class="row g-2 mb-4 p-2 bg-light border">
+      <div class="col-6">
+        <div><strong>Patient Name:</strong> {{ lab_req.patient.full_name }}</div>
+        <div><strong>Patient Code:</strong> {{ lab_req.patient.patient_code }}</div>
+        <div><strong>Gender / Age:</strong> {{ lab_req.patient.gender }} (DOB: {{ lab_req.patient.dob.strftime('%Y-%m-%d') }})</div>
+      </div>
+      <div class="col-6 text-end">
+        <div><strong>Ordering Doctor:</strong> {{ lab_req.doctor.name }}</div>
+        <div><strong>Status:</strong> <span class="badge bg-dark">{{ lab_req.status }}</span></div>
+        <div><strong>Blood Group:</strong> {{ lab_req.patient.blood_group or 'N/A' }}</div>
+      </div>
+    </div>
+
+    <!-- Results Table -->
+    <h5 class="fw-bold mb-3">Diagnostic Investigation Results</h5>
+    <table class="table table-bordered align-middle mb-4">
+      <thead class="table-dark">
+        <tr>
+          <th>#</th>
+          <th>Investigation Name</th>
+          <th>Measured Result</th>
+          <th>Normal Reference Range</th>
+          <th>Interpretation</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for res in lab_req.results %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><strong>{{ res.test_type.test_name }}</strong> ({{ res.test_type.test_code }})</td>
+          <td><strong>{{ res.result_value }}</strong> {{ res.test_type.unit or '' }}</td>
+          <td>{{ res.test_type.min_normal_val or '0' }} - {{ res.test_type.max_normal_val or 'N/A' }} {{ res.test_type.unit }}</td>
+          <td>
+            {% if res.abnormal_flag == 'ABNORMAL_HIGH' %}
+              <strong class="text-danger">HIGH</strong>
+            {% elif res.abnormal_flag == 'ABNORMAL_LOW' %}
+              <strong class="text-warning">LOW</strong>
+            {% else %}
+              <span class="text-success">NORMAL</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Signature Block -->
+    <div class="row mt-5 pt-4">
+      <div class="col-6">
+        <small class="text-muted d-block font-monospace">Verified by IPCMS Module 9 Automated Analyzer</small>
+      </div>
+      <div class="col-6 text-end">
+        <div class="fw-bold border-top border-dark d-inline-block pt-1 px-4">
+          Pathologist / Lab Technician Signature<br>
+          <small class="text-muted">Certified Report</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

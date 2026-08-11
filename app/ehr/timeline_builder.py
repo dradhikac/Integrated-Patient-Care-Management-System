@@ -124,6 +124,29 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
             }
         })
 
+    # 6. Laboratory Investigations & Diagnostics
+    from app.lab.models import LabRequest
+    lab_requests = LabRequest.query.filter_by(patient_id=patient_id).all()
+    for lreq in lab_requests:
+        test_names = ", ".join([res.test_type.test_name for res in lreq.results])
+        events.append({
+            'event_type': 'LAB_TEST',
+            'title': f"Laboratory Investigation — {lreq.request_code}",
+            'timestamp': lreq.created_at,
+            'date_str': lreq.created_at.strftime('%d %b %Y, %I:%M %p'),
+            'badge_color': 'warning',
+            'icon_class': 'bi-flask',
+            'actor': lreq.doctor.name,
+            'summary': f"Tests ({len(lreq.results)}): {test_names} | Status: {lreq.status}",
+            'details': {
+                'Lab Request Code': lreq.request_code,
+                'Ordering Doctor': lreq.doctor.name,
+                'Ordered Tests': test_names,
+                'Status': lreq.status,
+                'Clinical Notes': lreq.clinical_notes or 'None'
+            }
+        })
+
     # Filter by Event Type if specified
     if event_filter and event_filter != 'ALL':
         events = [e for e in events if e['event_type'] == event_filter]

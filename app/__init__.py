@@ -24,6 +24,7 @@ def create_app(config_class=Config):
     from app.ehr.routes import ehr_bp
     from app.consultations.routes import consultations_bp
     from app.prescriptions.routes import prescriptions_bp
+    from app.lab.routes import lab_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(patients_bp)
@@ -33,6 +34,7 @@ def create_app(config_class=Config):
     app.register_blueprint(ehr_bp)
     app.register_blueprint(consultations_bp)
     app.register_blueprint(prescriptions_bp)
+    app.register_blueprint(lab_bp)
 
     # CLI Command to seed database roles and demo users
     @app.cli.command("seed-db")
@@ -45,6 +47,7 @@ def create_app(config_class=Config):
         from app.queue_mgmt.models import QueuePriorityRule
         from app.consultations.models import Consultation, Vital
         from app.prescriptions.models import Medicine, Prescription, PrescriptionItem
+        from app.lab.models import LabTestType, LabRequest, LabResult
 
         db.create_all()
 
@@ -83,6 +86,24 @@ def create_app(config_class=Config):
                 med = Medicine(brand_name=b_name, generic_name=g_name, dosage_form=form_type, strength=strn)
                 db.session.add(med)
             click.echo("Seeded initial Drug Master catalog with common medications.")
+            db.session.commit()
+
+        # Seed initial Lab Test Types catalog if empty
+        if LabTestType.query.count() == 0:
+            sample_tests = [
+                ('TST-CBC-HB', 'Hemoglobin (Hb)', 'Haematology', 'g/dL', 12.0, 16.0, 300.0),
+                ('TST-CBC-WBC', 'Total Leucocyte Count (TLC)', 'Haematology', 'cells/mcL', 4000.0, 11000.0, 350.0),
+                ('TST-FBS', 'Fasting Blood Sugar (FBS)', 'Biochemistry', 'mg/dL', 70.0, 100.0, 250.0),
+                ('TST-KFT-CREAT', 'Serum Creatinine', 'Biochemistry', 'mg/dL', 0.6, 1.2, 400.0),
+                ('TST-LFT-BIL', 'Total Bilirubin', 'Biochemistry', 'mg/dL', 0.2, 1.2, 450.0),
+                ('TST-LIP-CHOL', 'Serum Cholesterol', 'Biochemistry', 'mg/dL', 125.0, 200.0, 500.0),
+                ('TST-XRAY-CHEST', 'Chest X-Ray PA View', 'Radiology', 'Scan', None, None, 600.0),
+                ('TST-ECG-12', 'ECG 12-Lead Standard', 'Cardiology', 'Graph', None, None, 450.0)
+            ]
+            for t_code, t_name, cat, unit, min_n, max_n, cst in sample_tests:
+                tt = LabTestType(test_code=t_code, test_name=t_name, category=cat, unit=unit, min_normal_val=min_n, max_normal_val=max_n, cost=cst)
+                db.session.add(tt)
+            click.echo("Seeded initial Lab Test Types master catalog.")
             db.session.commit()
 
         # Seed sample users for each role

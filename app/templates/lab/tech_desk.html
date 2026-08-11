@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Lab Technician Workstation - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-flask-fill text-warning me-2"></i> Laboratory Technician Desk</h3>
+      <p class="text-muted mb-0">Module 9 — Manage sample collections, test execution, and parameter entry</p>
+    </div>
+    <a href="{{ url_for('lab.list_requests') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-list-ul me-1"></i> All Lab Requisitions
+    </a>
+  </div>
+
+  <!-- Operational Metrics -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="metric-card border-warning">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="metric-label">Pending Sample Collection</span>
+          <i class="bi bi-hourglass-split text-warning fs-3"></i>
+        </div>
+        <div class="metric-value text-warning">{{ pending_requests|selectattr('status', 'equalto', 'REQUESTED')|list|length }}</div>
+        <small class="text-muted">Orders awaiting blood/tissue sample</small>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="metric-card border-info">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="metric-label">In Testing / Execution</span>
+          <i class="bi bi-gear-wide-connected text-info fs-3"></i>
+        </div>
+        <div class="metric-value text-info">{{ pending_requests|selectattr('status', 'in', ['SAMPLE_COLLECTED', 'IN_TESTING'])|list|length }}</div>
+        <small class="text-muted">Samples currently in analyzer</small>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="metric-card border-success">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="metric-label">Completed Reports Today</span>
+          <i class="bi bi-check-circle-fill text-success fs-3"></i>
+        </div>
+        <div class="metric-value text-success">{{ completed_requests|length }}</div>
+        <small class="text-muted">Reports finalized & signed</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending Requisitions Queue Table -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="card-header bg-white py-3">
+      <h5 class="card-title fw-bold mb-0 text-dark"><i class="bi bi-clock-history me-2 text-warning"></i> Active Lab Requisitions Queue</h5>
+    </div>
+    <div class="table-responsive">
+      <table class="table custom-table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Request Code</th>
+            <th>Patient Name</th>
+            <th>Ordering Doctor</th>
+            <th>Requested Tests</th>
+            <th>Status</th>
+            <th>Ordered At</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in pending_requests %}
+          <tr>
+            <td><span class="badge bg-dark font-monospace py-2 px-3">{{ req.request_code }}</span></td>
+            <td>
+              <div class="fw-bold">{{ req.patient.full_name }}</div>
+              <small class="text-muted font-monospace">{{ req.patient.patient_code }}</small>
+            </td>
+            <td><span class="fw-semibold">{{ req.doctor.name }}</span></td>
+            <td>
+              {% for res in req.results %}
+              <span class="badge bg-secondary me-1">{{ res.test_type.test_name }}</span>
+              {% endfor %}
+            </td>
+            <td>
+              {% if req.status == 'REQUESTED' %}
+                <span class="badge bg-warning text-dark px-3 py-1">Requested</span>
+              {% elif req.status == 'SAMPLE_COLLECTED' %}
+                <span class="badge bg-info text-dark px-3 py-1">Sample Collected</span>
+              {% elif req.status == 'IN_TESTING' %}
+                <span class="badge bg-primary px-3 py-1">In Testing</span>
+              {% endif %}
+            </td>
+            <td><small class="text-muted fw-semibold">{{ req.created_at.strftime('%I:%M %p') }}</small></td>
+            <td class="text-end">
+              {% if req.status == 'REQUESTED' %}
+              <form method="POST" action="{{ url_for('lab.update_status', request_id=req.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="status" value="SAMPLE_COLLECTED">
+                <button type="submit" class="btn btn-sm btn-info text-dark fw-bold me-1">
+                  <i class="bi bi-droplet-fill me-1"></i> Collect Sample
+                </button>
+              </form>
+              {% endif %}
+
+              <a href="{{ url_for('lab.enter_results', request_id=req.id) }}" class="btn btn-sm btn-success fw-bold">
+                <i class="bi bi-pencil-square me-1"></i> Enter Results
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted">No pending lab requests in queue.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

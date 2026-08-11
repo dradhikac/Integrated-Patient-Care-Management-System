@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Lab Tests - {{ patient.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-journal-plus text-primary me-2"></i> Order Diagnostic Lab Tests</h3>
+      <p class="text-muted mb-0">Module 9 — Requisition for {{ patient.full_name }} ({{ patient.patient_code }})</p>
+    </div>
+    <a href="{{ url_for('patients.view_patient', patient_id=patient.id) }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Patient Profile
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-primary text-white py-3">
+          <h5 class="card-title fw-bold mb-0"><i class="bi bi-flask me-2"></i> Select Lab Test Requisitions</h5>
+        </div>
+        <div class="card-body p-4">
+          <form method="POST" action="{{ url_for('lab.order_test', patient_id=patient.id, consultation_id=consultation.id if consultation else '') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="mb-4">
+              <label class="form-label fw-bold text-dark mb-3">Available Diagnostic Tests Catalog</label>
+              
+              <div class="row g-3">
+                {% for t in test_types %}
+                <div class="col-md-6">
+                  <div class="p-3 border rounded-3 bg-light">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" name="test_type_ids" value="{{ t.id }}" id="test_{{ t.id }}">
+                      <label class="form-check-label fw-bold text-dark d-block" for="test_{{ t.id }}">
+                        {{ t.test_name }} <small class="text-muted font-monospace">({{ t.test_code }})</small>
+                      </label>
+                      <small class="text-muted d-block">Category: {{ t.category }} | Unit: {{ t.unit or 'N/A' }}</small>
+                      <small class="text-primary fw-semibold">Normal Range: {{ t.min_normal_val or '0' }} - {{ t.max_normal_val or 'N/A' }} {{ t.unit }}</small>
+                    </div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Doctor Clinical Indications / Instructions</label>
+              <textarea name="clinical_notes" class="form-control" rows="3" placeholder="e.g. Fasting sample required, evaluate for infection/anemia..."></textarea>
+            </div>
+
+            <div class="d-flex justify-content-end gap-3 border-top pt-3">
+              <a href="{{ url_for('patients.view_patient', patient_id=patient.id) }}" class="btn btn-outline-secondary px-4">Cancel</a>
+              <button type="submit" class="btn btn-primary-custom px-5 fw-bold" style="width: auto;">
+                <i class="bi bi-send-fill me-2"></i> Issue Lab Requisition Order
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Patient Summary -->
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4">
+          <h6 class="fw-bold text-muted text-uppercase small mb-2">Patient Summary</h6>
+          <h4 class="fw-bold text-dark mb-1">{{ patient.full_name }}</h4>
+          <span class="badge bg-dark font-monospace mb-3">{{ patient.patient_code }}</span>
+          
+          <div class="p-3 bg-light rounded-3 small">
+            <div><strong>Gender:</strong> {{ patient.gender }}</div>
+            <div><strong>DOB:</strong> {{ patient.dob.strftime('%Y-%m-%d') }}</div>
+            <div><strong>Blood Group:</strong> {{ patient.blood_group or 'N/A' }}</div>
+            <div><strong>Mobile:</strong> <code>{{ patient.mobile }}</code></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

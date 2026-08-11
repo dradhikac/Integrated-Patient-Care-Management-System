@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Lab Requisitions Directory - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-flask text-primary me-2"></i> Laboratory Requisitions Directory</h3>
+      <p class="text-muted mb-0">View ordered lab tests, status tracking, and report downloads</p>
+    </div>
+    {% if current_user.role.name in ['Admin', 'Lab Technician'] %}
+    <a href="{{ url_for('lab.tech_desk') }}" class="btn btn-warning text-dark fw-bold" style="width: auto;">
+      <i class="bi bi-gear-wide-connected me-1"></i> Lab Tech Desk
+    </a>
+    {% endif %}
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+      <table class="table custom-table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Request Code</th>
+            <th>Patient Name</th>
+            <th>Ordering Doctor</th>
+            <th>Test Count</th>
+            <th>Status</th>
+            <th>Date Ordered</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for req in requests_list %}
+          <tr>
+            <td><span class="badge bg-dark font-monospace py-2 px-3">{{ req.request_code }}</span></td>
+            <td>
+              <div class="fw-bold">{{ req.patient.full_name }}</div>
+              <small class="text-muted font-monospace">{{ req.patient.patient_code }}</small>
+            </td>
+            <td><span class="fw-semibold">{{ req.doctor.name }}</span></td>
+            <td><span class="badge bg-info-subtle text-info border rounded-pill px-3">{{ req.results|length }} Tests</span></td>
+            <td>
+              {% if req.status == 'COMPLETED' %}
+                <span class="badge bg-success px-3 py-1"><i class="bi bi-check-circle-fill"></i> Completed</span>
+              {% elif req.status == 'IN_TESTING' %}
+                <span class="badge bg-primary px-3 py-1">In Testing</span>
+              {% elif req.status == 'SAMPLE_COLLECTED' %}
+                <span class="badge bg-info text-dark px-3 py-1">Sample Collected</span>
+              {% else %}
+                <span class="badge bg-warning text-dark px-3 py-1">Requested</span>
+              {% endif %}
+            </td>
+            <td><small class="fw-semibold text-secondary">{{ req.created_at.strftime('%Y-%m-%d %I:%M %p') }}</small></td>
+            <td class="text-end">
+              <a href="{{ url_for('lab.view_report', request_id=req.id) }}" class="btn btn-sm btn-outline-primary me-1">
+                <i class="bi bi-eye-fill"></i> View Report
+              </a>
+              {% if req.status == 'COMPLETED' %}
+              <a href="{{ url_for('lab.print_report', request_id=req.id) }}" target="_blank" class="btn btn-sm btn-outline-dark">
+                <i class="bi bi-printer-fill"></i> Print
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted">No lab requests found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
