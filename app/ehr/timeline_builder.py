@@ -147,6 +147,28 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
             }
         })
 
+    # 7. Billing & Financial Invoices
+    from app.billing.models import Bill
+    bills = Bill.query.filter_by(patient_id=patient_id).all()
+    for b in bills:
+        events.append({
+            'event_type': 'BILLING',
+            'title': f"Hospital Tax Invoice Generated — {b.invoice_code}",
+            'timestamp': b.created_at,
+            'date_str': b.created_at.strftime('%d %b %Y, %I:%M %p'),
+            'badge_color': 'secondary',
+            'icon_class': 'bi-receipt',
+            'actor': 'Hospital Billing Desk',
+            'summary': f"Grand Total: ₹{b.grand_total:.2f} | Paid: ₹{b.paid_amount:.2f} | Status: {b.status}",
+            'details': {
+                'Invoice Code': b.invoice_code,
+                'Grand Total': f"₹{b.grand_total:.2f}",
+                'Paid Amount': f"₹{b.paid_amount:.2f}",
+                'Balance Due': f"₹{b.balance_due:.2f}",
+                'Status': b.status
+            }
+        })
+
     # Filter by Event Type if specified
     if event_filter and event_filter != 'ALL':
         events = [e for e in events if e['event_type'] == event_filter]

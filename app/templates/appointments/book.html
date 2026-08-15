@@ -60,6 +60,11 @@
             </div>
 
             <div class="mb-3">
+              <label class="form-label fw-semibold">Priority Classification <span class="text-danger">*</span></label>
+              {{ form.priority(class="form-select") }}
+            </div>
+
+            <div class="mb-3">
               <label class="form-label fw-semibold">Booking Channel</label>
               {{ form.booking_type(class="form-select") }}
             </div>
@@ -138,6 +143,7 @@
             <h6 class="fw-bold mb-1"><i class="bi bi-hourglass-bottom me-1 text-primary"></i> Can't find a suitable slot?</h6>
             <small class="text-muted d-block mb-2">Join Doctor Waitlist to get auto-promoted when a cancellation occurs.</small>
             <form method="POST" action="{{ url_for('appointments.add_to_waitlist') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <input type="hidden" name="patient_id" value="{{ form.patient_id.data }}">
               <input type="hidden" name="doctor_id" value="{{ selected_doc_id }}">
               <input type="hidden" name="preferred_date" value="{{ selected_date.strftime('%Y-%m-%d') }}">

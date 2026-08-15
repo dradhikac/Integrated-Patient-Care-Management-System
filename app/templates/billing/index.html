@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Billing & Financial Desk - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-receipt-cutoff text-teal me-2" style="color: var(--primary-color);"></i> Billing & Financial Desk</h3>
+      <p class="text-muted mb-0">Module 10 — Hospital invoices, itemized OPD billing, and multi-channel payment collection</p>
+    </div>
+    {% if current_user.role.name in ['Admin', 'Receptionist'] %}
+    <div>
+      <a href="{{ url_for('billing.create_bill') }}" class="btn btn-primary-custom" style="width: auto;">
+        <i class="bi bi-plus-circle-fill me-1"></i> Generate New Invoice
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Financial Summary Metric Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4 bg-primary text-white p-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="small text-white-50 text-uppercase fw-bold">Total Billed Revenue</div>
+            <h3 class="fw-bold mb-0">₹{{ "%.2f"|format(total_billed) }}</h3>
+          </div>
+          <i class="bi bi-currency-rupee fs-1 opacity-50"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4 bg-success text-white p-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="small text-white-50 text-uppercase fw-bold">Total Cash/UPI Collected</div>
+            <h3 class="fw-bold mb-0">₹{{ "%.2f"|format(total_collected) }}</h3>
+          </div>
+          <i class="bi bi-check-circle-fill fs-1 opacity-50"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4 bg-danger text-white p-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="small text-white-50 text-uppercase fw-bold">Pending Outstanding Dues</div>
+            <h3 class="fw-bold mb-0">₹{{ "%.2f"|format(total_pending) }}</h3>
+          </div>
+          <i class="bi bi-clock-history fs-1 opacity-50"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search & Filter Bar -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-3">
+      <form method="GET" action="{{ url_for('billing.index') }}" class="row g-2 align-items-center">
+        <div class="col-md-6">
+          <div class="input-group">
+            <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" name="q" value="{{ search_query }}" class="form-control bg-light border-0" placeholder="Search by Invoice Code (INV-...), Patient Name, or Patient Code...">
+          </div>
+        </div>
+        <div class="col-md-4">
+          <select name="status" class="form-select border-0 bg-light" onchange="this.form.submit()">
+            <option value="ALL" {% if status_filter == 'ALL' %}selected{% endif %}>All Invoice Statuses</option>
+            <option value="UNPAID" {% if status_filter == 'UNPAID' %}selected{% endif %}>Unpaid Invoices</option>
+            <option value="PARTIALLY_PAID" {% if status_filter == 'PARTIALLY_PAID' %}selected{% endif %}>Partially Paid</option>
+            <option value="PAID" {% if status_filter == 'PAID' %}selected{% endif %}>Paid Invoices</option>
+          </select>
+        </div>
+        <div class="col-md-2 text-end">
+          <button type="submit" class="btn btn-secondary w-100">Filter</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Invoices Table -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+      <table class="table custom-table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Invoice Code</th>
+            <th>Patient Details</th>
+            <th>Billed Date</th>
+            <th>Grand Total</th>
+            <th>Paid Amount</th>
+            <th>Balance Due</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in bills %}
+          <tr>
+            <td>
+              <span class="badge bg-dark font-monospace py-2 px-3">{{ b.invoice_code }}</span>
+            </td>
+            <td>
+              <div class="fw-bold">{{ b.patient.full_name }}</div>
+              <small class="text-muted font-monospace">{{ b.patient.patient_code }} | <code>{{ b.patient.mobile }}</code></small>
+            </td>
+            <td>
+              <div class="small fw-semibold">{{ b.created_at.strftime('%d %b %Y') }}</div>
+              <small class="text-muted">{{ b.created_at.strftime('%I:%M %p') }}</small>
+            </td>
+            <td>
+              <div class="fw-bold text-dark fs-6">₹{{ "%.2f"|format(b.grand_total) }}</div>
+              {% if b.discount > 0 %}<small class="text-success">(Disc: ₹{{ "%.2f"|format(b.discount) }})</small>{% endif %}
+            </td>
+            <td class="text-success fw-semibold">₹{{ "%.2f"|format(b.paid_amount) }}</td>
+            <td class="text-danger fw-bold">₹{{ "%.2f"|format(b.balance_due) }}</td>
+            <td>
+              {% if b.status == 'PAID' %}
+                <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i> Paid</span>
+              {% elif b.status == 'PARTIALLY_PAID' %}
+                <span class="badge bg-warning text-dark"><i class="bi bi-pie-chart-fill me-1"></i> Partially Paid</span>
+              {% else %}
+                <span class="badge bg-danger"><i class="bi bi-exclamation-circle-fill me-1"></i> Unpaid</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <a href="{{ url_for('billing.view_bill', bill_id=b.id) }}" class="btn btn-sm btn-outline-primary me-1">
+                <i class="bi bi-eye-fill me-1"></i> View Bill
+              </a>
+              <a href="{{ url_for('billing.print_invoice', bill_id=b.id) }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-printer-fill me-1"></i> Print
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8" class="text-center py-5 text-muted">
+              <i class="bi bi-receipt fs-1 d-block mb-2 text-secondary"></i>
+              No billing invoices found matching your criteria.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

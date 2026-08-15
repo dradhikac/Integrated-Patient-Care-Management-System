@@ -35,6 +35,16 @@ def list_appointments():
 
     appointments = apt_query.order_by(Appointment.slot_time.asc()).all()
 
+    # Find cancelled appointments for this date where no active booking currently occupies the slot
+    raw_cancelled = Appointment.query.filter_by(appointment_date=selected_date, status='CANCELLED').order_by(Appointment.slot_time.asc()).all()
+    active_booked_slots = set(
+        a.slot_time for a in Appointment.query.filter(
+            Appointment.appointment_date == selected_date,
+            Appointment.status != 'CANCELLED'
+        ).all()
+    )
+    cancelled_apts = [ca for ca in raw_cancelled if ca.slot_time not in active_booked_slots]
+
     # Fetch active waitlists for this date/doctor
     waitlist_query = Waitlist.query.filter(
         Waitlist.preferred_date == selected_date,
@@ -48,9 +58,17 @@ def list_appointments():
 
     active_waitlist = waitlist_query.order_by(Waitlist.created_at.asc()).all()
 
+    # Fetch doctors & patients for waitlist join form
+    doc_role = Role.query.filter_by(name='Doctor').first()
+    doctors = User.query.filter_by(role_id=doc_role.id, is_active=True).all() if doc_role else []
+    all_patients = Patient.query.order_by(Patient.full_name.asc()).all()
+
     return render_template('appointments/list.html',
                            appointments=appointments,
+                           cancelled_apts=cancelled_apts,
                            active_waitlist=active_waitlist,
+                           doctors=doctors,
+                           all_patients=all_patients,
                            selected_date=selected_date,
                            today_date=date.today())
 
@@ -114,6 +132,7 @@ def book_appointment():
             appointment_date=target_date,
             slot_time=slot_t,
             booking_type=form.booking_type.data,
+            priority=form.priority.data,
             status='BOOKED',
             notes=form.notes.data.strip() if form.notes.data else None
         )
@@ -138,7 +157,7 @@ def cancel_appointment(appointment_id):
     apt.status = 'CANCELLED'
     db.session.commit()
 
-    flash(f'Appointment {apt.appointment_code} has been cancelled.', 'info')
+    flash(f'Appointment {apt.appointment_code} has been cancelled. Freed slot: {apt.slot_time.strftime("%I:%M %p")}.', 'info')
 
     # AUTO-WAITLIST PROMOTION OFFER
     # Find top waiting patient in waitlist for same doctor and date
@@ -158,12 +177,32 @@ def cancel_appointment(appointment_id):
     return redirect(url_for('appointments.list_appointments', date=apt.appointment_date.strftime('%Y-%m-%d')))
 
 
+@appointments_bp.route('/waitlist/<int:waitlist_id>/offer-slot', methods=['POST'])
+@login_required
+def offer_waitlist_slot(waitlist_id):
+    w_entry = Waitlist.query.get_or_404(waitlist_id)
+    slot_time_str = request.form.get('slot_time')
+
+    if slot_time_str:
+        try:
+            slot_t = datetime.strptime(slot_time_str, '%H:%M:%S').time()
+        except ValueError:
+            slot_t = datetime.strptime(slot_time_str, '%H:%M').time()
+
+        w_entry.offered_slot_time = slot_t
+        w_entry.status = 'OFFERED'
+        db.session.commit()
+
+        flash(f'🔔 Promotion offer for slot {slot_t.strftime("%I:%M %p")} extended to {w_entry.patient.full_name}!', 'warning')
+
+    return redirect(url_for('appointments.list_appointments', date=w_entry.preferred_date.strftime('%Y-%m-%d')))
+
+
 @appointments_bp.route('/waitlist/<int:waitlist_id>/accept', methods=['POST'])
 @login_required
 def accept_waitlist_promotion(waitlist_id):
     w_entry = Waitlist.query.get_or_404(waitlist_id)
 
-    # Permission check: Patient can accept their own; Receptionist/Admin/Doctor can accept on patient's behalf
     if current_user.role.name == 'Patient' and w_entry.patient.email != current_user.email:
         flash('Access denied. You can only confirm promotion for your own waitlist entry.', 'danger')
         return redirect(url_for('appointments.list_appointments'))
@@ -244,9 +283,9 @@ def add_to_waitlist():
         )
         db.session.add(entry)
         db.session.commit()
-        flash('Added to Doctor Waitlist. If a cancellation occurs, a promotion offer will be extended to you!', 'info')
+        flash('Added to Doctor Waitlist successfully. You will be notified when a slot becomes available!', 'info')
         
-    return redirect(url_for('appointments.list_appointments', date=pref_date_str))
+    return redirect(url_for('appointments.list_appointments', date=pref_date_str if pref_date_str else date.today().strftime('%Y-%m-%d')))
 
 
 @appointments_bp.route('/schedule', methods=['GET', 'POST'])

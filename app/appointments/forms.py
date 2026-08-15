@@ -7,6 +7,13 @@ class BookAppointmentForm(FlaskForm):
     doctor_id = SelectField('Select Doctor', coerce=int, validators=[DataRequired()])
     appointment_date = DateField('Appointment Date', validators=[DataRequired()], format='%Y-%m-%d')
     slot_time = StringField('Slot Time', validators=[DataRequired()]) # e.g. "09:15:00"
+    priority = SelectField('Priority Classification', choices=[
+        ('Regular', 'Regular Priority'),
+        ('Emergency', 'Emergency (High Priority)'),
+        ('Senior Citizen', 'Senior Citizen (Age 60+)'),
+        ('Pregnant Woman', 'Pregnant Woman'),
+        ('Child', 'Child (Age < 12)')
+    ], default='Regular')
     booking_type = SelectField('Booking Channel', choices=[
         ('Online', 'Online Booking'),
         ('Walk-In', 'Reception Walk-In'),

@@ -7,65 +7,22 @@
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
     <div>
       <h3 class="fw-bold mb-1"><i class="bi bi-calendar-check-fill text-teal me-2" style="color: var(--primary-color);"></i> Appointments Directory</h3>
-      <p class="text-muted mb-0">View scheduled consultations, cancel bookings, or review waitlist promotion offers</p>
+      <p class="text-muted mb-0">View scheduled consultations, cancel bookings, or manage doctor waitlists and promotion offers</p>
     </div>
     <div class="d-flex gap-2">
+      <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#joinWaitlistModal">
+        <i class="bi bi-person-plus-fill me-1"></i> Add Patient to Waitlist
+      </button>
       <a href="{{ url_for('appointments.book_appointment') }}" class="btn btn-primary-custom" style="width: auto;">
         <i class="bi bi-calendar-plus-fill me-1"></i> Book New Appointment
       </a>
       {% if current_user.role.name in ['Admin', 'Doctor'] %}
       <a href="{{ url_for('appointments.schedule') }}" class="btn btn-outline-secondary">
-        <i class="bi bi-gear-fill me-1"></i> Shift Availability Manager
+        <i class="bi bi-gear-fill me-1"></i> Shift Manager
       </a>
       {% endif %}
     </div>
   </div>
-
-  <!-- Active Waitlist Promotion Offered Alert Box -->
-  {% if active_waitlist %}
-  <div class="card border-warning shadow-sm rounded-4 mb-4 bg-warning-subtle">
-    <div class="card-header bg-warning text-dark py-3 fw-bold d-flex justify-content-between align-items-center">
-      <span><i class="bi bi-bell-fill me-2"></i> Waitlist Promotion Notifications & Agreements</span>
-      <span class="badge bg-dark text-white">{{ active_waitlist|length }} Pending</span>
-    </div>
-    <div class="card-body p-3">
-      <div class="list-group list-group-flush">
-        {% for w in active_waitlist %}
-        <div class="list-group-item bg-transparent border-warning-subtle d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 p-2">
-          <div>
-            <span class="fw-bold text-dark">{{ w.patient.full_name }}</span>
-            <small class="text-muted font-monospace">({{ w.patient.patient_code }})</small> — Doctor: <strong>{{ w.doctor.name }}</strong> | Date: <code>{{ w.preferred_date.strftime('%Y-%m-%d') }}</code>
-            {% if w.status == 'OFFERED' %}
-              <div class="text-danger fw-bold mt-1">
-                <i class="bi bi-exclamation-circle-fill me-1"></i> Promotion Offered for Slot {{ w.offered_slot_time.strftime('%I:%M %p') }}! Awaiting Patient / Receptionist agreement.
-              </div>
-            {% else %}
-              <span class="badge bg-secondary ms-2">Waiting in Queue</span>
-            {% endif %}
-          </div>
-
-          {% if w.status == 'OFFERED' %}
-          <div class="d-flex gap-2">
-            <form method="POST" action="{{ url_for('appointments.accept_waitlist_promotion', waitlist_id=w.id) }}" class="d-inline">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="btn btn-sm btn-success fw-bold">
-                <i class="bi bi-check-circle-fill me-1"></i> Accept & Confirm Promotion
-              </button>
-            </form>
-            <form method="POST" action="{{ url_for('appointments.decline_waitlist_promotion', waitlist_id=w.id) }}" class="d-inline">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="btn btn-sm btn-outline-danger fw-bold">
-                <i class="bi bi-x-circle-fill me-1"></i> Decline
-              </button>
-            </form>
-          </div>
-          {% endif %}
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
-  {% endif %}
 
   <!-- Date Filter Bar -->
   <div class="card border-0 shadow-sm rounded-4 mb-4">
@@ -82,6 +39,94 @@
     </div>
   </div>
 
+  <!-- Doctor Waitlist & Promotion Desk -->
+  {% if active_waitlist or cancelled_apts %}
+  <div class="card border-warning shadow-sm rounded-4 mb-4 bg-warning-subtle">
+    <div class="card-header bg-warning text-dark py-3 fw-bold d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-hourglass-split me-2"></i> Doctor Waitlist & Promotion Desk</span>
+      <div>
+        {% if cancelled_apts %}
+        <span class="badge bg-danger me-1">{{ cancelled_apts|length }} Freed Slot(s)</span>
+        {% endif %}
+        <span class="badge bg-dark text-white">{{ active_waitlist|length }} Waitlisted</span>
+      </div>
+    </div>
+    <div class="card-body p-4">
+      
+      {% if cancelled_apts %}
+      <div class="mb-3 p-3 bg-white rounded-3 border border-danger-subtle">
+        <h6 class="fw-bold text-danger mb-2"><i class="bi bi-exclamation-triangle-fill me-1"></i> Cancelled / Freed Slots Available for Promotion:</h6>
+        <div class="d-flex flex-wrap gap-2">
+          {% for ca in cancelled_apts %}
+          <span class="badge bg-danger-subtle text-danger border border-danger fs-6 py-2 px-3">
+            <i class="bi bi-clock me-1"></i> {{ ca.slot_time.strftime('%I:%M %p') }} (Freed by {{ ca.patient.full_name }})
+          </span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if active_waitlist %}
+      <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-people-fill me-1"></i> Waiting Patients Queue:</h6>
+      <div class="list-group shadow-sm">
+        {% for w in active_waitlist %}
+        <div class="list-group-item bg-white d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 p-3 rounded-3 mb-2 border">
+          <div>
+            <div class="fw-bold fs-6 text-dark">{{ loop.index }}. {{ w.patient.full_name }}</div>
+            <small class="text-muted font-monospace">{{ w.patient.patient_code }} | <code>{{ w.patient.mobile }}</code></small>
+            <div class="small mt-1 text-secondary">Doctor: <strong>{{ w.doctor.name }}</strong> | Requested Date: <code>{{ w.preferred_date.strftime('%d %b %Y') }}</code></div>
+            
+            {% if w.status == 'OFFERED' %}
+              <div class="badge bg-warning text-dark mt-2 p-2 fs-6">
+                <i class="bi bi-bell-fill me-1"></i> PROMOTION OFFERED for Slot: {{ w.offered_slot_time.strftime('%I:%M %p') }}
+              </div>
+            {% else %}
+              <span class="badge bg-info text-dark mt-2">Status: WAITING</span>
+            {% endif %}
+          </div>
+
+          <div class="d-flex align-items-center gap-2">
+            {% if w.status == 'OFFERED' %}
+              <form method="POST" action="{{ url_for('appointments.accept_waitlist_promotion', waitlist_id=w.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-success font-monospace fw-bold">
+                  <i class="bi bi-check-circle-fill me-1"></i> Accept & Confirm Promotion
+                </button>
+              </form>
+              <form method="POST" action="{{ url_for('appointments.decline_waitlist_promotion', waitlist_id=w.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-outline-danger font-monospace fw-bold">
+                  <i class="bi bi-x-circle-fill me-1"></i> Decline
+                </button>
+              </form>
+            {% elif w.status == 'WAITING' and cancelled_apts %}
+              <form method="POST" action="{{ url_for('appointments.offer_waitlist_slot', waitlist_id=w.id) }}" class="d-flex align-items-center gap-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <select name="slot_time" class="form-select form-select-sm w-auto font-monospace" required>
+                  <option value="" disabled selected>Select Freed Slot...</option>
+                  {% for ca in cancelled_apts %}
+                  <option value="{{ ca.slot_time.strftime('%H:%M:%S') }}">{{ ca.slot_time.strftime('%I:%M %p') }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-sm btn-primary">
+                  <i class="bi bi-send-fill me-1"></i> Offer Slot
+                </button>
+              </form>
+            {% else %}
+              <span class="text-muted small italic">Awaiting slot cancellation...</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-muted mb-0 italic">No waitlisted patients for this date.</p>
+      {% endif %}
+
+    </div>
+  </div>
+  {% endif %}
+
   <!-- Appointments Table -->
   <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="table-responsive">
@@ -92,6 +137,7 @@
             <th>Patient Name</th>
             <th>Assigned Doctor</th>
             <th>Date & Time</th>
+            <th>Priority</th>
             <th>Channel</th>
             <th>Status</th>
             <th>Notes</th>
@@ -115,6 +161,19 @@
             <td>
               <div class="fw-bold text-teal" style="color: var(--primary-color);">{{ apt.slot_time.strftime('%I:%M %p') }}</div>
               <small class="text-muted">{{ apt.appointment_date.strftime('%d %b %Y') }}</small>
+            </td>
+            <td>
+              {% if apt.priority == 'Emergency' %}
+                <span class="badge bg-danger">Emergency</span>
+              {% elif apt.priority == 'Senior Citizen' %}
+                <span class="badge bg-warning text-dark">Senior Citizen</span>
+              {% elif apt.priority == 'Pregnant Woman' %}
+                <span class="badge bg-info text-dark">Pregnant Woman</span>
+              {% elif apt.priority == 'Child' %}
+                <span class="badge bg-primary">Child</span>
+              {% else %}
+                <span class="badge bg-secondary">Regular</span>
+              {% endif %}
             </td>
             <td>
               {% if apt.booking_type == 'Emergency' %}
@@ -158,6 +217,53 @@
           {% endfor %}
         </tbody>
       </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Patient to Waitlist -->
+<div class="modal fade" id="joinWaitlistModal" tabindex="-1" aria-labelledby="joinWaitlistModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header bg-primary text-white py-3">
+        <h5 class="modal-header-title fw-bold mb-0" id="joinWaitlistModalLabel">
+          <i class="bi bi-person-plus-fill me-2"></i> Add Patient to Doctor Waitlist
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url_for('appointments.add_to_waitlist') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Select Patient <span class="text-danger">*</span></label>
+            <select name="patient_id" class="form-select" required>
+              {% for p in all_patients %}
+              <option value="{{ p.id }}">{{ p.full_name }} ({{ p.patient_code }})</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Assigned Doctor <span class="text-danger">*</span></label>
+            <select name="doctor_id" class="form-select" required>
+              {% for d in doctors %}
+              <option value="{{ d.id }}">{{ d.name }} ({{ d.user_code }})</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Target Preferred Date <span class="text-danger">*</span></label>
+            <input type="date" name="preferred_date" value="{{ selected_date.strftime('%Y-%m-%d') }}" class="form-control" required>
+          </div>
+        </div>
+        <div class="modal-footer bg-light p-3">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary-custom">
+            <i class="bi bi-check-circle-fill me-1"></i> Add to Waitlist
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hospital Tax Invoice - {{ bill.invoice_code }}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <style>
+    body { background-color: #fff; font-family: 'Segoe UI', Arial, sans-serif; color: #212529; }
+    .invoice-card { max-width: 800px; margin: 20px auto; padding: 40px; border: 1px solid #deefef; }
+    .hospital-header { border-bottom: 2px solid #008080; padding-bottom: 15px; margin-bottom: 20px; }
+    .invoice-title { color: #008080; font-weight: 800; font-size: 24px; text-transform: uppercase; }
+    @media print {
+      .no-print { display: none !important; }
+      .invoice-card { border: none; padding: 0; margin: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="no-print text-center my-3">
+  <button onclick="window.print()" class="btn btn-primary btn-lg shadow">
+    🖨️ Print Official Hospital Tax Invoice Receipt
+  </button>
+</div>
+
+<div class="invoice-card rounded-4">
+  <div class="hospital-header d-flex justify-content-between align-items-center">
+    <div>
+      <div class="invoice-title">🏥 IPCMS HEALTHCARE HOSPITAL</div>
+      <small class="text-muted">123 Health Avenue, Super Specialty Block, Bengaluru, KA - 560001</small><br>
+      <small class="text-muted">GSTIN: 29AAAAA0000A1Z5 | Phone: +91-80-12345678 | Email: billing@ipcms.com</small>
+    </div>
+    <div class="text-end">
+      <h4 class="fw-bold text-dark font-monospace mb-0">{{ bill.invoice_code }}</h4>
+      <small class="badge bg-secondary">TAX INVOICE RECEIPT</small>
+    </div>
+  </div>
+
+  <!-- Meta Table -->
+  <div class="row mb-4">
+    <div class="col-6">
+      <h6 class="fw-bold text-uppercase text-secondary mb-1">Billed To (Patient):</h6>
+      <div class="fw-bold fs-5">{{ bill.patient.full_name }}</div>
+      <div>Patient Code: <code>{{ bill.patient.patient_code }}</code></div>
+      <div>Mobile: <code>{{ bill.patient.mobile }}</code></div>
+      <div>Gender / Age: {{ bill.patient.gender }}</div>
+    </div>
+    <div class="col-6 text-end">
+      <h6 class="fw-bold text-uppercase text-secondary mb-1">Invoice Details:</h6>
+      <div>Date & Time: <strong>{{ bill.created_at.strftime('%d %B %Y, %I:%M %p') }}</strong></div>
+      <div>Payment Status: 
+        {% if bill.status == 'PAID' %}
+          <strong class="text-success">FULLY PAID</strong>
+        {% elif bill.status == 'PARTIALLY_PAID' %}
+          <strong class="text-warning">PARTIALLY PAID</strong>
+        {% else %}
+          <strong class="text-danger">UNPAID</strong>
+        {% endif %}
+      </div>
+      {% if bill.consultation %}
+      <div>Linked Consultation: <code>{{ bill.consultation.consultation_code }}</code></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Itemized Charges -->
+  <table class="table table-bordered align-middle mb-4">
+    <thead class="table-light">
+      <tr>
+        <th>#</th>
+        <th>Particulars / Charges Description</th>
+        <th class="text-end">Unit Price (₹)</th>
+        <th class="text-center">Qty</th>
+        <th class="text-end">Total Amount (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in bill.items %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ item.item_description }}</td>
+        <td class="text-end">₹{{ "%.2f"|format(item.unit_price) }}</td>
+        <td class="text-center">{{ item.quantity }}</td>
+        <td class="text-end fw-bold">₹{{ "%.2f"|format(item.total_price) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Calculation Summary -->
+  <div class="row mb-4">
+    <div class="col-6">
+      <div class="p-3 bg-light rounded border">
+        <h6 class="fw-bold mb-1">Payment Received Breakdown:</h6>
+        {% for p in bill.payments %}
+        <small class="d-block text-muted">
+          • {{ p.paid_at.strftime('%d %b %Y') }} — ₹{{ "%.2f"|format(p.amount_paid) }} via {{ p.payment_method }} (Ref: {{ p.transaction_ref or 'N/A' }})
+        </small>
+        {% else %}
+        <small class="text-muted">No payments recorded yet.</small>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="col-6">
+      <table class="table table-sm borderless">
+        <tr>
+          <td>Subtotal Amount:</td>
+          <td class="text-end fw-bold">₹{{ "%.2f"|format(bill.subtotal) }}</td>
+        </tr>
+        {% if bill.discount > 0 %}
+        <tr class="text-success">
+          <td>Discount Applied:</td>
+          <td class="text-end fw-bold">- ₹{{ "%.2f"|format(bill.discount) }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+          <td>GST Tax Amount (5%):</td>
+          <td class="text-end">₹{{ "%.2f"|format(bill.tax_amount) }}</td>
+        </tr>
+        <tr class="table-secondary fs-5">
+          <td class="fw-bold">Grand Total:</td>
+          <td class="text-end fw-bold">₹{{ "%.2f"|format(bill.grand_total) }}</td>
+        </tr>
+        <tr class="text-success fw-bold">
+          <td>Total Paid Amount:</td>
+          <td class="text-end">₹{{ "%.2f"|format(bill.paid_amount) }}</td>
+        </tr>
+        <tr class="text-danger fw-bold fs-6">
+          <td>Balance Dues:</td>
+          <td class="text-end">₹{{ "%.2f"|format(bill.balance_due) }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer Signature -->
+  <div class="row mt-5 pt-4 border-top">
+    <div class="col-6 text-muted small">
+      <p class="mb-0">Thank you for choosing IPCMS Healthcare.</p>
+      <small>This is a computer-generated tax invoice receipt.</small>
+    </div>
+    <div class="col-6 text-end">
+      <div class="fw-bold">Authorized Cashier Signature</div>
+      <div class="text-muted small mt-4">_______________________</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

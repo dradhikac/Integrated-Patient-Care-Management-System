@@ -37,6 +37,7 @@ class Appointment(db.Model):
     appointment_date = db.Column(db.Date, nullable=False, index=True)
     slot_time = db.Column(db.Time, nullable=False)
     booking_type = db.Column(db.String(20), default='Online') # 'Walk-In', 'Online', 'Emergency'
+    priority = db.Column(db.String(30), default='Regular') # 'Emergency', 'Senior Citizen', 'Pregnant Woman', 'Child', 'Regular'
     status = db.Column(db.String(30), default='BOOKED') # 'BOOKED', 'CHECKED_IN', 'COMPLETED', 'CANCELLED', 'NO_SHOW'
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
