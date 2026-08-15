@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+
+{% block title %}Inpatient & Bed Management - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-hospital-fill text-teal me-2" style="color: var(--primary-color);"></i> Inpatient & Bed Management (IPD)</h3>
+      <p class="text-muted mb-0">Module 11 — Live ward occupancy tracking, bed allocations, inpatient admissions, and bed transfers</p>
+    </div>
+    {% if current_user.role.name in ['Admin', 'Receptionist', 'Doctor'] %}
+    <div>
+      <a href="{{ url_for('beds.admit_patient') }}" class="btn btn-primary-custom" style="width: auto;">
+        <i class="bi bi-person-plus-fill me-1"></i> Admit New Patient
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Metric Summary Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4 bg-primary text-white p-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="small text-white-50 text-uppercase fw-bold">Total Hospital Capacity</div>
+            <h3 class="fw-bold mb-0">{{ total_beds }} Beds</h3>
+          </div>
+          <i class="bi bi-hospital fs-1 opacity-50"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4 bg-success text-white p-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="small text-white-50 text-uppercase fw-bold">Available Beds</div>
+            <h3 class="fw-bold mb-0">{{ available_beds }} Available</h3>
+          </div>
+          <i class="bi bi-check-circle-fill fs-1 opacity-50"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm rounded-4 bg-danger text-white p-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="small text-white-50 text-uppercase fw-bold">Currently Occupied</div>
+            <h3 class="fw-bold mb-0">{{ occupied_beds }} Occupied</h3>
+          </div>
+          <i class="bi bi-person-fill-lock fs-1 opacity-50"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ward Occupancy Grid -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white py-3">
+      <h5 class="card-title fw-bold mb-0 text-teal" style="color: var(--primary-color);">
+        <i class="bi bi-grid-3x3-gap-fill me-2"></i> Live Ward Occupancy Matrix
+      </h5>
+    </div>
+    <div class="card-body p-4">
+      <div class="row g-4">
+        {% for w in wards %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card border rounded-4 h-100 p-3 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="fw-bold mb-0 text-dark">{{ w.ward_name }}</h6>
+              <span class="badge bg-secondary font-monospace">₹{{ "%.0f"|format(w.daily_rate) }}/day</span>
+            </div>
+            <div class="small text-muted mb-3">{{ w.category }} | Total Beds: <strong>{{ w.total_beds_count() }}</strong></div>
+
+            <div class="d-flex flex-wrap gap-2">
+              {% for b in w.beds %}
+                {% if b.status == 'AVAILABLE' %}
+                  <span class="badge bg-success-subtle text-success border border-success font-monospace py-2 px-3" title="Bed Available">
+                    <i class="bi bi-check-circle me-1"></i> {{ b.bed_code }}
+                  </span>
+                {% elif b.status == 'OCCUPIED' %}
+                  <span class="badge bg-danger-subtle text-danger border border-danger font-monospace py-2 px-3" title="Bed Occupied">
+                    <i class="bi bi-person-fill me-1"></i> {{ b.bed_code }}
+                  </span>
+                {% else %}
+                  <span class="badge bg-warning-subtle text-dark border border-warning font-monospace py-2 px-3">
+                    <i class="bi bi-gear me-1"></i> {{ b.bed_code }}
+                  </span>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Inpatients Table -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <h5 class="card-title fw-bold mb-0 text-teal" style="color: var(--primary-color);">
+        <i class="bi bi-person-workspace me-2"></i> Inpatient Admissions Directory
+      </h5>
+      <form method="GET" action="{{ url_for('beds.index') }}" class="d-flex gap-2">
+        <select name="status" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+          <option value="ADMITTED" {% if status_filter == 'ADMITTED' %}selected{% endif %}>Currently Admitted</option>
+          <option value="DISCHARGED" {% if status_filter == 'DISCHARGED' %}selected{% endif %}>Discharged Inpatients</option>
+          <option value="ALL" {% if status_filter == 'ALL' %}selected{% endif %}>All Records</option>
+        </select>
+      </form>
+    </div>
+    <div class="table-responsive">
+      <table class="table custom-table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Adm Code</th>
+            <th>Patient Name</th>
+            <th>Assigned Ward & Bed</th>
+            <th>Admitting Doctor</th>
+            <th>Admission Date</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in admissions %}
+          <tr>
+            <td>
+              <span class="badge bg-dark font-monospace py-2 px-3">{{ a.admission_code }}</span>
+            </td>
+            <td>
+              <div class="fw-bold">{{ a.patient.full_name }}</div>
+              <small class="text-muted font-monospace">{{ a.patient.patient_code }} | <code>{{ a.patient.mobile }}</code></small>
+            </td>
+            <td>
+              <span class="badge bg-primary font-monospace fs-6"><i class="bi bi-badge-hd me-1"></i> {{ a.bed.bed_code }}</span>
+              <small class="d-block text-muted">{{ a.bed.ward.ward_name }}</small>
+            </td>
+            <td>
+              <div class="fw-semibold text-dark">{{ a.doctor.name }}</div>
+              <small class="text-muted">{{ a.doctor.user_code }}</small>
+            </td>
+            <td>
+              <div class="small fw-semibold">{{ a.admitted_at.strftime('%d %b %Y') }}</div>
+              <small class="text-muted">{{ a.admitted_at.strftime('%I:%M %p') }}</small>
+            </td>
+            <td>
+              {% if a.status == 'ADMITTED' %}
+                <span class="badge bg-danger"><i class="bi bi-hospital-fill me-1"></i> Admitted</span>
+              {% else %}
+                <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i> Discharged</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <a href="{{ url_for('beds.view_admission', admission_id=a.id) }}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-eye-fill me-1"></i> View Details
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted">
+              <i class="bi bi-hospital fs-1 d-block mb-2 text-secondary"></i>
+              No inpatient admissions found matching criteria.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

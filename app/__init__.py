@@ -26,6 +26,7 @@ def create_app(config_class=Config):
     from app.prescriptions.routes import prescriptions_bp
     from app.lab.routes import lab_bp
     from app.billing.routes import billing_bp
+    from app.beds.routes import beds_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(patients_bp)
@@ -37,6 +38,7 @@ def create_app(config_class=Config):
     app.register_blueprint(prescriptions_bp)
     app.register_blueprint(lab_bp)
     app.register_blueprint(billing_bp)
+    app.register_blueprint(beds_bp)
 
     # CLI Command to seed database roles and demo users
     @app.cli.command("seed-db")
@@ -51,6 +53,7 @@ def create_app(config_class=Config):
         from app.prescriptions.models import Medicine, Prescription, PrescriptionItem
         from app.lab.models import LabTestType, LabRequest, LabResult
         from app.billing.models import Bill, BillItem, Payment
+        from app.beds.models import Ward, Bed, Admission, BedTransfer
 
         db.create_all()
 
@@ -107,6 +110,24 @@ def create_app(config_class=Config):
                 tt = LabTestType(test_code=t_code, test_name=t_name, category=cat, unit=unit, min_normal_val=min_n, max_normal_val=max_n, cost=cst)
                 db.session.add(tt)
             click.echo("Seeded initial Lab Test Types master catalog.")
+            db.session.commit()
+
+        # Seed initial Ward catalog & Bed capacity if empty
+        if Ward.query.count() == 0:
+            sample_wards = [
+                ('WRD-ICU', 'Intensive Care Unit (ICU)', 'ICU', 2500.0, [f"BED-ICU-{i:02d}" for i in range(1, 6)]),
+                ('WRD-GEN-A', 'General Ward A (Male)', 'General Ward', 800.0, [f"BED-GEN-A-{i:02d}" for i in range(1, 9)]),
+                ('WRD-GEN-B', 'General Ward B (Female)', 'General Ward', 800.0, [f"BED-GEN-B-{i:02d}" for i in range(1, 9)]),
+                ('WRD-PVT-01', 'Private Deluxe Suites', 'Private Suite', 3500.0, [f"BED-PVT-{i:02d}" for i in range(1, 5)])
+            ]
+            for w_code, w_name, cat, rate, bed_codes in sample_wards:
+                ward = Ward(ward_code=w_code, ward_name=w_name, category=cat, daily_rate=rate)
+                db.session.add(ward)
+                db.session.flush()
+                for b_code in bed_codes:
+                    bed = Bed(ward_id=ward.id, bed_code=b_code, status='AVAILABLE')
+                    db.session.add(bed)
+            click.echo("Seeded initial Ward catalog & Bed capacity.")
             db.session.commit()
 
         # Seed sample users for each role

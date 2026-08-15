@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Inpatient Admission - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-person-plus-fill text-teal me-2" style="color: var(--primary-color);"></i> Inpatient Admission (IPD)</h3>
+      <p class="text-muted mb-0">Module 11 — Admit patient, assign ward, and allocate an available hospital bed</p>
+    </div>
+    <a href="{{ url_for('beds.index') }}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Bed Management
+    </a>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white py-3">
+          <h5 class="card-title fw-bold mb-0 text-teal" style="color: var(--primary-color);">
+            <i class="bi bi-clipboard-plus me-2"></i> Inpatient Admission Form
+          </h5>
+        </div>
+        <div class="card-body p-4">
+          <form method="GET" action="{{ url_for('beds.admit_patient') }}" id="wardFilterForm" class="mb-4">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Select Target Ward</label>
+              <select name="ward_id" class="form-select" onchange="document.getElementById('wardFilterForm').submit()">
+                {% for w in wards %}
+                <option value="{{ w.id }}" {% if w.id == selected_ward_id %}selected{% endif %}>{{ w.ward_name }} — {{ w.category }} (₹{{ "%.0f"|format(w.daily_rate) }}/day)</option>
+                {% endfor %}
+              </select>
+            </div>
+          </form>
+
+          <hr>
+
+          <form method="POST" action="{{ url_for('beds.admit_patient', ward_id=selected_ward_id) }}">
+            {{ form.csrf_token }}
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Select Patient <span class="text-danger">*</span></label>
+              {{ form.patient_id(class="form-select") }}
+              {% for err in form.patient_id.errors %}<div class="invalid-feedback d-block">{{ err }}</div>{% endfor %}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Admitting Doctor <span class="text-danger">*</span></label>
+              {{ form.doctor_id(class="form-select") }}
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Select Available Bed in Ward <span class="text-danger">*</span></label>
+              {{ form.bed_id(class="form-select") }}
+              {% if not available_beds %}
+              <div class="form-text text-danger">No available beds in this ward. Please choose a different ward.</div>
+              {% endif %}
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Admission Diagnosis / Medical Rationale <span class="text-danger">*</span></label>
+              {{ form.notes or form.diagnosis(class="form-control", rows="3", placeholder="Clinical reasons e.g. Acute Pneumonia, Post-Op Monitoring...") }}
+            </div>
+
+            <button type="submit" class="btn btn-primary-custom w-100 py-3 fw-bold" {% if not available_beds %}disabled{% endif %}>
+              <i class="bi bi-check-circle-fill me-2"></i> Confirm Patient Admission
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

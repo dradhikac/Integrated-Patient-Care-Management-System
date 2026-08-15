@@ -169,6 +169,28 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
             }
         })
 
+    # 8. Inpatient Admissions & Discharges
+    from app.beds.models import Admission
+    admissions = Admission.query.filter_by(patient_id=patient_id).all()
+    for adm in admissions:
+        events.append({
+            'event_type': 'INPATIENT',
+            'title': f"Inpatient Admission (IPD) — {adm.admission_code}",
+            'timestamp': adm.admitted_at,
+            'date_str': adm.admitted_at.strftime('%d %b %Y, %I:%M %p'),
+            'badge_color': 'danger',
+            'icon_class': 'bi-hospital',
+            'actor': adm.doctor.name,
+            'summary': f"Admitted to {adm.bed.ward.ward_name} ({adm.bed.bed_code}) | Diagnosis: {adm.diagnosis[:60]}...",
+            'details': {
+                'Admission Code': adm.admission_code,
+                'Admitting Doctor': adm.doctor.name,
+                'Allocated Bed': f"{adm.bed.bed_code} ({adm.bed.ward.ward_name})",
+                'Diagnosis': adm.diagnosis,
+                'Status': adm.status
+            }
+        })
+
     # Filter by Event Type if specified
     if event_filter and event_filter != 'ALL':
         events = [e for e in events if e['event_type'] == event_filter]
