@@ -29,6 +29,7 @@ def create_app(config_class=Config):
     from app.beds.routes import beds_bp
     from app.analytics.routes import analytics_bp
     from app.notifications.routes import notifications_bp
+    from app.reports.routes import reports_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(patients_bp)
@@ -43,6 +44,7 @@ def create_app(config_class=Config):
     app.register_blueprint(beds_bp)
     app.register_blueprint(analytics_bp)
     app.register_blueprint(notifications_bp)
+    app.register_blueprint(reports_bp)
 
     # CLI Command to seed database roles and demo users
     @app.cli.command("seed-db")

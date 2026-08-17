@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lab Diagnostics Summary Report - IPCMS</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <style>
+    body { background-color: #fff; font-family: 'Segoe UI', Arial, sans-serif; }
+    .report-card { max-width: 900px; margin: 20px auto; padding: 30px; }
+    .report-header { border-bottom: 2px solid #008080; padding-bottom: 15px; margin-bottom: 20px; }
+    .report-title { color: #008080; font-weight: 800; font-size: 22px; text-transform: uppercase; }
+    @media print { .no-print { display: none !important; } .report-card { padding: 0; margin: 0; } }
+  </style>
+</head>
+<body>
+
+<div class="no-print text-center my-3">
+  <button onclick="window.print()" class="btn btn-primary shadow">🖨️ Print / Save as PDF</button>
+</div>
+
+<div class="report-card">
+  <div class="report-header d-flex justify-content-between align-items-center">
+    <div>
+      <div class="report-title">🏥 IPCMS HEALTHCARE HOSPITAL</div>
+      <small class="text-muted">Laboratory Diagnostics Summary & Test Requests</small><br>
+      <small class="text-muted">Generated: {{ now.strftime('%d %B %Y, %I:%M %p') }}</small>
+    </div>
+    <div class="text-end">
+      <span class="badge bg-purple text-white fs-6" style="background-color: #6f42c1;">LAB REPORT</span>
+    </div>
+  </div>
+
+  <table class="table table-bordered align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>#</th>
+        <th>Request Code</th>
+        <th>Patient Name</th>
+        <th>Ordering Doctor</th>
+        <th>Ordered Investigations</th>
+        <th>Request Date</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lr in data %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td><code>{{ lr.request_code }}</code></td>
+        <td class="fw-bold">{{ lr.patient.full_name }}</td>
+        <td>{{ lr.doctor.name }}</td>
+        <td class="small">
+          {% for res in lr.results %}
+            • {{ res.test_type.test_name }}<br>
+          {% endfor %}
+        </td>
+        <td><small class="text-muted">{{ lr.created_at.strftime('%d %b %Y') }}</small></td>
+        <td>
+          {% if lr.status == 'COMPLETED' %}
+            <span class="badge bg-success">Completed</span>
+          {% else %}
+            <span class="badge bg-warning text-dark">Requested</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>

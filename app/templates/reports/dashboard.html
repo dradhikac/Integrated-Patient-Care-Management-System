@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block title %}Reports & Analytics Dashboard - IPCMS{% endblock %}
+
+{% block content %}
+<!-- Include Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="container dashboard-container">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-bar-chart-line-fill text-teal me-2" style="color: var(--primary-color);"></i> Reports & Admin Analytics</h3>
+      <p class="text-muted mb-0">Module 14 — Real-time today's KPI metrics, monthly revenue trend line chart, and 5 exportable reports</p>
+    </div>
+    <div class="dropdown">
+      <button class="btn btn-primary-custom dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: auto;">
+        <i class="bi bi-download me-1"></i> Quick Export Center
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3">
+        <li><h6 class="dropdown-header text-uppercase fw-bold">Export Hospital Reports</h6></li>
+        <li><a class="dropdown-item" href="{{ url_for('reports.export_report', report_type='patient', format='csv') }}"><i class="bi bi-file-earmark-excel text-success me-2"></i> Patient Report (CSV)</a></li>
+        <li><a class="dropdown-item" href="{{ url_for('reports.export_report', report_type='patient', format='pdf') }}" target="_blank"><i class="bi bi-file-earmark-pdf text-danger me-2"></i> Patient Report (PDF)</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{{ url_for('reports.export_report', report_type='revenue', format='csv') }}"><i class="bi bi-file-earmark-excel text-success me-2"></i> Revenue Report (CSV)</a></li>
+        <li><a class="dropdown-item" href="{{ url_for('reports.export_report', report_type='revenue', format='pdf') }}" target="_blank"><i class="bi bi-file-earmark-pdf text-danger me-2"></i> Revenue Report (PDF)</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{{ url_for('reports.export_report', report_type='doctor', format='csv') }}"><i class="bi bi-file-earmark-excel text-success me-2"></i> Doctor Report (CSV)</a></li>
+        <li><a class="dropdown-item" href="{{ url_for('reports.export_report', report_type='doctor', format='pdf') }}" target="_blank"><i class="bi bi-file-earmark-pdf text-danger me-2"></i> Doctor Report (PDF)</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{{ url_for('reports.export_report', report_type='appointment', format='csv') }}"><i class="bi bi-file-earmark-excel text-success me-2"></i> Appointment Report (CSV)</a></li>
+        <li><a class="dropdown-item" href="{{ url_for('reports.export_report', report_type='appointment', format='pdf') }}" target="_blank"><i class="bi bi-file-earmark-pdf text-danger me-2"></i> Appointment Report (PDF)</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{{ url_for('reports.export_report', report_type='lab', format='csv') }}"><i class="bi bi-file-earmark-excel text-success me-2"></i> Lab Diagnostic Report (CSV)</a></li>
+        <li><a class="dropdown-item" href="{{ url_for('reports.export_report', report_type='lab', format='pdf') }}" target="_blank"><i class="bi bi-file-earmark-pdf text-danger me-2"></i> Lab Diagnostic Report (PDF)</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Today's Metric KPI Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-2-4 col-sm-6">
+      <div class="card border-0 shadow-sm rounded-4 bg-primary text-white p-3 h-100">
+        <div class="small text-white-50 text-uppercase fw-bold mb-1">Patients Today</div>
+        <h3 class="fw-bold mb-0">{{ kpis.patients_today }}</h3>
+        <small class="text-white-50 mt-1 d-block"><i class="bi bi-person-plus-fill me-1"></i> New Intakes</small>
+      </div>
+    </div>
+
+    <div class="col-md-2-4 col-sm-6">
+      <div class="card border-0 shadow-sm rounded-4 bg-success text-white p-3 h-100">
+        <div class="small text-white-50 text-uppercase fw-bold mb-1">Revenue Today</div>
+        <h3 class="fw-bold mb-0">₹{{ "%.0f"|format(kpis.revenue_today) }}</h3>
+        <small class="text-white-50 mt-1 d-block"><i class="bi bi-cash-stack me-1"></i> Cash & Billed</small>
+      </div>
+    </div>
+
+    <div class="col-md-2-4 col-sm-6">
+      <div class="card border-0 shadow-sm rounded-4 bg-info text-dark p-3 h-100">
+        <div class="small text-dark-50 text-uppercase fw-bold mb-1">Doctors Available</div>
+        <h3 class="fw-bold mb-0">{{ kpis.doctors_available }}</h3>
+        <small class="text-dark-50 mt-1 d-block"><i class="bi bi-stethoscope me-1"></i> On Roster Today</small>
+      </div>
+    </div>
+
+    <div class="col-md-2-4 col-sm-6">
+      <div class="card border-0 shadow-sm rounded-4 bg-warning text-dark p-3 h-100">
+        <div class="small text-dark-50 text-uppercase fw-bold mb-1">Appointments Today</div>
+        <h3 class="fw-bold mb-0">{{ kpis.appointments_today }}</h3>
+        <small class="text-dark-50 mt-1 d-block"><i class="bi bi-calendar-check me-1"></i> Scheduled Slots</small>
+      </div>
+    </div>
+
+    <div class="col-md-2-4 col-sm-6">
+      <div class="card border-0 shadow-sm rounded-4 bg-danger text-white p-3 h-100">
+        <div class="small text-white-50 text-uppercase fw-bold mb-1">Emergency Today</div>
+        <h3 class="fw-bold mb-0">{{ kpis.emergency_cases_today }}</h3>
+        <small class="text-white-50 mt-1 d-block"><i class="bi bi-exclamation-triangle-fill me-1"></i> High Priority</small>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @media (min-width: 768px) {
+      .col-md-2-4 { flex: 0 0 auto; width: 20%; }
+    }
+  </style>
+
+  <!-- Chart.js Visualization Grid -->
+  <div class="row g-4 mb-4">
+    <!-- Monthly Revenue Trend Line Chart -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+          <h5 class="card-title fw-bold mb-0 text-teal" style="color: var(--primary-color);">
+            <i class="bi bi-graph-up me-2"></i> Monthly Revenue Trend (Historical Billing Data)
+          </h5>
+          <span class="badge bg-light text-dark border">Plain SQL Aggregation</span>
+        </div>
+        <div class="card-body p-4">
+          <canvas id="monthlyRevenueChart" height="120"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Appointment Status Breakdown Doughnut Chart -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card-header bg-white py-3">
+          <h5 class="card-title fw-bold mb-0 text-teal" style="color: var(--primary-color);">
+            <i class="bi bi-pie-chart-fill me-2"></i> Appointment Statuses
+          </h5>
+        </div>
+        <div class="card-body p-4 text-center">
+          <canvas id="appointmentStatusChart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5 Exportable Reports Center -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white py-3">
+      <h5 class="card-title fw-bold mb-0 text-teal" style="color: var(--primary-color);">
+        <i class="bi bi-folder-symlink-fill me-2"></i> Hospital Exportable Reports Center (PDF & Excel/CSV)
+      </h5>
+    </div>
+    <div class="card-body p-4">
+      <div class="row g-3">
+        <!-- 1. Patient Report Card -->
+        <div class="col-md-4">
+          <div class="card border rounded-4 p-3 shadow-sm h-100">
+            <h6 class="fw-bold mb-1 text-dark"><i class="bi bi-people-fill text-primary me-2"></i> 1. Patient Demographics Report</h6>
+            <p class="small text-muted mb-3">Complete intake registry, medical history flags, Aadhaar status, and contact directory.</p>
+            <div class="d-flex gap-2 mt-auto">
+              <a href="{{ url_for('reports.export_report', report_type='patient', format='csv') }}" class="btn btn-sm btn-outline-success w-50"><i class="bi bi-file-earmark-excel me-1"></i> Excel/CSV</a>
+              <a href="{{ url_for('reports.export_report', report_type='patient', format='pdf') }}" target="_blank" class="btn btn-sm btn-outline-danger w-50"><i class="bi bi-file-earmark-pdf me-1"></i> Print/PDF</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Revenue Report Card -->
+        <div class="col-md-4">
+          <div class="card border rounded-4 p-3 shadow-sm h-100">
+            <h6 class="fw-bold mb-1 text-dark"><i class="bi bi-currency-rupee text-success me-2"></i> 2. Revenue & Financial Report</h6>
+            <p class="small text-muted mb-3">Itemized OPD, Pharmacy, and Lab test revenue with tax/discount totals and balance dues.</p>
+            <div class="d-flex gap-2 mt-auto">
+              <a href="{{ url_for('reports.export_report', report_type='revenue', format='csv') }}" class="btn btn-sm btn-outline-success w-50"><i class="bi bi-file-earmark-excel me-1"></i> Excel/CSV</a>
+              <a href="{{ url_for('reports.export_report', report_type='revenue', format='pdf') }}" target="_blank" class="btn btn-sm btn-outline-danger w-50"><i class="bi bi-file-earmark-pdf me-1"></i> Print/PDF</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Doctor Report Card -->
+        <div class="col-md-4">
+          <div class="card border rounded-4 p-3 shadow-sm h-100">
+            <h6 class="fw-bold mb-1 text-dark"><i class="bi bi-person-badge-fill text-info me-2"></i> 3. Doctor Performance Report</h6>
+            <p class="small text-muted mb-3">Doctor roster, total consultations conducted, appointment load, and availability.</p>
+            <div class="d-flex gap-2 mt-auto">
+              <a href="{{ url_for('reports.export_report', report_type='doctor', format='csv') }}" class="btn btn-sm btn-outline-success w-50"><i class="bi bi-file-earmark-excel me-1"></i> Excel/CSV</a>
+              <a href="{{ url_for('reports.export_report', report_type='doctor', format='pdf') }}" target="_blank" class="btn btn-sm btn-outline-danger w-50"><i class="bi bi-file-earmark-pdf me-1"></i> Print/PDF</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Appointment Report Card -->
+        <div class="col-md-6">
+          <div class="card border rounded-4 p-3 shadow-sm h-100">
+            <h6 class="fw-bold mb-1 text-dark"><i class="bi bi-calendar-event-fill text-warning me-2"></i> 4. Appointments & Waitlist Report</h6>
+            <p class="small text-muted mb-3">Complete scheduling log, booking channel distribution, time slot allocation, and waitlist promotion history.</p>
+            <div class="d-flex gap-2 mt-auto">
+              <a href="{{ url_for('reports.export_report', report_type='appointment', format='csv') }}" class="btn btn-sm btn-outline-success w-50"><i class="bi bi-file-earmark-excel me-1"></i> Excel/CSV</a>
+              <a href="{{ url_for('reports.export_report', report_type='appointment', format='pdf') }}" target="_blank" class="btn btn-sm btn-outline-danger w-50"><i class="bi bi-file-earmark-pdf me-1"></i> Print/PDF</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. Lab Report Card -->
+        <div class="col-md-6">
+          <div class="card border rounded-4 p-3 shadow-sm h-100">
+            <h6 class="fw-bold mb-1 text-dark"><i class="bi bi-flask-fill text-purple me-2" style="color: #6f42c1;"></i> 5. Lab & Diagnostics Summary Report</h6>
+            <p class="small text-muted mb-3">Diagnostic test requests catalog, test result status, abnormal flag distributions, and lab revenue.</p>
+            <div class="d-flex gap-2 mt-auto">
+              <a href="{{ url_for('reports.export_report', report_type='lab', format='csv') }}" class="btn btn-sm btn-outline-success w-50"><i class="bi bi-file-earmark-excel me-1"></i> Excel/CSV</a>
+              <a href="{{ url_for('reports.export_report', report_type='lab', format='pdf') }}" target="_blank" class="btn btn-sm btn-outline-danger w-50"><i class="bi bi-file-earmark-pdf me-1"></i> Print/PDF</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js Setup Script -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Monthly Revenue Line Chart
+    const revCtx = document.getElementById('monthlyRevenueChart').getContext('2d');
+    new Chart(revCtx, {
+        type: 'line',
+        data: {
+            labels: {{ monthly_trend.labels | tojson }},
+            datasets: [{
+                label: 'Monthly Revenue (₹)',
+                data: {{ monthly_trend.amounts | tojson }},
+                borderColor: '#008080',
+                backgroundColor: 'rgba(0, 128, 128, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.3,
+                pointBackgroundColor: '#008080',
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) { return '₹' + value; }
+                    }
+                }
+            }
+        }
+    });
+
+    // 2. Appointment Status Doughnut Chart
+    const statusCtx = document.getElementById('appointmentStatusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Booked', 'Checked In', 'Completed', 'Cancelled'],
+            datasets: [{
+                data: [
+                    {{ status_breakdown.BOOKED }},
+                    {{ status_breakdown.CHECKED_IN }},
+                    {{ status_breakdown.COMPLETED }},
+                    {{ status_breakdown.CANCELLED }}
+                ],
+                backgroundColor: [
+                    '#0d6efd', // Primary blue
+                    '#ffc107', // Warning yellow
+                    '#198754', // Success green
+                    '#6c757d'  # Secondary gray
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

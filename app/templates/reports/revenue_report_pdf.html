@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hospital Revenue & Financial Report - IPCMS</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <style>
+    body { background-color: #fff; font-family: 'Segoe UI', Arial, sans-serif; }
+    .report-card { max-width: 900px; margin: 20px auto; padding: 30px; }
+    .report-header { border-bottom: 2px solid #008080; padding-bottom: 15px; margin-bottom: 20px; }
+    .report-title { color: #008080; font-weight: 800; font-size: 22px; text-transform: uppercase; }
+    @media print { .no-print { display: none !important; } .report-card { padding: 0; margin: 0; } }
+  </style>
+</head>
+<body>
+
+<div class="no-print text-center my-3">
+  <button onclick="window.print()" class="btn btn-primary shadow">🖨️ Print / Save as PDF</button>
+</div>
+
+<div class="report-card">
+  <div class="report-header d-flex justify-content-between align-items-center">
+    <div>
+      <div class="report-title">🏥 IPCMS HEALTHCARE HOSPITAL</div>
+      <small class="text-muted">Financial Invoices & Revenue Breakdown Report</small><br>
+      <small class="text-muted">Generated: {{ now.strftime('%d %B %Y, %I:%M %p') }}</small>
+    </div>
+    <div class="text-end">
+      <span class="badge bg-success fs-6">REVENUE REPORT</span>
+    </div>
+  </div>
+
+  <table class="table table-bordered align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>#</th>
+        <th>Invoice Code</th>
+        <th>Patient Details</th>
+        <th>Subtotal</th>
+        <th>Discount / Tax</th>
+        <th>Grand Total</th>
+        <th>Paid Amount</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in data %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td><code>{{ b.invoice_code }}</code></td>
+        <td class="fw-bold">{{ b.patient.full_name }}<br><small class="text-muted font-monospace">{{ b.patient.patient_code }}</small></td>
+        <td>₹{{ "%.2f"|format(b.subtotal) }}</td>
+        <td class="small">-₹{{ "%.2f"|format(b.discount) }} / +₹{{ "%.2f"|format(b.tax_amount) }}</td>
+        <td class="fw-bold">₹{{ "%.2f"|format(b.grand_total) }}</td>
+        <td class="text-success fw-bold">₹{{ "%.2f"|format(b.paid_amount) }}</td>
+        <td>
+          {% if b.status == 'PAID' %}
+            <span class="badge bg-success">Paid</span>
+          {% elif b.status == 'PARTIALLY_PAID' %}
+            <span class="badge bg-warning text-dark">Partially Paid</span>
+          {% else %}
+            <span class="badge bg-danger">Unpaid</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>
