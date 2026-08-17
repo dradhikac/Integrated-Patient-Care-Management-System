@@ -191,6 +191,27 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
             }
         })
 
+    # 9. Dispatched Notifications & Reminders
+    from app.notifications.models import Notification
+    notifications = Notification.query.filter_by(patient_id=patient_id).all()
+    for n in notifications:
+        events.append({
+            'event_type': 'NOTIFICATION',
+            'title': f"Notification Dispatched — {n.title}",
+            'timestamp': n.created_at,
+            'date_str': n.created_at.strftime('%d %b %Y, %I:%M %p'),
+            'badge_color': 'info',
+            'icon_class': 'bi-bell-fill',
+            'actor': 'Notification Dispatcher System',
+            'summary': f"Category: {n.type} | Channel: {n.channel} | Status: {n.status}",
+            'details': {
+                'Subject': n.title,
+                'Message Body': n.message,
+                'Channel': n.channel,
+                'Status': n.status
+            }
+        })
+
     # Filter by Event Type if specified
     if event_filter and event_filter != 'ALL':
         events = [e for e in events if e['event_type'] == event_filter]

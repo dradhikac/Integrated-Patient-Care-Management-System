@@ -74,6 +74,12 @@
             </a>
           </li>
           
+          <li class="nav-item">
+            <a class="nav-link text-white fw-semibold" href="{{ url_for('notifications.index') }}">
+              <i class="bi bi-bell"></i> Notifications
+            </a>
+          </li>
+          
           {% if current_user.role.name == 'Admin' %}
           <li class="nav-item">
             <a class="nav-link text-white-50" href="{{ url_for('auth.audit_logs') }}">

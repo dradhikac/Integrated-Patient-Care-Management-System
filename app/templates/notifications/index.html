@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+
+{% block title %}Notification Control Center - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-bell-fill text-teal me-2" style="color: var(--primary-color);"></i> Notification Control Center</h3>
+      <p class="text-muted mb-0">Module 13 — Asynchronous multi-channel Email & SMS reminders, lab alerts, and delivery audit logs</p>
+    </div>
+    <div class="d-flex gap-2">
+      {% if current_user.role.name in ['Admin', 'Receptionist'] %}
+      <form method="POST" action="{{ url_for('notifications.trigger_background_job') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-primary">
+          <i class="bi bi-arrow-repeat me-1"></i> Trigger Reminder Scan
+        </button>
+      </form>
+      {% endif %}
+
+      {% if current_user.role.name in ['Admin', 'Receptionist', 'Doctor'] %}
+      <button type="button" class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#customNotifModal" style="width: auto;">
+        <i class="bi bi-send-fill me-1"></i> Send Manual Alert
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Metric Summary Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 bg-primary text-white p-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="small text-white-50 text-uppercase fw-bold">Total Notifications</div>
+            <h3 class="fw-bold mb-0">{{ total_count }}</h3>
+          </div>
+          <i class="bi bi-bell fs-1 opacity-50"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 bg-success text-white p-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="small text-white-50 text-uppercase fw-bold">Successfully Sent</div>
+            <h3 class="fw-bold mb-0">{{ sent_count }}</h3>
+          </div>
+          <i class="bi bi-check-circle-fill fs-1 opacity-50"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 bg-warning text-dark p-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="small text-dark-50 text-uppercase fw-bold">Pending Delivery</div>
+            <h3 class="fw-bold mb-0">{{ pending_count }}</h3>
+          </div>
+          <i class="bi bi-clock-history fs-1 opacity-50"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm rounded-4 bg-danger text-white p-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="small text-white-50 text-uppercase fw-bold">Delivery Failures</div>
+            <h3 class="fw-bold mb-0">{{ failed_count }}</h3>
+          </div>
+          <i class="bi bi-exclamation-triangle-fill fs-1 opacity-50"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications Directory Table -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <h5 class="card-title fw-bold mb-0 text-teal" style="color: var(--primary-color);">
+        <i class="bi bi-envelope-open-fill me-2"></i> Notification Queue & History
+      </h5>
+      <form method="GET" action="{{ url_for('notifications.index') }}" class="d-flex gap-2">
+        <select name="type" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+          <option value="ALL" {% if type_filter == 'ALL' %}selected{% endif %}>All Types</option>
+          <option value="APPOINTMENT_REMINDER" {% if type_filter == 'APPOINTMENT_REMINDER' %}selected{% endif %}>Appointment Reminders</option>
+          <option value="LAB_READY" {% if type_filter == 'LAB_READY' %}selected{% endif %}>Lab Report Ready</option>
+          <option value="PRESCRIPTION_READY" {% if type_filter == 'PRESCRIPTION_READY' %}selected{% endif %}>Prescription Ready</option>
+          <option value="PAYMENT_REMINDER" {% if type_filter == 'PAYMENT_REMINDER' %}selected{% endif %}>Payment Reminders</option>
+          <option value="FOLLOWUP_REMINDER" {% if type_filter == 'FOLLOWUP_REMINDER' %}selected{% endif %}>Follow-Up Reminders</option>
+        </select>
+
+        <select name="status" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+          <option value="ALL" {% if status_filter == 'ALL' %}selected{% endif %}>All Statuses</option>
+          <option value="SENT" {% if status_filter == 'SENT' %}selected{% endif %}>Sent</option>
+          <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+          <option value="FAILED" {% if status_filter == 'FAILED' %}selected{% endif %}>Failed</option>
+        </select>
+      </form>
+    </div>
+    <div class="table-responsive">
+      <table class="table custom-table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Type</th>
+            <th>Recipient Patient</th>
+            <th>Title / Subject</th>
+            <th>Channel</th>
+            <th>Status</th>
+            <th>Timestamp</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for n in notifications %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>
+              {% if n.type == 'APPOINTMENT_REMINDER' %}
+                <span class="badge bg-primary"><i class="bi bi-calendar-event me-1"></i> Apt Reminder</span>
+              {% elif n.type == 'LAB_READY' %}
+                <span class="badge bg-warning text-dark"><i class="bi bi-flask me-1"></i> Lab Ready</span>
+              {% elif n.type == 'PRESCRIPTION_READY' %}
+                <span class="badge bg-info text-dark"><i class="bi bi-capsule me-1"></i> Rx Ready</span>
+              {% elif n.type == 'PAYMENT_REMINDER' %}
+                <span class="badge bg-danger"><i class="bi bi-receipt me-1"></i> Payment</span>
+              {% else %}
+                <span class="badge bg-secondary">Follow-Up</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="fw-bold">{{ n.patient.full_name }}</div>
+              <small class="text-muted font-monospace">{{ n.patient.patient_code }} | <code>{{ n.patient.mobile }}</code></small>
+            </td>
+            <td class="fw-semibold text-dark">{{ n.title }}</td>
+            <td>
+              <span class="badge bg-light text-dark border font-monospace">{{ n.channel }}</span>
+            </td>
+            <td>
+              {% if n.status == 'SENT' %}
+                <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i> Sent</span>
+              {% elif n.status == 'PENDING' %}
+                <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i> Pending</span>
+              {% else %}
+                <span class="badge bg-danger"><i class="bi bi-x-circle-fill me-1"></i> Failed</span>
+              {% endif %}
+            </td>
+            <td><small class="text-muted">{{ n.created_at.strftime('%d %b %Y, %I:%M %p') }}</small></td>
+            <td class="text-end">
+              {% if current_user.role.name in ['Admin', 'Receptionist'] %}
+              <form method="POST" action="{{ url_for('notifications.resend_notification', notif_id=n.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                  <i class="bi bi-arrow-clockwise me-1"></i> Resend
+                </button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8" class="text-center py-5 text-muted">
+              <i class="bi bi-bell-slash fs-1 d-block mb-2 text-secondary"></i>
+              No notifications found matching criteria.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Delivery Audit Logs Table -->
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white py-3">
+      <h5 class="card-title fw-bold mb-0 text-teal" style="color: var(--primary-color);">
+        <i class="bi bi-journal-text me-2"></i> Asynchronous Delivery Audit Logs (`notification_log`)
+      </h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Log ID</th>
+              <th>Channel</th>
+              <th>Recipient</th>
+              <th>Payload Content</th>
+              <th>Status</th>
+              <th>Dispatched At</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in logs %}
+            <tr>
+              <td><span class="badge bg-secondary font-monospace">LOG-{{ log.id }}</span></td>
+              <td>
+                {% if log.channel == 'EMAIL' %}
+                  <span class="badge bg-primary"><i class="bi bi-envelope me-1"></i> Email</span>
+                {% else %}
+                  <span class="badge bg-success"><i class="bi bi-phone me-1"></i> SMS</span>
+                {% endif %}
+              </td>
+              <td><code>{{ log.recipient }}</code></td>
+              <td><small class="text-muted text-truncate d-inline-block" style="max-width: 300px;">{{ log.payload }}</small></td>
+              <td>
+                {% if log.status == 'SUCCESS' %}
+                  <span class="badge bg-success">Success</span>
+                {% else %}
+                  <span class="badge bg-danger">Failed</span>
+                {% endif %}
+              </td>
+              <td><small class="text-muted">{{ log.sent_at.strftime('%d %b %Y, %I:%M %p') }}</small></td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" class="text-center py-4 text-muted">No delivery log entries recorded yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Send Custom Alert -->
+{% if current_user.role.name in ['Admin', 'Receptionist', 'Doctor'] %}
+<div class="modal fade" id="customNotifModal" tabindex="-1" aria-labelledby="customNotifModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header bg-primary text-white py-3">
+        <h5 class="modal-header-title fw-bold mb-0" id="customNotifModalLabel">
+          <i class="bi bi-send-fill me-2"></i> Send Custom Manual Notification
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url_for('notifications.send_manual_notification') }}">
+        {{ form.csrf_token }}
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Select Recipient Patient <span class="text-danger">*</span></label>
+            {{ form.patient_id(class="form-select") }}
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Notification Category</label>
+              {{ form.type(class="form-select") }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Delivery Channel</label>
+              {{ form.channel(class="form-select") }}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Title / Subject <span class="text-danger">*</span></label>
+            {{ form.title(class="form-control", placeholder="e.g. Follow-Up Consultation Reminder") }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Message Body <span class="text-danger">*</span></label>
+            {{ form.message(class="form-control", rows="3", placeholder="Enter the exact notification message to dispatch...") }}
+          </div>
+        </div>
+        <div class="modal-footer bg-light p-3">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary-custom fw-bold">
+            <i class="bi bi-send-fill me-1"></i> Queue & Dispatch
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
