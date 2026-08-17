@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hospital Executive Performance Summary Report</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <style>
+    body { background-color: #fff; font-family: 'Segoe UI', Arial, sans-serif; color: #212529; }
+    .report-card { max-width: 900px; margin: 20px auto; padding: 40px; border: 1px solid #deefef; }
+    .report-header { border-bottom: 2px solid #008080; padding-bottom: 15px; margin-bottom: 25px; }
+    .report-title { color: #008080; font-weight: 800; font-size: 24px; text-transform: uppercase; }
+    @media print {
+      .no-print { display: none !important; }
+      .report-card { border: none; padding: 0; margin: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="no-print text-center my-3">
+  <button onclick="window.print()" class="btn btn-primary btn-lg shadow">
+    🖨️ Print Official Executive Performance Report
+  </button>
+</div>
+
+<div class="report-card rounded-4">
+  <div class="report-header d-flex justify-content-between align-items-center">
+    <div>
+      <div class="report-title">🏥 IPCMS HEALTHCARE HOSPITAL</div>
+      <small class="text-muted">Executive Analytics & Clinical Intelligence Board</small><br>
+      <small class="text-muted">Report Generated: {{ now.strftime('%d %B %Y, %I:%M %p') }}</small>
+    </div>
+    <div class="text-end">
+      <h4 class="fw-bold text-dark mb-0">EXECUTIVE SUMMARY</h4>
+      <small class="badge bg-secondary">OFFICIAL PERFORMANCE REPORT</small>
+    </div>
+  </div>
+
+  <!-- Key Metrics Summary -->
+  <div class="row g-3 mb-4 text-center">
+    <div class="col-3">
+      <div class="p-3 bg-light rounded border">
+        <small class="text-muted text-uppercase d-block fw-bold">Total Patients</small>
+        <span class="fs-4 fw-bold text-primary">{{ summary.total_patients }}</span>
+      </div>
+    </div>
+    <div class="col-3">
+      <div class="p-3 bg-light rounded border">
+        <small class="text-muted text-uppercase d-block fw-bold">Billed Revenue</small>
+        <span class="fs-4 fw-bold text-success">₹{{ "%.2f"|format(summary.total_billed) }}</span>
+      </div>
+    </div>
+    <div class="col-3">
+      <div class="p-3 bg-light rounded border">
+        <small class="text-muted text-uppercase d-block fw-bold">Cash Collected</small>
+        <span class="fs-4 fw-bold text-teal" style="color: #008080;">₹{{ "%.2f"|format(summary.total_collected) }}</span>
+      </div>
+    </div>
+    <div class="col-3">
+      <div class="p-3 bg-light rounded border">
+        <small class="text-muted text-uppercase d-block fw-bold">Bed Occupancy</small>
+        <span class="fs-4 fw-bold text-danger">{{ summary.occupancy_rate }}%</span>
+      </div>
+    </div>
+  </div>
+
+  <h5 class="fw-bold text-dark mb-3">1. Departmental Financial Breakdown</h5>
+  <table class="table table-bordered align-middle mb-4">
+    <thead class="table-light">
+      <tr>
+        <th>Department Category</th>
+        <th class="text-end">Revenue Generated (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>OPD Consultation Fees</td>
+        <td class="text-end fw-bold">₹{{ "%.2f"|format(summary.consultation_rev) }}</td>
+      </tr>
+      <tr>
+        <td>Pharmacy Medications</td>
+        <td class="text-end fw-bold">₹{{ "%.2f"|format(summary.medicine_rev) }}</td>
+      </tr>
+      <tr>
+        <td>Laboratory Diagnostic Investigations</td>
+        <td class="text-end fw-bold">₹{{ "%.2f"|format(summary.lab_rev) }}</td>
+      </tr>
+      <tr class="table-secondary fs-6 fw-bold">
+        <td>Total Hospital Revenue</td>
+        <td class="text-end">₹{{ "%.2f"|format(summary.total_billed) }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h5 class="fw-bold text-dark mb-3">2. Inpatient & Operational Capacity</h5>
+  <table class="table table-bordered align-middle mb-4">
+    <tbody>
+      <tr>
+        <td>Total Hospital Bed Capacity:</td>
+        <td class="fw-bold">{{ summary.total_beds }} Beds</td>
+      </tr>
+      <tr>
+        <td>Currently Occupied Beds:</td>
+        <td class="fw-bold text-danger">{{ summary.occupied_beds }} Beds</td>
+      </tr>
+      <tr>
+        <td>Active Inpatient Admissions:</td>
+        <td class="fw-bold">{{ summary.active_admissions }} Inpatients</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Footer -->
+  <div class="row mt-5 pt-4 border-top">
+    <div class="col-6 text-muted small">
+      <p class="mb-0">Confidential — Internal Hospital Management Document.</p>
+      <small>IPCMS Executive Analytics Engine</small>
+    </div>
+    <div class="col-6 text-end">
+      <div class="fw-bold">Chief Medical Officer / Admin Signature</div>
+      <div class="text-muted small mt-4">_______________________</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

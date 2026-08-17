@@ -68,6 +68,12 @@
             </a>
           </li>
           
+          <li class="nav-item">
+            <a class="nav-link text-white fw-semibold" href="{{ url_for('analytics.index') }}">
+              <i class="bi bi-graph-up-arrow"></i> Analytics
+            </a>
+          </li>
+          
           {% if current_user.role.name == 'Admin' %}
           <li class="nav-item">
             <a class="nav-link text-white-50" href="{{ url_for('auth.audit_logs') }}">
