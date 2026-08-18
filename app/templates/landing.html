@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IPCMS — Integrated Patient Care Management System</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <style>
+    :root {
+      --primary-deep-teal: #006D77;
+      --primary-dark-teal: #004D56;
+      --accent-coral: #FF6B6B;
+      --accent-gold: #FFB703;
+      --slate-bg: #F8FAFC;
+      --navy-dark: #0A192F;
+      --glass-bg: rgba(255, 255, 255, 0.15);
+      --glass-border: rgba(255, 255, 255, 0.25);
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+      background-color: var(--slate-bg);
+      color: #1E293B;
+      overflow-x: hidden;
+    }
+
+    /* Navbar Styling */
+    .ipcms-navbar {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+      transition: all 0.3s ease;
+      z-index: 1050;
+    }
+
+    .brand-logo {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary-deep-teal);
+      letter-spacing: -0.5px;
+    }
+
+    .brand-logo i {
+      color: var(--accent-coral);
+    }
+
+    /* Pulsing System Status Indicator */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #059669;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #10B981;
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: pulse-green 1.8s infinite;
+    }
+
+    @keyframes pulse-green {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      }
+      70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+      }
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+      }
+    }
+
+    .nav-link {
+      font-weight: 500;
+      color: #334155 !important;
+      padding: 0.5rem 0.9rem !important;
+      transition: color 0.2s ease;
+    }
+
+    .nav-link:hover {
+      color: var(--primary-deep-teal) !important;
+    }
+
+    /* Buttons */
+    .btn-coral {
+      background-color: var(--accent-coral);
+      color: #FFFFFF;
+      font-weight: 600;
+      border: none;
+      padding: 0.6rem 1.4rem;
+      border-radius: 10px;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 14px rgba(255, 107, 107, 0.35);
+    }
+
+    .btn-coral:hover {
+      background-color: #EE5253;
+      color: #FFFFFF;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.45);
+    }
+
+    .btn-teal {
+      background-color: var(--primary-deep-teal);
+      color: #FFFFFF;
+      font-weight: 600;
+      border: none;
+      padding: 0.6rem 1.4rem;
+      border-radius: 10px;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 14px rgba(0, 109, 119, 0.3);
+    }
+
+    .btn-teal:hover {
+      background-color: var(--primary-dark-teal);
+      color: #FFFFFF;
+      transform: translateY(-2px);
+    }
+
+    /* Hero Section with Video Background */
+    .hero-container {
+      position: relative;
+      min-height: 90vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background-color: var(--navy-dark);
+      padding: 6rem 1rem 4rem 1rem;
+    }
+
+    /* Video Background Container (16:9 responsive cover) */
+    .video-bg-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .video-bg-container video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    /* Overlay Dark Gradient */
+    .hero-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        135deg,
+        rgba(10, 25, 47, 0.85) 0%,
+        rgba(0, 77, 86, 0.75) 50%,
+        rgba(10, 25, 47, 0.88) 100%
+      );
+      z-index: 2;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 3;
+      max-width: 960px;
+      color: #FFFFFF;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #E2E8F0;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-headline {
+      font-size: 3.4rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -1px;
+      margin-bottom: 1.2rem;
+    }
+
+    .text-gradient {
+      background: linear-gradient(135deg, #FFFFFF 30%, #FFB703 70%, #FF6B6B 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subheadline {
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: #CBD5E1;
+      max-width: 780px;
+      margin: 0 auto 2.5rem auto;
+      line-height: 1.6;
+    }
+
+    /* Floating Glassmorphic Search Bar */
+    .glass-search-box {
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+      border-radius: 16px;
+      padding: 10px;
+      margin: 0 auto 2rem auto;
+      max-width: 860px;
+    }
+
+    .search-input-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .search-field {
+      flex: 1 1 240px;
+      position: relative;
+    }
+
+    .search-field i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94A3B8;
+      font-size: 1.1rem;
+    }
+
+    .search-field input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 10px;
+      padding: 0.75rem 1rem 0.75rem 2.6rem;
+      font-size: 0.95rem;
+      color: #0F172A;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .search-field input:focus {
+      outline: none;
+      background: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.3);
+    }
+
+    .btn-search {
+      background-color: var(--accent-coral);
+      color: #FFFFFF;
+      font-weight: 700;
+      padding: 0.75rem 1.8rem;
+      border-radius: 10px;
+      border: none;
+      transition: all 0.25s ease;
+    }
+
+    .btn-search:hover {
+      background-color: #EE5253;
+      box-shadow: 0 6px 18px rgba(255, 107, 107, 0.5);
+    }
+
+    /* Quick Action Chips */
+    .quick-chips {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .chip-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #F1F5F9;
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.25s ease;
+    }
+
+    .chip-item:hover {
+      background: rgba(255, 255, 255, 0.25);
+      color: #FFFFFF;
+      transform: translateY(-2px);
+      border-color: var(--accent-gold);
+    }
+
+    .chip-item i {
+      color: var(--accent-gold);
+    }
+
+    /* Feature Cards Section */
+    .features-section {
+      padding: 5rem 1rem;
+      background-color: #FFFFFF;
+    }
+
+    .feature-card {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 2rem;
+      border: 1px solid #E2E8F0;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      transition: all 0.3s ease;
+      height: 100%;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 30px rgba(0, 109, 119, 0.12);
+      border-color: var(--primary-deep-teal);
+    }
+
+    .feature-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: rgba(0, 109, 119, 0.08);
+      color: var(--primary-deep-teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Quick Demo Modal Styling */
+    .modal-content {
+      border-radius: 20px;
+      border: none;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      background-color: var(--primary-deep-teal);
+      color: #FFFFFF;
+      padding: 1.25rem 1.5rem;
+    }
+
+    .role-card {
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 1rem;
+      transition: all 0.2s ease;
+      background-color: #F8FAFC;
+    }
+
+    .role-card:hover {
+      border-color: var(--primary-deep-teal);
+      background-color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    @media (max-width: 768px) {
+      .hero-headline {
+        font-size: 2.2rem;
+      }
+      .hero-subheadline {
+        font-size: 1rem;
+      }
+      .hero-container {
+        min-height: auto;
+        padding-top: 5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="navbar navbar-expand-lg ipcms-navbar sticky-top">
+    <div class="container-fluid px-lg-5">
+      <!-- Left: Logo & Pulsing Indicator -->
+      <a class="navbar-brand d-flex align-items-center gap-3" href="/">
+        <span class="brand-logo">
+          <i class="bi bi-hospital-fill me-1"></i>IPCMS
+        </span>
+        <span class="status-badge d-none d-sm-inline-flex">
+          <span class="pulse-dot"></span> 24/7 Live System
+        </span>
+      </a>
+
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#ipcmsNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <!-- Center: Nav Links -->
+      <div class="collapse navbar-collapse" id="ipcmsNav">
+        <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-center">
+          <li class="nav-item"><a class="nav-link" href="#specialties">Specialties</a></li>
+          <li class="nav-item"><a class="nav-link" href="#doctors">Find Doctors</a></li>
+          <li class="nav-item"><a class="nav-link" href="#diagnostics">Diagnostics</a></li>
+          <li class="nav-item"><a class="nav-link" href="#services">Patient Services</a></li>
+          <li class="nav-item"><a class="nav-link text-danger fw-bold" href="tel:18001234567"><i class="bi bi-telephone-fill me-1"></i>24/7 Helpline</a></li>
+        </ul>
+
+        <!-- Right: Demo Logins Modal & Patient Portal Sign In -->
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-outline-dark font-weight-semibold rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#demoLoginModal">
+            <i class="bi bi-key-fill text-warning me-1"></i> Quick Demo Logins
+          </button>
+          
+          {% if current_user.is_authenticated %}
+            <a href="{{ url_for('auth.dashboard') }}" class="btn btn-teal rounded-pill">
+              <i class="bi bi-speedometer2 me-1"></i> Portal Dashboard
+            </a>
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-coral rounded-pill">
+              <i class="bi bi-person-circle me-1"></i> Patient Portal
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Header with Video Background -->
+  <section class="hero-container">
+    <!-- Background Video Container -->
+    <div class="video-bg-container">
+      <video autoplay loop muted playsinline poster="/static/images/hero_poster.jpg">
+        <source src="{{ url_for('static', filename='videos/hero_video.mp4') }}" type="video/mp4">
+        Your browser does not support HTML5 video.
+      </video>
+    </div>
+
+    <!-- Overlay Dark Gradient -->
+    <div class="hero-overlay"></div>
+
+    <!-- Hero Content -->
+    <div class="container hero-content">
+      <div class="hero-badge">
+        <i class="bi bi-shield-check text-warning"></i> Next-Gen Healthcare Operating System
+      </div>
+
+      <h1 class="hero-headline">
+        Next-Generation Healthcare,<br>
+        <span class="text-gradient">Centered Around You</span>
+      </h1>
+
+      <p class="hero-subheadline">
+        Experience seamless medical care with IPCMS. Integrated OPD queueing, AES-encrypted EHR health records, instant digital prescriptions with SVG QR verification, and 24/7 teleconsultation.
+      </p>
+
+      <!-- Floating Glassmorphic Global Search Bar -->
+      <div class="glass-search-box">
+        <form action="{{ url_for('appointments.book_appointment') }}" method="GET" class="search-input-group">
+          <div class="search-field">
+            <i class="bi bi-person-md font-weight-bold"></i>
+            <input type="text" placeholder="Search Doctor, Specialty (e.g. Cardiology)..." name="query">
+          </div>
+          <div class="search-field">
+            <i class="bi bi-geo-alt-fill"></i>
+            <input type="text" placeholder="Location or Symptom (e.g. Fever)..." name="location">
+          </div>
+          <button type="submit" class="btn-search">
+            <i class="bi bi-search me-1"></i> Find Care
+          </button>
+        </form>
+      </div>
+
+      <!-- Quick Action Chips Below -->
+      <div class="quick-chips">
+        <a href="{{ url_for('appointments.book_appointment') }}" class="chip-item">
+          <i class="bi bi-calendar-event"></i> Book Appointment
+        </a>
+        <a href="{{ url_for('appointments.waitlist') }}" class="chip-item">
+          <i class="bi bi-lightning-charge"></i> Priority Waitlist
+        </a>
+        <a href="{{ url_for('auth.login') }}" class="chip-item">
+          <i class="bi bi-laptop"></i> Teleconsultation
+        </a>
+        <a href="tel:18001234567" class="chip-item">
+          <i class="bi bi-heart-pulse text-danger"></i> Emergency Triage
+        </a>
+        <a href="{{ url_for('lab.index') }}" class="chip-item">
+          <i class="bi bi-vial"></i> Lab Diagnostics
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Key System Capabilities Highlight -->
+  <section class="features-section" id="services">
+    <div class="container">
+      <div class="text-center max-w-700 mx-auto mb-5">
+        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill fw-bold text-uppercase mb-2">15 Integrated Subsystems</span>
+        <h2 class="fw-bold fs-1 text-slate-900">Comprehensive Clinical Ecosystem</h2>
+        <p class="text-muted fs-5">Empowering patients, doctors, nurses, and hospital administration with real-time digital care workflows.</p>
+      </div>
+
+      <div class="row g-4">
+        <!-- Feature 1 -->
+        <div class="col-md-6 col-lg-3">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-clock-history"></i>
+            </div>
+            <h4 class="fw-bold fs-5 mb-2">Smart Queue & TV Board</h4>
+            <p class="text-muted fs-6 mb-0">Dynamic priority queuing for OPD check-ins with rolling wait-time estimates and live TV display board API.</p>
+          </div>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="col-md-6 col-lg-3">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-journal-medical"></i>
+            </div>
+            <h4 class="fw-bold fs-5 mb-2">360° Encrypted EHR</h4>
+            <p class="text-muted fs-6 mb-0">AES-128/256 encrypted medical records, vitals graphs, diagnosis logs, and interactive clinical timeline.</p>
+          </div>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="col-md-6 col-lg-3">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-qr-code-scan"></i>
+            </div>
+            <h4 class="fw-bold fs-5 mb-2">SVG QR Prescriptions</h4>
+            <p class="text-muted fs-6 mb-0">Digital e-prescriptions with embedded standalone Base64 SVG QR codes for instant authenticity verification.</p>
+          </div>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="col-md-6 col-lg-3">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="bi bi-hospital"></i>
+            </div>
+            <h4 class="fw-bold fs-5 mb-2">Inpatient IPD Grid</h4>
+            <p class="text-muted fs-6 mb-0">Real-time ward bed occupancy grid (General, ICU, Pediatric), bed transfers, and billing integration.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Demo Logins Interactive Modal -->
+  <div class="modal fade" id="demoLoginModal" tabindex="-1" aria-labelledby="demoLoginModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-header-title fw-bold m-0" id="demoLoginModalLabel">
+            <i class="bi bi-person-badge-fill me-2"></i>Quick Demo Role Logins
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <p class="text-muted mb-4">Click any role below to automatically log into the IPCMS portal with pre-seeded demo credentials:</p>
+          
+          <div class="row g-3">
+            <!-- Admin -->
+            <div class="col-md-6">
+              <div class="role-card d-flex align-items-center justify-content-between">
+                <div>
+                  <h6 class="fw-bold m-0 text-dark"><i class="bi bi-shield-lock-fill text-danger me-2"></i>System Administrator</h6>
+                  <small class="text-muted">admin@ipcms.com</small>
+                </div>
+                <button onclick="autoLogin('admin@ipcms.com', 'Password@123')" class="btn btn-sm btn-teal">
+                  Login <i class="bi bi-arrow-right-short"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Doctor -->
+            <div class="col-md-6">
+              <div class="role-card d-flex align-items-center justify-content-between">
+                <div>
+                  <h6 class="fw-bold m-0 text-dark"><i class="bi bi-stethoscope text-primary me-2"></i>Senior Physician</h6>
+                  <small class="text-muted">doctor@ipcms.com</small>
+                </div>
+                <button onclick="autoLogin('doctor@ipcms.com', 'Password@123')" class="btn btn-sm btn-teal">
+                  Login <i class="bi bi-arrow-right-short"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Receptionist -->
+            <div class="col-md-6">
+              <div class="role-card d-flex align-items-center justify-content-between">
+                <div>
+                  <h6 class="fw-bold m-0 text-dark"><i class="bi bi-person-workspace text-warning me-2"></i>OPD Receptionist</h6>
+                  <small class="text-muted">reception@ipcms.com</small>
+                </div>
+                <button onclick="autoLogin('reception@ipcms.com', 'Password@123')" class="btn btn-sm btn-teal">
+                  Login <i class="bi bi-arrow-right-short"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Lab Tech -->
+            <div class="col-md-6">
+              <div class="role-card d-flex align-items-center justify-content-between">
+                <div>
+                  <h6 class="fw-bold m-0 text-dark"><i class="bi bi-eyedropper text-info me-2"></i>Lab Technician</h6>
+                  <small class="text-muted">lab@ipcms.com</small>
+                </div>
+                <button onclick="autoLogin('lab@ipcms.com', 'Password@123')" class="btn btn-sm btn-teal">
+                  Login <i class="bi bi-arrow-right-short"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Patient -->
+            <div class="col-md-12">
+              <div class="role-card d-flex align-items-center justify-content-between border-success">
+                <div>
+                  <h6 class="fw-bold m-0 text-dark"><i class="bi bi-person-heart text-success me-2"></i>Patient User</h6>
+                  <small class="text-muted">patient@ipcms.com</small>
+                </div>
+                <button onclick="autoLogin('patient@ipcms.com', 'Password@123')" class="btn btn-sm btn-coral">
+                  Login as Patient <i class="bi bi-arrow-right-short"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Form for 1-Click Auto Login -->
+  <form id="autoLoginForm" action="{{ url_for('auth.login') }}" method="POST" style="display: none;">
+    <input type="hidden" name="email" id="autoEmail">
+    <input type="hidden" name="password" id="autoPassword">
+  </form>
+
+  <!-- Footer -->
+  <footer class="bg-dark text-white py-4 mt-auto">
+    <div class="container text-center">
+      <p class="m-0 text-muted fs-6">&copy; 2026 IPCMS - Integrated Patient Care Management System. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/bootstrap.bundle.min.js"></script>
+
+  <script>
+    function autoLogin(email, password) {
+      document.getElementById('autoEmail').value = email;
+      document.getElementById('autoPassword').value = password;
+      document.getElementById('autoLoginForm').submit();
+    }
+  </script>
+</body>
+</html>
