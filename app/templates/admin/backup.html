@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Database Snapshots & Backups - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-database-fill-gear text-teal me-2" style="color: var(--primary-color);"></i> Database Backup Manager</h3>
+      <p class="text-muted mb-0">Trigger manual database snapshot archives and download recovery files</p>
+    </div>
+    <form action="{{ url_for('admin.trigger_backup') }}" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-warning text-dark fw-bold shadow-sm rounded-3">
+        <i class="bi bi-cloud-arrow-down-fill me-1"></i> Trigger Manual DB Snapshot
+      </button>
+    </form>
+  </div>
+
+  <!-- Backup Archives Table -->
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white py-3">
+      <h5 class="card-title fw-bold mb-0 text-teal" style="color: var(--primary-color);">
+        <i class="bi bi-archive-fill me-2"></i> Created Snapshot Archives (`backups/` directory)
+      </h5>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>Filename</th>
+              <th>Size (KB)</th>
+              <th>Created Timestamp</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in backup_files %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td><code>{{ b.filename }}</code></td>
+              <td><span class="badge bg-secondary">{{ b.size_kb }} KB</span></td>
+              <td><small class="text-muted">{{ b.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small></td>
+              <td class="text-end">
+                <a href="{{ url_for('admin.download_backup', filename=b.filename) }}" class="btn btn-sm btn-outline-primary">
+                  <i class="bi bi-download me-1"></i> Download Snapshot
+                </a>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-4">No database snapshot backups found. Click "Trigger Manual DB Snapshot" above to create one.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

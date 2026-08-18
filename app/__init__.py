@@ -30,6 +30,7 @@ def create_app(config_class=Config):
     from app.analytics.routes import analytics_bp
     from app.notifications.routes import notifications_bp
     from app.reports.routes import reports_bp
+    from app.admin.routes import admin_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(patients_bp)
@@ -45,6 +46,7 @@ def create_app(config_class=Config):
     app.register_blueprint(analytics_bp)
     app.register_blueprint(notifications_bp)
     app.register_blueprint(reports_bp)
+    app.register_blueprint(admin_bp)
 
     # CLI Command to seed database roles and demo users
     @app.cli.command("seed-db")
@@ -61,8 +63,23 @@ def create_app(config_class=Config):
         from app.billing.models import Bill, BillItem, Payment
         from app.beds.models import Ward, Bed, Admission, BedTransfer
         from app.notifications.models import Notification, NotificationLog
+        from app.admin.models import SystemSetting, AuditLog
 
         db.create_all()
+
+        # Seed System Settings
+        default_settings = [
+            ('hospital_name', 'IPCMS Healthcare Hospital', 'Official Hospital Name'),
+            ('opd_consultation_fee', '500.0', 'Standard OPD Consultation Fee'),
+            ('ipd_bed_rate_general', '1500.0', 'General Ward Bed Daily Rate'),
+            ('ipd_bed_rate_icu', '5000.0', 'ICU Ward Bed Daily Rate'),
+            ('gst_tax_rate', '18.0', 'GST / Service Tax Percentage'),
+            ('emergency_surcharge', '1000.0', 'Emergency Care Surcharge')
+        ]
+        for skey, sval, sdesc in default_settings:
+            if not SystemSetting.query.filter_by(setting_key=skey).first():
+                db.session.add(SystemSetting(setting_key=skey, setting_value=sval, description=sdesc))
+        db.session.commit()
 
         roles_data = [
             ('Admin', 'System administrator with full control'),

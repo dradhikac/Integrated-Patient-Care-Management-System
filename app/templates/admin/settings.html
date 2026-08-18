@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Fee Structure & System Settings - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container" style="max-width: 800px;">
+  <div class="mb-4">
+    <h3 class="fw-bold mb-1"><i class="bi bi-gear-fill text-teal me-2" style="color: var(--primary-color);"></i> Fee Structure & System Settings</h3>
+    <p class="text-muted mb-0">Master Data — Manage hospital-wide consultation rates, bed charges, tax percentage, and emergency surcharges</p>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-4">
+      <form method="POST" action="{{ url_for('admin.settings') }}">
+        {{ form.hidden_tag() }}
+
+        <h5 class="fw-bold text-teal mb-3" style="color: var(--primary-color);"><i class="bi bi-hospital me-2"></i> Hospital Information</h5>
+        <div class="mb-4">
+          <label class="form-label fw-bold">Official Hospital Name</label>
+          {{ form.hospital_name(class="form-control") }}
+        </div>
+
+        <hr class="my-4">
+
+        <h5 class="fw-bold text-teal mb-3" style="color: var(--primary-color);"><i class="bi bi-currency-rupee me-2"></i> Clinical & OPD Fee Rates</h5>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Standard OPD Consultation Fee (₹)</label>
+            {{ form.opd_consultation_fee(class="form-control") }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Emergency Care Surcharge Fee (₹)</label>
+            {{ form.emergency_surcharge(class="form-control") }}
+          </div>
+        </div>
+
+        <hr class="my-4">
+
+        <h5 class="fw-bold text-teal mb-3" style="color: var(--primary-color);"><i class="bi bi-door-open-fill me-2"></i> Inpatient (IPD) Bed Rates</h5>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label fw-bold">General Ward Daily Bed Rate (₹)</label>
+            {{ form.ipd_bed_rate_general(class="form-control") }}
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">ICU Ward Daily Bed Rate (₹)</label>
+            {{ form.ipd_bed_rate_icu(class="form-control") }}
+          </div>
+        </div>
+
+        <hr class="my-4">
+
+        <h5 class="fw-bold text-teal mb-3" style="color: var(--primary-color);"><i class="bi bi-percent me-2"></i> Taxation Configuration</h5>
+        <div class="mb-4">
+          <label class="form-label fw-bold">GST / Service Tax Rate (%)</label>
+          {{ form.gst_tax_rate(class="form-control") }}
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <a href="{{ url_for('admin.index') }}" class="btn btn-secondary">Cancel</a>
+          {{ form.submit(class="btn btn-primary-custom", style="width: auto;") }}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

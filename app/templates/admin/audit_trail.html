@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}System Audit Trail - IPCMS{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <h3 class="fw-bold mb-1"><i class="bi bi-journal-text text-teal me-2" style="color: var(--primary-color);"></i> System-Wide Audit Trail Viewer</h3>
+      <p class="text-muted mb-0">Full audit log history of security, clinical, billing, and system operations</p>
+    </div>
+  </div>
+
+  <!-- Search & Filter Form -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-3">
+      <form method="GET" action="{{ url_for('admin.audit_trail') }}" class="row g-2 align-items-center">
+        <div class="col-md-5">
+          <div class="input-group">
+            <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
+            <input type="text" name="q" value="{{ q }}" class="form-control bg-light border-0" placeholder="Search audit log details...">
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <select name="action" class="form-select bg-light border-0">
+            <option value="">-- Filter by Action Type --</option>
+            {% for act in actions %}
+              <option value="{{ act }}" {% if action_filter == act %}selected{% endif %}>{{ act }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-3 d-flex gap-2">
+          <button type="submit" class="btn btn-primary-custom w-100"><i class="bi bi-funnel me-1"></i> Filter</button>
+          <a href="{{ url_for('admin.audit_trail') }}" class="btn btn-outline-secondary">Reset</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Audit Logs Table -->
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Timestamp</th>
+              <th>User</th>
+              <th>Action Event</th>
+              <th>Target Entity</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in audit_logs %}
+            <tr>
+              <td><code>#{{ log.id }}</code></td>
+              <td><small class="text-muted">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small></td>
+              <td class="fw-bold">
+                {% if log.user %}
+                  {{ log.user.name }} <small class="text-muted">({{ log.user.user_code }})</small>
+                {% else %}
+                  <span class="text-muted">System</span>
+                {% endif %}
+              </td>
+              <td><span class="badge bg-dark">{{ log.action }}</span></td>
+              <td><small class="fw-bold text-secondary">{{ log.entity_type }} #{{ log.entity_id }}</small></td>
+              <td class="small">{{ log.details or '-' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center text-muted py-4">No audit logs matching search criteria.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
