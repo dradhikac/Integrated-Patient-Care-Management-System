@@ -441,19 +441,15 @@
           <li class="nav-item"><a class="nav-link text-danger fw-bold" href="tel:18001234567"><i class="bi bi-telephone-fill me-1"></i>24/7 Helpline</a></li>
         </ul>
 
-        <!-- Right: Demo Logins Modal & Patient Portal Sign In -->
+        <!-- Right: Sign In / Sign Up -->
         <div class="d-flex align-items-center gap-2">
-          <button type="button" class="btn btn-outline-dark font-weight-semibold rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#demoLoginModal">
-            <i class="bi bi-key-fill text-warning me-1"></i> Quick Demo Logins
-          </button>
-          
           {% if current_user.is_authenticated %}
-            <a href="{{ url_for('auth.dashboard') }}" class="btn btn-teal rounded-pill">
-              <i class="bi bi-speedometer2 me-1"></i> Portal Dashboard
+            <a href="{{ url_for('auth.dashboard') }}" class="btn btn-teal rounded-pill shadow-sm px-4 fw-bold">
+              <i class="bi bi-speedometer2 me-1"></i> Dashboard
             </a>
           {% else %}
-            <a href="{{ url_for('auth.login') }}" class="btn btn-coral rounded-pill">
-              <i class="bi bi-person-circle me-1"></i> Patient Portal
+            <a href="{{ url_for('auth.login') }}" class="btn btn-coral rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
+              <i class="bi bi-box-arrow-in-right fs-5"></i> Sign In / Sign Up
             </a>
           {% endif %}
         </div>
@@ -511,7 +507,7 @@
         <a href="{{ url_for('appointments.book_appointment') }}" class="chip-item">
           <i class="bi bi-calendar-event"></i> Book Appointment
         </a>
-        <a href="{{ url_for('appointments.waitlist') }}" class="chip-item">
+        <a href="{{ url_for('appointments.list_appointments') }}" class="chip-item">
           <i class="bi bi-lightning-charge"></i> Priority Waitlist
         </a>
         <a href="{{ url_for('auth.login') }}" class="chip-item">
@@ -520,7 +516,7 @@
         <a href="tel:18001234567" class="chip-item">
           <i class="bi bi-heart-pulse text-danger"></i> Emergency Triage
         </a>
-        <a href="{{ url_for('lab.index') }}" class="chip-item">
+        <a href="{{ url_for('lab.list_requests') }}" class="chip-item">
           <i class="bi bi-vial"></i> Lab Diagnostics
         </a>
       </div>
@@ -584,96 +580,6 @@
     </div>
   </section>
 
-  <!-- Quick Demo Logins Interactive Modal -->
-  <div class="modal fade" id="demoLoginModal" tabindex="-1" aria-labelledby="demoLoginModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-header-title fw-bold m-0" id="demoLoginModalLabel">
-            <i class="bi bi-person-badge-fill me-2"></i>Quick Demo Role Logins
-          </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body p-4">
-          <p class="text-muted mb-4">Click any role below to automatically log into the IPCMS portal with pre-seeded demo credentials:</p>
-          
-          <div class="row g-3">
-            <!-- Admin -->
-            <div class="col-md-6">
-              <div class="role-card d-flex align-items-center justify-content-between">
-                <div>
-                  <h6 class="fw-bold m-0 text-dark"><i class="bi bi-shield-lock-fill text-danger me-2"></i>System Administrator</h6>
-                  <small class="text-muted">admin@ipcms.com</small>
-                </div>
-                <button onclick="autoLogin('admin@ipcms.com', 'Password@123')" class="btn btn-sm btn-teal">
-                  Login <i class="bi bi-arrow-right-short"></i>
-                </button>
-              </div>
-            </div>
-
-            <!-- Doctor -->
-            <div class="col-md-6">
-              <div class="role-card d-flex align-items-center justify-content-between">
-                <div>
-                  <h6 class="fw-bold m-0 text-dark"><i class="bi bi-stethoscope text-primary me-2"></i>Senior Physician</h6>
-                  <small class="text-muted">doctor@ipcms.com</small>
-                </div>
-                <button onclick="autoLogin('doctor@ipcms.com', 'Password@123')" class="btn btn-sm btn-teal">
-                  Login <i class="bi bi-arrow-right-short"></i>
-                </button>
-              </div>
-            </div>
-
-            <!-- Receptionist -->
-            <div class="col-md-6">
-              <div class="role-card d-flex align-items-center justify-content-between">
-                <div>
-                  <h6 class="fw-bold m-0 text-dark"><i class="bi bi-person-workspace text-warning me-2"></i>OPD Receptionist</h6>
-                  <small class="text-muted">reception@ipcms.com</small>
-                </div>
-                <button onclick="autoLogin('reception@ipcms.com', 'Password@123')" class="btn btn-sm btn-teal">
-                  Login <i class="bi bi-arrow-right-short"></i>
-                </button>
-              </div>
-            </div>
-
-            <!-- Lab Tech -->
-            <div class="col-md-6">
-              <div class="role-card d-flex align-items-center justify-content-between">
-                <div>
-                  <h6 class="fw-bold m-0 text-dark"><i class="bi bi-eyedropper text-info me-2"></i>Lab Technician</h6>
-                  <small class="text-muted">lab@ipcms.com</small>
-                </div>
-                <button onclick="autoLogin('lab@ipcms.com', 'Password@123')" class="btn btn-sm btn-teal">
-                  Login <i class="bi bi-arrow-right-short"></i>
-                </button>
-              </div>
-            </div>
-
-            <!-- Patient -->
-            <div class="col-md-12">
-              <div class="role-card d-flex align-items-center justify-content-between border-success">
-                <div>
-                  <h6 class="fw-bold m-0 text-dark"><i class="bi bi-person-heart text-success me-2"></i>Patient User</h6>
-                  <small class="text-muted">patient@ipcms.com</small>
-                </div>
-                <button onclick="autoLogin('patient@ipcms.com', 'Password@123')" class="btn btn-sm btn-coral">
-                  Login as Patient <i class="bi bi-arrow-right-short"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Hidden Form for 1-Click Auto Login -->
-  <form id="autoLoginForm" action="{{ url_for('auth.login') }}" method="POST" style="display: none;">
-    <input type="hidden" name="email" id="autoEmail">
-    <input type="hidden" name="password" id="autoPassword">
-  </form>
-
   <!-- Footer -->
   <footer class="bg-dark text-white py-4 mt-auto">
     <div class="container text-center">
@@ -683,13 +589,5 @@
 
   <!-- Bootstrap 5 JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/bootstrap.bundle.min.js"></script>
-
-  <script>
-    function autoLogin(email, password) {
-      document.getElementById('autoEmail').value = email;
-      document.getElementById('autoPassword').value = password;
-      document.getElementById('autoLoginForm').submit();
-    }
-  </script>
 </body>
 </html>

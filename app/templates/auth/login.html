@@ -1,67 +1,349 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In / Sign Up — IPCMS Healthcare Portal</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+  
+  <style>
+    :root {
+      --primary-deep-teal: #006D77;
+      --primary-dark-teal: #004D56;
+      --accent-coral: #FF6B6B;
+      --accent-gold: #FFB703;
+      --slate-bg: #F8FAFC;
+      --navy-dark: #0A192F;
+    }
 
-{% block title %}Login - IPCMS Healthcare System{% endblock %}
+    body {
+      font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+      background-color: var(--slate-bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: #1E293B;
+    }
 
-{% block content %}
-<div class="auth-wrapper">
-  <div class="auth-card">
-    <div class="auth-header">
-      <div class="logo-icon">
-        <i class="bi bi-heart-pulse-fill"></i>
-      </div>
-      <h3>IPCMS Portal</h3>
-      <p>Integrated Patient Care Management System</p>
-    </div>
+    /* Navbar */
+    .login-navbar {
+      background: #FFFFFF;
+      border-bottom: 1px solid #E2E8F0;
+      padding: 0.9rem 2rem;
+    }
 
-    <form method="POST" action="{{ url_for('auth.login') }}">
-      {{ form.csrf_token }}
+    .brand-logo {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--primary-deep-teal);
+      text-decoration: none;
+    }
+
+    .brand-logo i {
+      color: var(--accent-coral);
+    }
+
+    /* Auth Split Layout */
+    .auth-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1rem;
+    }
+
+    .auth-box {
+      width: 100%;
+      max-width: 1060px;
+      background: #FFFFFF;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 77, 86, 0.08);
+      border: 1px solid #E2E8F0;
+    }
+
+    /* Left Hero Side */
+    .auth-hero {
+      background: linear-gradient(135deg, #0A192F 0%, #004D56 50%, #006D77 100%);
+      color: #FFFFFF;
+      padding: 3.5rem 3rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-hero::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: rgba(255, 107, 107, 0.15);
+      filter: blur(50px);
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #E2E8F0;
+      width: fit-content;
+    }
+
+    .hero-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-top: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 2rem 0;
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+      color: #E2E8F0;
+    }
+
+    .feature-list i {
+      color: var(--accent-gold);
+      font-size: 1.2rem;
+    }
+
+    /* Right Form Side */
+    .auth-form-side {
+      padding: 3.5rem 3rem;
+      background-color: #FFFFFF;
+    }
+
+    .form-header-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #0F172A;
+      letter-spacing: -0.5px;
+    }
+
+    .form-floating label {
+      color: #64748B;
+      font-size: 0.9rem;
+    }
+
+    .form-control {
+      border-radius: 12px;
+      border: 1.5px solid #CBD5E1;
+      padding-top: 1.625rem;
+      padding-bottom: 0.625rem;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary-deep-teal);
+      box-shadow: 0 0 0 4px rgba(0, 109, 119, 0.15);
+    }
+
+    .btn-signin {
+      background: linear-gradient(135deg, var(--accent-coral) 0%, #EE5253 100%);
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.85rem 1.5rem;
+      border-radius: 12px;
+      border: none;
+      width: 100%;
+      transition: all 0.25s ease;
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.35);
+    }
+
+    .btn-signin:hover {
+      background: linear-gradient(135deg, #EE5253 0%, #D63031 100%);
+      color: #FFFFFF;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 107, 107, 0.45);
+    }
+
+    .register-box {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #E2E8F0;
+      text-align: center;
+    }
+
+    @media (max-width: 991px) {
+      .auth-hero {
+        padding: 2.5rem 2rem;
+      }
+      .auth-form-side {
+        padding: 2.5rem 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="login-navbar d-flex justify-content-between align-items-center">
+    <a href="/" class="brand-logo">
+      <i class="bi bi-hospital-fill me-1"></i>IPCMS
+    </a>
+    <a href="/" class="btn btn-sm btn-outline-secondary rounded-pill px-3 font-weight-semibold">
+      <i class="bi bi-arrow-left me-1"></i> Back to Home
+    </a>
+  </nav>
+
+  <!-- Auth Main Container -->
+  <div class="auth-container">
+    <div class="auth-box row g-0">
       
-      <div class="form-floating mb-3">
-        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), id="email", placeholder="name@example.com") }}
-        <label for="email"><i class="bi bi-envelope me-1"></i> Email Address</label>
-        {% for error in form.email.errors %}
-          <div class="invalid-feedback">{{ error }}</div>
-        {% endfor %}
-      </div>
-
-      <div class="form-floating mb-3 position-relative">
-        {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), id="password", placeholder="Password") }}
-        <label for="password"><i class="bi bi-lock me-1"></i> Password</label>
-        <button type="button" class="btn btn-sm btn-link text-secondary position-absolute end-0 top-50 translate-middle-y me-2" id="togglePassword" style="z-index: 10;">
-          <i class="bi bi-eye"></i>
-        </button>
-        {% for error in form.password.errors %}
-          <div class="invalid-feedback">{{ error }}</div>
-        {% endfor %}
-      </div>
-
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="form-check">
-          {{ form.remember(class="form-check-input", id="remember") }}
-          <label class="form-check-label text-muted small" for="remember">Remember me</label>
+      <!-- Left Hero Column -->
+      <div class="col-lg-5 auth-hero d-none d-lg-flex">
+        <div>
+          <div class="hero-badge">
+            <i class="bi bi-shield-lock-fill text-warning"></i> Enterprise Healthcare Portal
+          </div>
+          <h2 class="hero-title">Secure Medical Care,<br>Centered Around You</h2>
+          <p class="text-slate-300 fs-6">Experience 360° integrated patient management with instant e-prescriptions, clinical vitals, and smart queue tracking.</p>
+          
+          <ul class="feature-list">
+            <li><i class="bi bi-shield-check"></i> AES-128/256 Encrypted EHR Health Records</li>
+            <li><i class="bi bi-calendar2-check"></i> Smart OPD Queue & Slot Booking</li>
+            <li><i class="bi bi-qr-code"></i> SVG QR Code Verified Prescriptions</li>
+            <li><i class="bi bi-hospital"></i> Real-time IPD Bed Occupancy Grid</li>
+          </ul>
         </div>
-        <a href="{{ url_for('auth.forgot_password') }}" class="small text-decoration-none fw-semibold text-teal" style="color: var(--primary-color);">Forgot Password?</a>
+
+        <div class="pt-4 border-top border-secondary border-opacity-25">
+          <small class="text-light opacity-75">
+            <i class="bi bi-info-circle me-1"></i> Authorized access for Patients, Physicians, Reception, & System Staff.
+          </small>
+        </div>
       </div>
 
-      <button type="submit" class="btn btn-primary-custom mb-3">
-        <i class="bi bi-box-arrow-in-right me-2"></i> Sign In to Account
-      </button>
-    </form>
+      <!-- Right Form Column -->
+      <div class="col-lg-7 auth-form-side">
+        <div class="mb-4">
+          <h1 class="form-header-title mb-1">Sign In / Sign Up</h1>
+          <p class="text-muted fs-6">Enter your registered email address and password to access your IPCMS account.</p>
+        </div>
 
-    <!-- Quick Viva / Demo Accounts Switcher -->
-    <div class="demo-accounts">
-      <div class="demo-title"><i class="bi bi-lightning-charge-fill text-warning me-1"></i> Quick Demo Logins</div>
-      <div class="d-flex flex-wrap">
-        <span class="demo-pill demo-pill-admin" data-email="admin@ipcms.com" data-password="Password@123">Admin</span>
-        <span class="demo-pill demo-pill-rec" data-email="reception@ipcms.com" data-password="Password@123">Reception</span>
-        <span class="demo-pill demo-pill-doc" data-email="doctor@ipcms.com" data-password="Password@123">Doctor</span>
-        <span class="demo-pill demo-pill-lab" data-email="lab@ipcms.com" data-password="Password@123">Lab Tech</span>
-        <span class="demo-pill demo-pill-pat" data-email="patient@ipcms.com" data-password="Password@123">Patient</span>
+        <!-- Flash Alert Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show rounded-3 mb-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <!-- Form -->
+        <form method="POST" action="{{ url_for('auth.login') }}">
+          {{ form.csrf_token }}
+
+          <!-- Email Input -->
+          <div class="form-floating mb-3">
+            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), id="email", placeholder="name@example.com") }}
+            <label for="email"><i class="bi bi-envelope-fill me-1 text-primary"></i> Email Address</label>
+            {% for error in form.email.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <!-- Password Input -->
+          <div class="form-floating mb-3 position-relative">
+            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), id="password", placeholder="Password") }}
+            <label for="password"><i class="bi bi-lock-fill me-1 text-primary"></i> Password</label>
+            <button type="button" class="btn btn-sm text-secondary position-absolute end-0 top-50 translate-middle-y me-2" id="togglePassword" style="z-index: 10; border: none; background: transparent;">
+              <i class="bi bi-eye-fill fs-5" id="eyeIcon"></i>
+            </button>
+            {% for error in form.password.errors %}
+              <div class="invalid-feedback">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <!-- Remember Me & Forgot Password -->
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="form-check">
+              {{ form.remember(class="form-check-input", id="remember") }}
+              <label class="form-check-label text-muted small fw-medium" for="remember">Keep me signed in</label>
+            </div>
+            <a href="{{ url_for('auth.forgot_password') }}" class="small text-decoration-none fw-bold text-teal" style="color: var(--primary-deep-teal);">
+              Forgot Password?
+            </a>
+          </div>
+
+          <!-- Submit CTA -->
+          <button type="submit" class="btn btn-signin">
+            <i class="bi bi-box-arrow-in-right me-2"></i> Sign In to Account
+          </button>
+        </form>
+
+        <!-- New Patient Registration Card -->
+        <div class="register-box">
+          <p class="text-muted small mb-2">New patient visiting IPCMS for the first time?</p>
+          <a href="{{ url_for('patients.register_patient') }}" class="btn btn-outline-dark rounded-pill px-4 py-2 font-weight-bold btn-sm">
+            <i class="bi bi-person-plus-fill me-1 text-teal"></i> Register New Patient Account
+          </a>
+        </div>
+
       </div>
-      <div class="text-center mt-2" style="font-size: 0.72rem; color: #64748b;">
-        Password for all demo accounts: <code>Password@123</code>
-      </div>
+
     </div>
   </div>
-</div>
-{% endblock %}
+
+  <!-- Footer -->
+  <footer class="text-center py-3 text-muted small">
+    &copy; 2026 IPCMS - Integrated Patient Care Management System. All rights reserved.
+  </footer>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Password Visibility Toggle
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    if (togglePassword && passwordInput) {
+      togglePassword.addEventListener('click', function () {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        eyeIcon.classList.toggle('bi-eye-fill');
+        eyeIcon.classList.toggle('bi-eye-slash-fill');
+      });
+    }
+  </script>
+</body>
+</html>
