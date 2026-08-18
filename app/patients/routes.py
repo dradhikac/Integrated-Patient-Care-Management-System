@@ -32,9 +32,12 @@ def list_patients():
 
 
 @patients_bp.route('/register', methods=['GET', 'POST'])
-@login_required
-@role_required('Admin', 'Receptionist')
 def register_patient():
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.register'))
+    if current_user.role.name not in ['Admin', 'Receptionist']:
+        flash('Permission denied. Receptionist or Admin access required.', 'danger')
+        return redirect(url_for('auth.dashboard'))
     form = PatientRegistrationForm()
     force_create = request.args.get('force_create', '0') == '1'
 

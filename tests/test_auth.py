@@ -101,6 +101,37 @@ class AuthTestCase(unittest.TestCase):
         self.assertIn(b'password has been successfully reset', reset_response.data)
         self.assertTrue(self.admin_user.check_password('NewPassword123!'))
 
+    def test_patient_self_registration(self):
+        # Visit GET /register
+        res_get = self.client.get('/register')
+        self.assertEqual(res_get.status_code, 200)
+        self.assertIn(b'Create Patient Account', res_get.data)
+
+        # Submit POST /register
+        res_post = self.client.post('/register', data={
+            'full_name': 'New Self Patient',
+            'email': 'selfpatient@test.com',
+            'mobile': '9876543210',
+            'gender': 'Female',
+            'dob': '1995-05-15',
+            'password': 'PatientPass123!',
+            'confirm_password': 'PatientPass123!'
+        }, follow_redirects=True)
+
+        self.assertEqual(res_post.status_code, 200)
+        self.assertIn(b'Account created successfully', res_post.data)
+
+        # Verify User and Patient in DB
+        created_user = User.query.filter_by(email='selfpatient@test.com').first()
+        self.assertIsNotNone(created_user)
+        self.assertEqual(created_user.name, 'New Self Patient')
+
+        from app.patients.models import Patient
+        created_patient = Patient.query.filter_by(email='selfpatient@test.com').first()
+        self.assertIsNotNone(created_patient)
+        self.assertEqual(created_patient.full_name, 'New Self Patient')
+
 
 if __name__ == '__main__':
     unittest.main()
+
