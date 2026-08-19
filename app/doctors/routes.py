@@ -10,12 +10,55 @@ from app.appointments.slot_generator import generate_doctor_slots
 
 doctors_bp = Blueprint('doctors', __name__, template_folder='templates')
 
+def ensure_doctors_seeded():
+    try:
+        db.create_all()
+        doc_role = Role.query.filter_by(name='Doctor').first()
+        if not doc_role:
+            doc_role = Role(name='Doctor', description='Consultation and clinical care')
+            db.session.add(doc_role)
+            db.session.flush()
+
+        sample_doctors = [
+            {'code': 'DOC-101', 'name': 'Dr. Ananya Sharma', 'specialization': 'Cardiologist', 'education': 'MBBS, MD (General Medicine), DM (Cardiology)', 'experience': '5+ Years', 'department': 'Cardiology & Heart Institute', 'bio': 'Experienced cardiologist specializing in non-invasive cardiac care, preventive cardiology, heart failure management, and echocardiography.', 'fee': 800.0, 'image_url': '/static/images/doctors/dr_ananya_sharma.jpg', 'email': 'ananya.sharma@medicore.com'},
+            {'code': 'DOC-102', 'name': 'Dr. Rahul Verma', 'specialization': 'Neurologist', 'education': 'MBBS, MD (General Medicine), DM (Neurology)', 'experience': '10+ Years', 'department': 'Neurology & Spine Care', 'bio': 'Senior neurologist with expertise in acute stroke care, epilepsy management, Parkinson\'s disease, and neuro-critical care.', 'fee': 1000.0, 'image_url': '/static/images/doctors/dr_rahul_verma.jpg', 'email': 'rahul.verma@medicore.com'},
+            {'code': 'DOC-103', 'name': 'Dr. Priya Nair', 'specialization': 'Gynecologist & Obstetrician', 'education': 'MBBS, MD (Obstetrics & Gynecology)', 'experience': '20+ Years', 'department': 'Obstetrics & Gynecology', 'bio': 'Leading specialist in high-risk pregnancies, minimal access laparoscopic surgery, and comprehensive maternal and reproductive healthcare.', 'fee': 900.0, 'image_url': '/static/images/doctors/dr_priya_nair.jpg', 'email': 'priya.nair@medicore.com'},
+            {'code': 'DOC-104', 'name': 'Dr. Arjun Mehta', 'specialization': 'Orthopedic Surgeon', 'education': 'MBBS, MS (Orthopedics)', 'experience': '20+ Years', 'department': 'Orthopedics & Joint Care', 'bio': 'Renowned orthopedic surgeon with extensive experience in Mako robotic joint replacements, complex fracture trauma, and sports medicine.', 'fee': 1100.0, 'image_url': '/static/images/doctors/dr_arjun_mehta.jpg', 'email': 'arjun.mehta@medicore.com'},
+            {'code': 'DOC-105', 'name': 'Dr. Kavya Rao', 'specialization': 'Pediatrician', 'education': 'MBBS, MD (Pediatrics)', 'experience': '8+ Years', 'department': 'Pediatrics & Child Care', 'bio': 'Compassionate pediatrician dedicated to newborn care, child growth and development, childhood immunizations, and pediatric emergency medicine.', 'fee': 700.0, 'image_url': '/static/images/doctors/dr_kavya_rao.jpg', 'email': 'kavya.rao@medicore.com'},
+            {'code': 'DOC-106', 'name': 'Dr. Vikram Desai', 'specialization': 'Radiologist', 'education': 'MBBS, MD (Radiodiagnosis)', 'experience': '10+ Years', 'department': 'Diagnostics & Radiology', 'bio': 'Expert radiologist specializing in 3T MRI, 512-slice Spectral CT scans, cross-sectional diagnostic imaging, and interventional radiology.', 'fee': 850.0, 'image_url': '/static/images/doctors/dr_vikram_desai.jpg', 'email': 'vikram.desai@medicore.com'}
+        ]
+        for data in sample_doctors:
+            usr = User.query.filter_by(email=data['email']).first()
+            if not usr:
+                usr = User(user_code=data['code'], name=data['name'], email=data['email'], role_id=doc_role.id, mobile='+91-9876543210')
+                usr.set_password('Password@123')
+                db.session.add(usr)
+                db.session.flush()
+
+            doc = Doctor.query.filter_by(doctor_code=data['code']).first()
+            if not doc:
+                doc = Doctor(user_id=usr.id, doctor_code=data['code'], name=data['name'], specialization=data['specialization'], education=data['education'], experience=data['experience'], department=data['department'], bio=data['bio'], consultation_fee=data['fee'], image_url=data['image_url'], available_days='Monday - Saturday', rating=4.9, is_active=True)
+                db.session.add(doc)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
 @doctors_bp.route('/api/doctors', methods=['GET'])
 def get_doctors_api():
     """
     Returns list of active doctors for frontend dynamic rendering.
     """
-    doctors = Doctor.query.filter_by(is_active=True).order_by(Doctor.id.asc()).all()
+    try:
+        doctors = Doctor.query.filter_by(is_active=True).order_by(Doctor.id.asc()).all()
+    except Exception:
+        db.session.rollback()
+        ensure_doctors_seeded()
+        doctors = Doctor.query.filter_by(is_active=True).order_by(Doctor.id.asc()).all()
+
+    if not doctors:
+        ensure_doctors_seeded()
+        doctors = Doctor.query.filter_by(is_active=True).order_by(Doctor.id.asc()).all()
+
     return jsonify({
         'success': True,
         'count': len(doctors),

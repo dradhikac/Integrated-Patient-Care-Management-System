@@ -1066,155 +1066,322 @@
       background: #F8FAFC;
     }
 
-    /* Doctor Specialists Carousel Section */
-    .doctors-section {
-      padding: 5rem 0;
-      background: linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%);
-      position: relative;
-    }
-
-    .doctor-card {
-      flex: 0 0 340px;
-      background: #FFFFFF;
-      border-radius: 24px;
-      border: 1px solid #E2E8F0;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: all 0.28s cubic-bezier(0.25, 0.8, 0.25, 1);
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.04);
-      height: 100%;
-    }
-
-    .doctor-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.1);
-      border-color: rgba(30, 64, 175, 0.3);
-    }
-
-    .doctor-img-box {
+    /* -------------------------------------------------------------
+       Hero Image Crossfade Slideshow
+    ------------------------------------------------------------- */
+    .doc-photo-card {
       position: relative;
       width: 100%;
-      height: 280px;
+      max-width: 640px;
+      height: 440px;
+      border-radius: 28px;
       overflow: hidden;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.8);
       background: #F1F5F9;
     }
 
-    .doctor-img-box img {
+    .hero-slide-img {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
       object-position: center 15%;
-      transition: transform 0.4s ease;
+      opacity: 0;
+      transform: scale(1.0);
+      transition: opacity 1000ms ease-in-out, transform 5500ms ease-out;
     }
 
-    .doctor-card:hover .doctor-img-box img {
-      transform: scale(1.04);
+    .hero-slide-img.active {
+      opacity: 1;
+      transform: scale(1.03);
     }
 
-    .doctor-card-body {
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
+    /* -------------------------------------------------------------
+       Meet Your Dedicated Care Experts Section (3D Rotating Showcase)
+    ------------------------------------------------------------- */
+    .doctors-section {
+      padding: 5.5rem 0 6rem 0;
+      background: #FFFFFF;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
     }
 
-    .doctor-spec-badge {
-      display: inline-block;
-      align-self: flex-start;
-      background: #EFF6FF;
-      color: #1E40AF;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 4px 12px;
-      border-radius: 20px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 0.6rem;
+    .care-experts-header {
+      max-width: 720px;
+      margin: 0 auto 3rem auto;
     }
 
-    .doctor-name {
+    .care-experts-title {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 1.25rem;
+      font-size: 2.6rem;
       font-weight: 800;
       color: #0F172A;
-      margin-bottom: 0.3rem;
-    }
-
-    .doctor-edu {
-      font-size: 0.82rem;
-      color: #64748B;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-
-    .doctor-exp-tag {
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: #0B7B6E;
-      display: flex;
-      align-items: center;
-      gap: 5px;
+      letter-spacing: -0.5px;
       margin-bottom: 0.8rem;
     }
 
-    .doctor-bio-short {
-      font-size: 0.85rem;
-      color: #475569;
-      line-height: 1.5;
-      margin-bottom: 1.2rem;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+    .care-experts-subtitle {
+      font-size: 0.98rem;
+      color: #64748B;
+      line-height: 1.6;
+      font-weight: 400;
     }
 
-    .doctor-card-footer {
+    .stage-3d-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
       display: flex;
-      gap: 10px;
-      margin-top: auto;
-      padding-top: 1rem;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 0;
+    }
+
+    .stage-3d {
+      position: relative;
+      width: 100%;
+      height: 490px;
+      perspective: 1400px;
+      perspective-origin: 50% 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      touch-action: pan-y;
+    }
+
+    /* Floating Navigation Controls */
+    .nav-btn-3d {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 1.5px solid #E2E8F0;
+      color: #1E40AF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      cursor: pointer;
+      z-index: 40;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1);
+      transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .nav-btn-3d.prev { left: -10px; }
+    .nav-btn-3d.next { right: -10px; }
+
+    @media (min-width: 1200px) {
+      .nav-btn-3d.prev { left: -25px; }
+      .nav-btn-3d.next { right: -25px; }
+    }
+
+    .nav-btn-3d:hover {
+      background: #1E40AF;
+      color: #FFFFFF;
+      border-color: #1E40AF;
+      transform: translateY(-50%) scale(1.1);
+      box-shadow: 0 12px 30px rgba(30, 64, 175, 0.3);
+    }
+
+    .nav-btn-3d:active {
+      transform: translateY(-50%) scale(0.95);
+    }
+
+    /* Doctor Card in 3D Space */
+    .card-3d {
+      position: absolute;
+      width: 310px;
+      background: #FFFFFF;
+      border-radius: 26px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      border: 1.5px solid #E2E8F0;
+      transition: transform 750ms cubic-bezier(0.25, 1, 0.3, 1),
+                  opacity 750ms cubic-bezier(0.25, 1, 0.3, 1),
+                  box-shadow 750ms ease,
+                  border-color 400ms ease;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      will-change: transform, opacity;
+      text-decoration: none;
+    }
+
+    /* Star Badge */
+    .card-3d-star-badge {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      padding: 5px 10px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #E11D48;
+      font-size: 0.85rem;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      z-index: 5;
+    }
+
+    /* Image Box */
+    .card-3d-img-box {
+      width: 100%;
+      height: 275px;
+      overflow: hidden;
+      position: relative;
+      background: #F8FAFC;
+    }
+
+    .card-3d-img-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      transition: transform 1200ms ease-out;
+    }
+
+    /* Center Card Photograph Cinematic Zoom */
+    .card-3d.is-center .card-3d-img-box img {
+      transform: scale(1.04);
+    }
+
+    /* Bottom Info Box */
+    .card-3d-info {
+      padding: 16px 18px 20px 18px;
+      text-align: left;
+      background: #FFFFFF;
+    }
+
+    .card-3d-name {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #0F172A;
+      margin: 0 0 4px 0;
+      line-height: 1.25;
+    }
+
+    .card-3d-spec {
+      font-size: 0.88rem;
+      color: #1E40AF;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    /* Extra Details Shown on Center Card */
+    .card-3d-extra {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transition: max-height 500ms ease, opacity 500ms ease, margin 500ms ease;
+    }
+
+    .card-3d.is-center .card-3d-extra {
+      max-height: 120px;
+      opacity: 1;
+      margin-top: 8px;
+    }
+
+    .card-3d-edu {
+      font-size: 0.78rem;
+      color: #64748B;
+      margin-bottom: 6px;
+      line-height: 1.35;
+    }
+
+    .card-3d-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      padding-top: 10px;
       border-top: 1px solid #F1F5F9;
     }
 
-    .btn-doc-view {
-      flex: 1;
-      border: 1.5px solid #CBD5E1;
-      color: #334155;
-      font-size: 0.85rem;
+    .card-3d-exp {
+      font-size: 0.78rem;
       font-weight: 700;
-      border-radius: 14px;
-      padding: 9px 12px;
-      text-align: center;
+      color: #059669;
+      background: #ECFDF5;
+      padding: 4px 10px;
+      border-radius: 8px;
+    }
+
+    .card-3d-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-3d-profile {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #1E40AF;
       text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: #EFF6FF;
       transition: all 0.2s ease;
     }
 
-    .btn-doc-view:hover {
-      background: #F8FAFC;
-      border-color: #94A3B8;
-      color: #0F172A;
-    }
-
-    .btn-doc-book {
-      flex: 1.2;
+    .btn-3d-profile:hover {
       background: #1E40AF;
       color: #FFFFFF;
-      font-size: 0.85rem;
-      font-weight: 700;
-      border-radius: 14px;
-      padding: 9px 12px;
-      border: none;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.2);
     }
 
-    .btn-doc-book:hover {
-      background: #1E3A8A;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(30, 64, 175, 0.3);
+    .btn-3d-book {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: #1E40AF;
       color: #FFFFFF;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .btn-3d-book:hover {
+      background: #1D4ED8;
+      transform: scale(1.08);
+    }
+
+    /* Indicators / Dots */
+    .dots-3d-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 2rem;
+    }
+
+    .dot-3d {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #CBD5E1;
+      cursor: pointer;
+      transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .dot-3d.active {
+      width: 28px;
+      border-radius: 10px;
+      background: #1E40AF;
     }
 
     .feature-card {
@@ -1519,244 +1686,34 @@
     </div>
   </section>
 
-  <!-- Clinical Centers of Excellence Section -->
-  <section class="coe-section scroll-reveal" id="specialties">
-    <div class="container">
-      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
-        <div>
-          <span
-            class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-bold text-uppercase mb-2">World-Class
-            Healthcare</span>
-          <h2 class="fw-bold fs-1 text-slate-900 m-0">Clinical Centers of Excellence</h2>
-          <p class="text-muted fs-6 mt-1 mb-0">Discover our specialized medical departments delivering
-            multi-disciplinary clinical precision.</p>
-        </div>
-        <div class="d-flex align-items-center gap-2 mt-3 mt-md-0">
-          <button class="scroll-btn" onclick="scrollCOE(-360)" title="Previous Department">
-            <i class="bi bi-chevron-left"></i>
-          </button>
-          <button class="scroll-btn" onclick="scrollCOE(360)" title="Next Department">
-            <i class="bi bi-chevron-right"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- Scrollable Card Carousel -->
-      <div class="coe-scroll-wrapper">
-        <div class="coe-carousel" id="coeCarousel">
-
-          <!-- Card 1: Cardiology -->
-          <div class="coe-card">
-            <div>
-              <div class="coe-card-top">
-                <div class="coe-icon-box">
-                  <i class="bi bi-heart-pulse-fill"></i>
-                </div>
-                <span
-                  class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-bold small">Ranked
-                  #1</span>
-              </div>
-              <h3 class="coe-dept-name">Cardiology & Heart Institute</h3>
-              <p class="coe-desc">Advanced cardiovascular interventions, electrophysiology, complex angioplasty, and
-                24/7 cardiac emergency care.</p>
-              <div class="coe-tags">
-                <span class="coe-tag">Robotic Surgery</span>
-                <span class="coe-tag">TAVR</span>
-                <span class="coe-tag">Coronary Angioplasty</span>
-              </div>
-            </div>
-            <div class="coe-card-bottom">
-              <div class="coe-live-indicator">
-                <span class="live-pulse-dot"></span> 14 Specialists Available Today
-              </div>
-              <a href="{{ url_for('appointments.book_appointment') }}" class="btn-consult">
-                Consult Specialist <i class="bi bi-arrow-right"></i>
-              </a>
-            </div>
-          </div>
-
-          <!-- Card 2: Neurology -->
-          <div class="coe-card">
-            <div>
-              <div class="coe-card-top">
-                <div class="coe-icon-box">
-                  <i class="bi bi-cpu-fill"></i>
-                </div>
-                <span
-                  class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-bold small">Advanced
-                  Spine</span>
-              </div>
-              <h3 class="coe-dept-name">Neurology & Spine Care</h3>
-              <p class="coe-desc">Comprehensive brain, stroke, epilepsy management, deep brain stimulation, and
-                minimally invasive spine surgeries.</p>
-              <div class="coe-tags">
-                <span class="coe-tag">Deep Brain Stimulation</span>
-                <span class="coe-tag">Stroke Unit</span>
-                <span class="coe-tag">Spine Fusion</span>
-              </div>
-            </div>
-            <div class="coe-card-bottom">
-              <div class="coe-live-indicator">
-                <span class="live-pulse-dot"></span> 9 Specialists Available Today
-              </div>
-              <a href="{{ url_for('appointments.book_appointment') }}" class="btn-consult">
-                Consult Specialist <i class="bi bi-arrow-right"></i>
-              </a>
-            </div>
-          </div>
-
-          <!-- Card 3: Oncology -->
-          <div class="coe-card">
-            <div>
-              <div class="coe-card-top">
-                <div class="coe-icon-box">
-                  <i class="bi bi-shield-heart-fill"></i>
-                </div>
-                <span
-                  class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold small">Tumor
-                  Board</span>
-              </div>
-              <h3 class="coe-dept-name">Oncology & Cancer Center</h3>
-              <p class="coe-desc">Precision medical, surgical, and targeted radiation therapy with multi-disciplinary
-                tumor board evaluations.</p>
-              <div class="coe-tags">
-                <span class="coe-tag">Immunotherapy</span>
-                <span class="coe-tag">Proton Beam</span>
-                <span class="coe-tag">CyberKnife</span>
-              </div>
-            </div>
-            <div class="coe-card-bottom">
-              <div class="coe-live-indicator">
-                <span class="live-pulse-dot"></span> 11 Specialists Available Today
-              </div>
-              <a href="{{ url_for('appointments.book_appointment') }}" class="btn-consult">
-                Consult Specialist <i class="bi bi-arrow-right"></i>
-              </a>
-            </div>
-          </div>
-
-          <!-- Card 4: Orthopedics -->
-          <div class="coe-card">
-            <div>
-              <div class="coe-card-top">
-                <div class="coe-icon-box">
-                  <i class="bi bi-person-arms-up"></i>
-                </div>
-                <span
-                  class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold small">Robotic
-                  Joint</span>
-              </div>
-              <h3 class="coe-dept-name">Orthopedics & Joint Care</h3>
-              <p class="coe-desc">Total joint replacements, sports medicine, complex trauma reconstruction, and
-                minimally invasive arthroscopy.</p>
-              <div class="coe-tags">
-                <span class="coe-tag">Mako Robotic Knee</span>
-                <span class="coe-tag">Arthroscopy</span>
-                <span class="coe-tag">Cartilage Repair</span>
-              </div>
-            </div>
-            <div class="coe-card-bottom">
-              <div class="coe-live-indicator">
-                <span class="live-pulse-dot"></span> 16 Specialists Available Today
-              </div>
-              <a href="{{ url_for('appointments.book_appointment') }}" class="btn-consult">
-                Consult Specialist <i class="bi bi-arrow-right"></i>
-              </a>
-            </div>
-          </div>
-
-          <!-- Card 5: Pediatrics -->
-          <div class="coe-card">
-            <div>
-              <div class="coe-card-top">
-                <div class="coe-icon-box">
-                  <i class="bi bi-emoji-smile-fill"></i>
-                </div>
-                <span
-                  class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1 fw-bold small">Level-IV
-                  NICU</span>
-              </div>
-              <h3 class="coe-dept-name">Pediatrics & Child Care</h3>
-              <p class="coe-desc">Specialized neonatal intensive care, pediatric cardiology, congenital surgeries, and
-                child neuro-development.</p>
-              <div class="coe-tags">
-                <span class="coe-tag">Level-IV NICU</span>
-                <span class="coe-tag">Pediatric Surgery</span>
-                <span class="coe-tag">Child Neurology</span>
-              </div>
-            </div>
-            <div class="coe-card-bottom">
-              <div class="coe-live-indicator">
-                <span class="live-pulse-dot"></span> 8 Specialists Available Today
-              </div>
-              <a href="{{ url_for('appointments.book_appointment') }}" class="btn-consult">
-                Consult Specialist <i class="bi bi-arrow-right"></i>
-              </a>
-            </div>
-          </div>
-
-          <!-- Card 6: Diagnostics -->
-          <div class="coe-card">
-            <div>
-              <div class="coe-card-top">
-                <div class="coe-icon-box">
-                  <i class="bi bi-vial-fill"></i>
-                </div>
-                <span
-                  class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-1 fw-bold small">24/7
-                  Digital Lab</span>
-              </div>
-              <h3 class="coe-dept-name">Diagnostics & Radiology</h3>
-              <p class="coe-desc">High-field 3T MRI, 512-slice Spectral CT, PET-CT scan, and automated laboratory
-                diagnostics with SVG QR reporting.</p>
-              <div class="coe-tags">
-                <span class="coe-tag">3T MRI</span>
-                <span class="coe-tag">PET-CT</span>
-                <span class="coe-tag">SVG QR Verified</span>
-              </div>
-            </div>
-            <div class="coe-card-bottom">
-              <div class="coe-live-indicator">
-                <span class="live-pulse-dot"></span> 24/7 Diagnostics Open
-              </div>
-              <a href="{{ url_for('lab.list_requests') }}" class="btn-consult">
-                Consult Specialist <i class="bi bi-arrow-right"></i>
-              </a>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  <!-- Meet Our Medical Specialists Section -->
+  <!-- Meet Your Dedicated Care Experts Section (3D Rotating Showcase) -->
   <section class="doctors-section scroll-reveal" id="doctors">
     <div class="container">
-      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
-        <div>
-          <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-bold text-uppercase mb-2">
-            <i class="bi bi-patch-check-fill me-1 text-primary"></i> Compassionate Clinical Excellence
-          </span>
-          <h2 class="fw-bold fs-1 text-slate-900 m-0" style="font-family: 'Plus Jakarta Sans', sans-serif;">Meet Our Medical Specialists</h2>
-          <p class="text-muted fs-6 mt-1 mb-0">Experienced healthcare professionals dedicated to providing compassionate, personalized care.</p>
-        </div>
-        <div class="d-flex align-items-center gap-2 mt-3 mt-md-0">
-          <button class="scroll-btn" onclick="scrollDoctors(-360)" title="Previous Doctor">
-            <i class="bi bi-chevron-left"></i>
-          </button>
-          <button class="scroll-btn" onclick="scrollDoctors(360)" title="Next Doctor">
-            <i class="bi bi-chevron-right"></i>
-          </button>
-        </div>
+      <div class="care-experts-header text-center">
+        <h2 class="care-experts-title">Meet Your Dedicated Care Experts</h2>
+        <p class="care-experts-subtitle">From your first visit to follow-up care, our experts explain every step and tailor the plan for your health profile — so you feel informed, supported and safe throughout.</p>
       </div>
 
-      <!-- Horizontal Carousel Container -->
-      <div class="coe-scroll-wrapper">
-        <div class="coe-carousel" id="doctorsCarousel">
-          <!-- Dynamic Doctor Cards will be rendered here via API -->
+      <!-- 3D Stage Container -->
+      <div class="stage-3d-wrapper">
+        <button type="button" class="nav-btn-3d prev" onclick="rotate3DCarousel(-1)" title="Previous Doctor">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+
+        <div class="stage-3d" id="doctors3dStage">
           <div class="text-center p-5 w-100 text-muted">
-            <div class="spinner-border text-primary me-2" role="status"></div> Loading Medical Specialists...
+            <div class="spinner-border text-primary me-2" role="status"></div> Loading 3D Specialist Gallery...
           </div>
         </div>
+
+        <button type="button" class="nav-btn-3d next" onclick="rotate3DCarousel(1)" title="Next Doctor">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+
+      <!-- Indicators / Pagination Dots -->
+      <div class="dots-3d-container" id="doctorsDots">
+        <!-- Rendered dynamically via JS -->
       </div>
     </div>
   </section>
@@ -1832,10 +1789,6 @@
     </div>
   </footer>
 
-  <!-- Bootstrap 5 JS Bundle -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/bootstrap.bundle.min.js"></script>
-
-  <script>
   <!-- Instant Doctor Booking Modal -->
   <div class="modal fade" id="quickBookingModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -1904,16 +1857,54 @@
     </div>
   </div>
 
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/bootstrap.bundle.min.js"></script>
+
   <script>
-    function scrollCOE(amount) {
-      const carousel = document.getElementById('coeCarousel');
-      if (carousel) {
-        carousel.scrollBy({ left: amount, behavior: 'smooth' });
-      }
+    // Hero Image Slideshow Script
+    const heroImages = [
+      "{{ url_for('static', filename='images/hero_doctor_patient.jpg') }}",
+      "{{ url_for('static', filename='images/hero_doctor_child.jpg') }}",
+      "{{ url_for('static', filename='images/hero_doctor_elderly.jpg') }}",
+      "{{ url_for('static', filename='images/hero_ultrasound.jpg') }}",
+      "{{ url_for('static', filename='images/hero_laboratory.jpg') }}"
+    ];
+
+    let currentHeroIdx = 0;
+    let heroTimer = null;
+
+    function initHeroSlideshow() {
+      const docCard = document.querySelector('.doc-photo-card');
+      if (!docCard) return;
+
+      docCard.innerHTML = '';
+      heroImages.forEach((src, idx) => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = 'MediCore+ Hospital Care';
+        img.className = `hero-slide-img ${idx === 0 ? 'active' : ''}`;
+        docCard.appendChild(img);
+      });
+
+      startHeroTimer();
+      docCard.addEventListener('mouseenter', () => clearInterval(heroTimer));
+      docCard.addEventListener('mouseleave', startHeroTimer);
     }
 
-    function scrollDoctors(amount) {
-      const carousel = document.getElementById('doctorsCarousel');
+    function startHeroTimer() {
+      clearInterval(heroTimer);
+      heroTimer = setInterval(() => {
+        const slides = document.querySelectorAll('.hero-slide-img');
+        if (slides.length === 0) return;
+
+        slides[currentHeroIdx].classList.remove('active');
+        currentHeroIdx = (currentHeroIdx + 1) % slides.length;
+        slides[currentHeroIdx].classList.add('active');
+      }, 5500);
+    }
+
+    function scrollCOE(amount) {
+      const carousel = document.getElementById('coeCarousel');
       if (carousel) {
         carousel.scrollBy({ left: amount, behavior: 'smooth' });
       }
@@ -1922,54 +1913,288 @@
     let quickDoctorObj = null;
     let selectedQuickSlotTime = null;
 
-    function loadDoctorsCarousel() {
-      const carousel = document.getElementById('doctorsCarousel');
-      if (!carousel) return;
+    // -------------------------------------------------------------
+    // 3D Rotating Doctor Showcase Implementation
+    // -------------------------------------------------------------
+    let doctorData = [];
+    let current3dIndex = 0;
+    let autoRotateTimer = null;
+    let isUserInteracting = false;
+    let resumeAutoTimer = null;
 
+    function render3DCarousel() {
+      const stage = document.getElementById('doctors3dStage');
+      const dotsContainer = document.getElementById('doctorsDots');
+      if (!stage || doctorData.length === 0) return;
+
+      stage.innerHTML = '';
+      dotsContainer.innerHTML = '';
+
+      doctorData.forEach((doc, idx) => {
+        // Create Card Element
+        const card = document.createElement('div');
+        card.className = 'card-3d';
+        card.setAttribute('data-index', idx);
+        card.onclick = (e) => {
+          if (idx !== current3dIndex) {
+            e.preventDefault();
+            goTo3dIndex(idx);
+          }
+        };
+
+        card.innerHTML = `
+          <div class="card-3d-star-badge">
+            <i class="bi bi-star-fill text-warning"></i> ${doc.rating || '4.9'}
+          </div>
+          <div class="card-3d-img-box">
+            <img src="${doc.image_url}" alt="${doc.name}">
+          </div>
+          <div class="card-3d-info">
+            <h4 class="card-3d-name">${doc.name}</h4>
+            <div class="card-3d-spec">${doc.specialization}</div>
+            <div class="card-3d-extra">
+              <div class="card-3d-edu">${doc.education}</div>
+              <div class="card-3d-meta-row">
+                <span class="card-3d-exp"><i class="bi bi-award me-1"></i>${doc.experience}</span>
+                <div class="card-3d-actions">
+                  <a href="/doctors/${doc.id}" class="btn-3d-profile">Profile</a>
+                  <button type="button" onclick="event.stopPropagation(); openQuickBooking(${doc.id})" class="btn-3d-book" title="Book Appointment">
+                    <i class="bi bi-calendar-plus-fill"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        stage.appendChild(card);
+
+        // Create Dot
+        const dot = document.createElement('div');
+        dot.className = `dot-3d ${idx === current3dIndex ? 'active' : ''}`;
+        dot.onclick = () => goTo3dIndex(idx);
+        dotsContainer.appendChild(dot);
+      });
+
+      update3dTransforms();
+      setupCursorTilt();
+      setupTouchAndInteraction();
+      start3dAutoRotation();
+    }
+
+    function update3dTransforms() {
+      const cards = document.querySelectorAll('.card-3d');
+      const dots = document.querySelectorAll('.dot-3d');
+      const total = doctorData.length;
+      if (total === 0) return;
+
+      const isMobile = window.innerWidth < 768;
+      const isTablet = window.innerWidth < 1024;
+
+      cards.forEach((card, idx) => {
+        let diff = idx - current3dIndex;
+
+        // Calculate shortest loop distance
+        if (diff > total / 2) diff -= total;
+        if (diff < -total / 2) diff += total;
+
+        card.classList.remove('is-center');
+
+        if (diff === 0) {
+          // Center Focal Card
+          card.classList.add('is-center');
+          const scale = isMobile ? 1.05 : 1.12;
+          card.style.transform = `translateX(0px) translateZ(0px) rotateY(0deg) scale(${scale})`;
+          card.style.opacity = '1';
+          card.style.zIndex = '30';
+          card.style.pointerEvents = 'auto';
+          card.style.boxShadow = '0 22px 50px rgba(15, 23, 42, 0.16)';
+          card.style.borderColor = '#1E40AF';
+        } else if (diff === 1) {
+          // Right 1 Card
+          const transX = isMobile ? 160 : (isTablet ? 220 : 270);
+          const rotY = isMobile ? -8 : -14;
+          card.style.transform = `translateX(${transX}px) translateZ(-120px) rotateY(${rotY}deg) scale(0.85)`;
+          card.style.opacity = '0.75';
+          card.style.zIndex = '15';
+          card.style.pointerEvents = 'auto';
+          card.style.boxShadow = '0 8px 24px rgba(15, 23, 42, 0.08)';
+          card.style.borderColor = '#E2E8F0';
+        } else if (diff === -1) {
+          // Left 1 Card
+          const transX = isMobile ? -160 : (isTablet ? -220 : -270);
+          const rotY = isMobile ? 8 : 14;
+          card.style.transform = `translateX(${transX}px) translateZ(-120px) rotateY(${rotY}deg) scale(0.85)`;
+          card.style.opacity = '0.75';
+          card.style.zIndex = '15';
+          card.style.pointerEvents = 'auto';
+          card.style.boxShadow = '0 8px 24px rgba(15, 23, 42, 0.08)';
+          card.style.borderColor = '#E2E8F0';
+        } else if (diff === 2) {
+          // Right 2 Card
+          const transX = isMobile ? 260 : 490;
+          card.style.transform = `translateX(${transX}px) translateZ(-240px) rotateY(-22deg) scale(0.68)`;
+          card.style.opacity = isMobile ? '0' : '0.35';
+          card.style.zIndex = '5';
+          card.style.pointerEvents = isMobile ? 'none' : 'auto';
+          card.style.borderColor = '#E2E8F0';
+        } else if (diff === -2) {
+          // Left 2 Card
+          const transX = isMobile ? -260 : -490;
+          card.style.transform = `translateX(${transX}px) translateZ(-240px) rotateY(22deg) scale(0.68)`;
+          card.style.opacity = isMobile ? '0' : '0.35';
+          card.style.zIndex = '5';
+          card.style.pointerEvents = isMobile ? 'none' : 'auto';
+          card.style.borderColor = '#E2E8F0';
+        } else {
+          // Hidden Cards
+          card.style.transform = `translateX(${diff > 0 ? 600 : -600}px) translateZ(-350px) scale(0.5)`;
+          card.style.opacity = '0';
+          card.style.zIndex = '0';
+          card.style.pointerEvents = 'none';
+        }
+      });
+
+      // Update Dots
+      dots.forEach((dot, idx) => {
+        if (idx === current3dIndex) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+    }
+
+    function rotate3DCarousel(dir) {
+      if (doctorData.length === 0) return;
+      current3dIndex = (current3dIndex + dir + doctorData.length) % doctorData.length;
+      update3dTransforms();
+      pauseAndResumeAutoRotation();
+    }
+
+    function goTo3dIndex(idx) {
+      if (doctorData.length === 0) return;
+      current3dIndex = idx;
+      update3dTransforms();
+      pauseAndResumeAutoRotation();
+    }
+
+    // Interactive 3D Cursor Tilt for Center Card
+    function setupCursorTilt() {
+      const stage = document.getElementById('doctors3dStage');
+      if (!stage) return;
+
+      stage.addEventListener('mousemove', (e) => {
+        const centerCard = stage.querySelector('.card-3d.is-center');
+        if (!centerCard) return;
+
+        const rect = centerCard.getBoundingClientRect();
+        if (
+          e.clientX >= rect.left - 40 &&
+          e.clientX <= rect.right + 40 &&
+          e.clientY >= rect.top - 40 &&
+          e.clientY <= rect.bottom + 40
+        ) {
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+          const pctX = (e.clientX - centerX) / (rect.width / 2);
+          const pctY = (e.clientY - centerY) / (rect.height / 2);
+
+          const tiltY = Math.max(-6, Math.min(6, pctX * 5));
+          const tiltX = Math.max(-5, Math.min(5, -pctY * 4));
+          const scale = window.innerWidth < 768 ? 1.05 : 1.12;
+
+          centerCard.style.transform = `translateX(0px) translateZ(30px) rotateY(${tiltY}deg) rotateX(${tiltX}deg) scale(${scale})`;
+        } else {
+          const scale = window.innerWidth < 768 ? 1.05 : 1.12;
+          centerCard.style.transform = `translateX(0px) translateZ(0px) rotateY(0deg) rotateX(0deg) scale(${scale})`;
+        }
+      });
+
+      stage.addEventListener('mouseleave', () => {
+        const centerCard = stage.querySelector('.card-3d.is-center');
+        if (centerCard) {
+          const scale = window.innerWidth < 768 ? 1.05 : 1.12;
+          centerCard.style.transform = `translateX(0px) translateZ(0px) rotateY(0deg) rotateX(0deg) scale(${scale})`;
+        }
+      });
+    }
+
+    // Touch Swipe & Interaction Management
+    function setupTouchAndInteraction() {
+      const stage = document.getElementById('doctors3dStage');
+      if (!stage) return;
+
+      let startX = 0;
+      let startY = 0;
+      let isDragging = false;
+
+      stage.addEventListener('pointerdown', (e) => {
+        startX = e.clientX;
+        startY = e.clientY;
+        isDragging = true;
+        pauseAndResumeAutoRotation();
+      });
+
+      stage.addEventListener('pointerup', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        const diffX = e.clientX - startX;
+        const diffY = e.clientY - startY;
+
+        if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+          if (diffX < 0) {
+            rotate3DCarousel(1);
+          } else {
+            rotate3DCarousel(-1);
+          }
+        }
+      });
+
+      stage.addEventListener('mouseenter', () => pauseAndResumeAutoRotation());
+    }
+
+    function start3dAutoRotation() {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      clearInterval(autoRotateTimer);
+      autoRotateTimer = setInterval(() => {
+        if (!isUserInteracting) {
+          rotate3DCarousel(1);
+        }
+      }, 4500);
+    }
+
+    function pauseAndResumeAutoRotation() {
+      isUserInteracting = true;
+      clearInterval(autoRotateTimer);
+      clearTimeout(resumeAutoTimer);
+      resumeAutoTimer = setTimeout(() => {
+        isUserInteracting = false;
+        start3dAutoRotation();
+      }, 3000);
+    }
+
+    function loadDoctorsCarousel() {
       fetch('/api/doctors')
         .then(res => res.json())
         .then(data => {
-          if (!data.success || !data.doctors || data.doctors.length === 0) {
-            carousel.innerHTML = '<div class="p-4 text-muted">No doctor records found in database.</div>';
-            return;
+          if (data.success && data.doctors && data.doctors.length > 0) {
+            doctorData = data.doctors;
+            render3DCarousel();
+          } else {
+            const stage = document.getElementById('doctors3dStage');
+            if (stage) stage.innerHTML = '<div class="p-4 text-muted">No doctor records found in database.</div>';
           }
-
-          carousel.innerHTML = '';
-          data.doctors.forEach(doc => {
-            const card = document.createElement('div');
-            card.className = 'doctor-card';
-            card.innerHTML = `
-              <div>
-                <div class="doctor-img-box">
-                  <img src="${doc.image_url}" alt="${doc.name}">
-                  <span class="position-absolute top-0 end-0 m-3 badge bg-white text-dark shadow-sm rounded-pill px-2.5 py-1 fw-bold">
-                    <i class="bi bi-star-fill text-warning me-1"></i> ${doc.rating || '4.9'}
-                  </span>
-                </div>
-                <div class="doctor-card-body">
-                  <span class="doctor-spec-badge">${doc.specialization}</span>
-                  <h4 class="doctor-name">${doc.name}</h4>
-                  <div class="doctor-edu">${doc.education}</div>
-                  <div class="doctor-exp-tag">
-                    <i class="bi bi-award-fill"></i> ${doc.experience} Experience
-                  </div>
-                  <p class="doctor-bio-short">${doc.bio || 'Dedicated healthcare specialist.'}</p>
-                </div>
-              </div>
-              <div class="p-3 pt-0">
-                <div class="doctor-card-footer">
-                  <a href="/doctors/${doc.id}" class="btn btn-doc-view">View Profile</a>
-                  <button onclick="openQuickBooking(${doc.id})" class="btn btn-doc-book">Book Appointment</button>
-                </div>
-              </div>
-            `;
-            carousel.appendChild(card);
-          });
         })
         .catch(err => {
-          carousel.innerHTML = '<div class="p-4 text-danger">Failed to load medical specialists from database.</div>';
+          const stage = document.getElementById('doctors3dStage');
+          if (stage) stage.innerHTML = '<div class="p-4 text-danger">Failed to load medical specialists from database.</div>';
         });
     }
+
+    window.addEventListener('resize', () => {
+      update3dTransforms();
+    });
 
     function openQuickBooking(doctorId) {
       fetch(`/api/doctors/${doctorId}`)
@@ -2081,8 +2306,9 @@
       });
     }
 
-    // Scroll Reveal Observer for Lower Sections
+    // Scroll Reveal Observer & DOM Initializer
     document.addEventListener('DOMContentLoaded', function () {
+      initHeroSlideshow();
       loadDoctorsCarousel();
 
       const observer = new IntersectionObserver((entries) => {

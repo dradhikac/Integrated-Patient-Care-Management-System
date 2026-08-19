@@ -52,6 +52,12 @@ def create_app(config_class=Config):
 
     csrf.exempt(doctors_bp)
 
+    with app.app_context():
+        try:
+            db.create_all()
+        except Exception:
+            pass
+
     # CLI Command to seed database roles and demo users
     @app.cli.command("seed-db")
     def seed_db():

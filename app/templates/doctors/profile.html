@@ -41,14 +41,14 @@
             </div>
           </div>
 
-          <a href="#bookingSection" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow-sm" style="background: #1E40AF; border: none;">
-            <i class="bi bi-calendar-check me-2"></i> Book Consultation
-          </a>
+          <button type="button" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow-sm" style="background: #1E40AF; border: none;" data-bs-toggle="modal" data-bs-target="#profileBookingModal">
+            <i class="bi bi-calendar-check me-2"></i> Book Appointment
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Main Profile Details & Instant Booking Slot Selection -->
+    <!-- Main Profile Details -->
     <div class="col-lg-8">
       <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-4">
         <!-- Header Info -->
@@ -61,82 +61,121 @@
         <!-- Biography -->
         <div class="mb-4">
           <h5 class="fw-bold text-slate-900 mb-2"><i class="bi bi-person-text me-2 text-primary"></i> About the Doctor</h5>
-          <p class="text-slate-700 leading-relaxed">{{ doctor.bio }}</p>
+          <p class="text-slate-700 leading-relaxed fs-6">{{ doctor.bio }}</p>
         </div>
 
-        <!-- Clinical Expertise / Highlights Grid -->
-        <div class="row g-3 mb-4">
+        <!-- Clinical Expertise & Schedule Highlights Grid -->
+        <div class="row g-3 mb-5">
           <div class="col-md-6">
-            <div class="p-3 bg-light rounded-3 border">
-              <div class="text-muted small fw-semibold text-uppercase">Department</div>
-              <div class="fw-bold text-slate-900 mt-1">{{ doctor.department }}</div>
+            <div class="p-3.5 bg-light rounded-4 border">
+              <div class="text-muted small fw-semibold text-uppercase mb-1"><i class="bi bi-building me-1 text-primary"></i> Department</div>
+              <div class="fw-bold text-slate-900 fs-6">{{ doctor.department }}</div>
             </div>
           </div>
           <div class="col-md-6">
-            <div class="p-3 bg-light rounded-3 border">
-              <div class="text-muted small fw-semibold text-uppercase">Availability</div>
-              <div class="fw-bold text-slate-900 mt-1"><i class="bi bi-clock me-1 text-success"></i> {{ doctor.available_days }}</div>
+            <div class="p-3.5 bg-light rounded-4 border">
+              <div class="text-muted small fw-semibold text-uppercase mb-1"><i class="bi bi-calendar-week me-1 text-success"></i> Available Days</div>
+              <div class="fw-bold text-slate-900 fs-6"><i class="bi bi-check-circle-fill text-success me-1"></i> {{ doctor.available_days }}</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3.5 bg-light rounded-4 border">
+              <div class="text-muted small fw-semibold text-uppercase mb-1"><i class="bi bi-clock-history me-1 text-info"></i> OPD Hours</div>
+              <div class="fw-bold text-slate-900 fs-6">09:00 AM - 05:00 PM</div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="p-3.5 bg-light rounded-4 border">
+              <div class="text-muted small fw-semibold text-uppercase mb-1"><i class="bi bi-geo-alt me-1 text-danger"></i> OPD Consultation Location</div>
+              <div class="fw-bold text-slate-900 fs-6">Main Hospital OPD Block, Room 204</div>
             </div>
           </div>
         </div>
 
-        <!-- Interactive Slot Booking Section -->
-        <div class="pt-4 border-top" id="bookingSection">
-          <h4 class="fw-bold text-slate-900 mb-3"><i class="bi bi-calendar-event me-2 text-primary"></i> Select Appointment Date & Time</h4>
+        <!-- Primary Action Button Section -->
+        <div class="pt-4 border-top text-center">
+          <button type="button" class="btn btn-primary btn-lg rounded-pill px-5 py-3 fw-bold shadow-sm" style="background: #1E40AF; border: none; font-size: 1.1rem;" data-bs-toggle="modal" data-bs-target="#profileBookingModal">
+            <i class="bi bi-calendar-check me-2"></i> Book Appointment with {{ doctor.name }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-          <div class="row g-3 align-items-center mb-4">
-            <div class="col-md-5">
-              <label for="profileAptDate" class="form-label fw-semibold small text-muted">Select Preferred Date:</label>
-              <input type="date" class="form-control form-control-lg rounded-3 border" id="profileAptDate" value="{{ today_date.strftime('%Y-%m-%d') }}" min="{{ today_date.strftime('%Y-%m-%d') }}" onchange="fetchDoctorSlots({{ doctor.id }})">
+<!-- Dedicated Appointment Booking Modal -->
+<div class="modal fade" id="profileBookingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header text-white border-0 py-3" style="background: #1E40AF !important;">
+        <h5 class="modal-title fw-bold"><i class="bi bi-calendar-check me-2"></i> Book Appointment with {{ doctor.name }}</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 mb-4">
+          <img src="{{ doctor.image_url }}" alt="{{ doctor.name }}" class="rounded-circle object-fit-cover" style="width: 64px; height: 64px;">
+          <div>
+            <h5 class="fw-bold text-slate-900 mb-0">{{ doctor.name }}</h5>
+            <div class="text-primary fw-semibold small">{{ doctor.specialization }}</div>
+            <div class="text-muted small">{{ doctor.available_days }} | ₹{{ "%.0f"|format(doctor.consultation_fee) }} OPD Fee</div>
+          </div>
+        </div>
+
+        <div class="row g-3 align-items-center mb-4">
+          <div class="col-md-5">
+            <label for="profileAptDate" class="form-label fw-semibold small text-muted">Select Preferred Date *</label>
+            <input type="date" class="form-control rounded-3 border" id="profileAptDate" value="{{ today_date.strftime('%Y-%m-%d') }}" min="{{ today_date.strftime('%Y-%m-%d') }}" onchange="fetchDoctorSlots({{ doctor.id }})">
+          </div>
+          <div class="col-md-7">
+            <div class="small text-muted mb-1">Schedule Legend:</div>
+            <div class="d-flex align-items-center gap-3">
+              <span class="small"><i class="bi bi-circle-fill text-success me-1"></i> Available</span>
+              <span class="small"><i class="bi bi-circle-fill text-secondary me-1"></i> Occupied / Past</span>
+              <span class="small"><i class="bi bi-circle-fill text-warning me-1"></i> Emergency Reserved</span>
             </div>
-            <div class="col-md-7">
-              <div class="small text-muted mb-1">Schedule Legend:</div>
-              <div class="d-flex align-items-center gap-3">
-                <span class="small"><i class="bi bi-circle-fill text-success me-1"></i> Available</span>
-                <span class="small"><i class="bi bi-circle-fill text-secondary me-1"></i> Occupied / Past</span>
-                <span class="small"><i class="bi bi-circle-fill text-warning me-1"></i> Emergency Reserved</span>
-              </div>
+          </div>
+        </div>
+
+        <!-- Time Slots Container -->
+        <div class="mb-4">
+          <label class="form-label fw-semibold small text-muted mb-2">Available Time Slots *</label>
+          <div id="slotGrid" class="d-flex flex-wrap gap-2">
+            <div class="text-muted small p-2">Loading available slots...</div>
+          </div>
+        </div>
+
+        <!-- Patient Details Form -->
+        <form id="profileBookingForm" onsubmit="submitAppointmentBooking(event, {{ doctor.id }})">
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label for="patientNameInput" class="form-label fw-semibold small">Patient Full Name *</label>
+              <input type="text" class="form-control rounded-3" id="patientNameInput" placeholder="Enter patient name" value="{% if current_user.is_authenticated %}{{ current_user.name }}{% endif %}" required>
+            </div>
+            <div class="col-md-6">
+              <label for="patientEmailInput" class="form-label fw-semibold small">Email Address *</label>
+              <input type="email" class="form-control rounded-3" id="patientEmailInput" placeholder="name@example.com" value="{% if current_user.is_authenticated %}{{ current_user.email }}{% endif %}" required>
+            </div>
+            <div class="col-md-6">
+              <label for="patientMobileInput" class="form-label fw-semibold small">Mobile Number *</label>
+              <input type="tel" class="form-control rounded-3" id="patientMobileInput" placeholder="+91-9876543210" value="{% if current_user.is_authenticated %}{{ current_user.mobile or '' }}{% endif %}" required>
+            </div>
+            <div class="col-md-6">
+              <label for="consultReasonInput" class="form-label fw-semibold small">Reason for Visit (Optional)</label>
+              <input type="text" class="form-control rounded-3" id="consultReasonInput" placeholder="e.g. Routine checkup, joint pain, etc.">
             </div>
           </div>
 
-          <!-- Time Slots Container -->
-          <div class="mb-4">
-            <label class="form-label fw-semibold small text-muted mb-2">Available Time Slots:</label>
-            <div id="slotGrid" class="d-flex flex-wrap gap-2">
-              <div class="text-muted small p-3">Loading available slots...</div>
-            </div>
-          </div>
+          <input type="hidden" id="selectedSlotTime" value="">
 
-          <!-- Patient Details Form -->
-          <form id="profileBookingForm" onsubmit="submitAppointmentBooking(event, {{ doctor.id }})">
-            <div class="row g-3 mb-4">
-              <div class="col-md-6">
-                <label for="patientNameInput" class="form-label fw-semibold small">Patient Full Name *</label>
-                <input type="text" class="form-control rounded-3" id="patientNameInput" placeholder="Enter patient name" value="{% if current_user.is_authenticated %}{{ current_user.name }}{% endif %}" required>
-              </div>
-              <div class="col-md-6">
-                <label for="patientEmailInput" class="form-label fw-semibold small">Email Address *</label>
-                <input type="email" class="form-control rounded-3" id="patientEmailInput" placeholder="name@example.com" value="{% if current_user.is_authenticated %}{{ current_user.email }}{% endif %}" required>
-              </div>
-              <div class="col-md-6">
-                <label for="patientMobileInput" class="form-label fw-semibold small">Mobile Number *</label>
-                <input type="tel" class="form-control rounded-3" id="patientMobileInput" placeholder="+91-9876543210" value="{% if current_user.is_authenticated %}{{ current_user.mobile or '' }}{% endif %}" required>
-              </div>
-              <div class="col-md-6">
-                <label for="consultReasonInput" class="form-label fw-semibold small">Reason for Visit (Optional)</label>
-                <input type="text" class="form-control rounded-3" id="consultReasonInput" placeholder="e.g. Routine checkup, joint pain, etc.">
-              </div>
-            </div>
+          <div id="bookingAlert" class="alert d-none mb-3" role="alert"></div>
 
-            <input type="hidden" id="selectedSlotTime" value="">
-
-            <div id="bookingAlert" class="alert d-none mb-3" role="alert"></div>
-
-            <button type="submit" id="confirmBookingBtn" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm" disabled>
-              <i class="bi bi-check2-circle me-2"></i> Confirm Appointment
+          <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" id="confirmBookingBtn" class="btn btn-success rounded-pill px-4 fw-bold" disabled>
+              <i class="bi bi-check2-circle me-1"></i> Confirm Appointment
             </button>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -266,6 +305,10 @@ function submitAppointmentBooking(event, doctorId) {
       alertBox.innerText = resData.message || 'Booking failed.';
       alertBox.classList.remove('d-none');
     } else {
+      const bModalEl = document.getElementById('profileBookingModal');
+      const bModal = bootstrap.Modal.getInstance(bModalEl);
+      if (bModal) bModal.hide();
+
       document.getElementById('confCode').innerText = resData.appointment_code;
       document.getElementById('confDocName').innerText = resData.doctor_name;
       document.getElementById('confSpec').innerText = resData.specialization;
