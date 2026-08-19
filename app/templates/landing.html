@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IPCMS — Integrated Patient Care Management System</title>
+  <title>MediCore+ — Care Beyond Compare | Integrated Healthcare Management System</title>
   
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,62 +17,912 @@
   
   <style>
     :root {
-      --primary-deep-teal: #006D77;
-      --primary-dark-teal: #004D56;
-      --accent-coral: #FF6B6B;
-      --accent-gold: #FFB703;
+      --primary-navy: #0F172A;
+      --primary-blue: #1E40AF;
+      --primary-blue-hover: #1D4ED8;
+      --accent-teal: #0B7B6E;
+      --accent-teal-light: #E6F7F5;
       --slate-bg: #F8FAFC;
-      --navy-dark: #0A192F;
-      --glass-bg: rgba(255, 255, 255, 0.15);
-      --glass-border: rgba(255, 255, 255, 0.25);
-      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      --text-muted: #64748B;
+      --text-dark: #0F172A;
     }
 
     body {
       font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
       background-color: var(--slate-bg);
-      color: #1E293B;
+      color: var(--text-dark);
       overflow-x: hidden;
     }
 
-    /* Navbar Styling */
-    .ipcms-navbar {
-      background: rgba(255, 255, 255, 0.92);
+    /* -------------------------------------------------------------
+       1. Navigation Bar & Micro-Interactions
+    ------------------------------------------------------------- */
+    .medicore-navbar {
+      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-      transition: all 0.3s ease;
+      border-bottom: 1px solid #E2E8F0;
+      padding: 0.85rem 0;
       z-index: 1050;
+      animation: nav-fade-down 0.5s ease-out forwards;
     }
 
-    .brand-logo {
+    @keyframes nav-fade-down {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .brand-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #1E40AF 0%, #0B7B6E 100%);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 1.4rem;
+      box-shadow: 0 4px 14px rgba(30, 64, 175, 0.25);
+      transition: transform 0.25s ease;
+    }
+
+    .brand-box:hover .brand-icon {
+      transform: scale(1.06) rotate(-3deg);
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-size: 1.35rem;
       font-weight: 800;
-      color: var(--primary-deep-teal);
-      letter-spacing: -0.5px;
+      color: var(--primary-navy);
+      line-height: 1.1;
+      letter-spacing: -0.4px;
     }
 
-    .brand-logo i {
-      color: var(--accent-coral);
+    .brand-tagline {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--accent-teal);
+      letter-spacing: 0.2px;
     }
 
-    /* Pulsing System Status Indicator */
-    .status-badge {
+    .nav-link-item {
+      font-weight: 600;
+      font-size: 0.92rem;
+      color: #334155 !important;
+      padding: 0.5rem 1rem !important;
+      position: relative;
+      transition: color 0.2s ease;
+    }
+
+    .nav-link-item::after {
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      left: 1rem;
+      right: 1rem;
+      height: 2.5px;
+      background-color: var(--primary-blue);
+      border-radius: 2px;
+      opacity: 0;
+      transform: scaleX(0);
+      transition: all 0.25s ease;
+    }
+
+    .nav-link-item:hover {
+      color: var(--primary-blue) !important;
+    }
+
+    .nav-link-item:hover::after {
+      opacity: 0.6;
+      transform: scaleX(0.7);
+    }
+
+    .nav-link-item.active {
+      color: var(--primary-blue) !important;
+    }
+
+    .nav-link-item.active::after {
+      opacity: 1;
+      transform: scaleX(1);
+    }
+
+    .nav-contact-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--primary-navy);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .nav-contact-info:hover {
+      color: var(--primary-blue);
+    }
+
+    .nav-contact-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #EFF6FF;
+      color: var(--primary-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      transition: transform 0.2s ease;
+    }
+
+    .nav-contact-info:hover .nav-contact-icon {
+      transform: scale(1.1);
+    }
+
+    /* Top Navigation Button: Sign In / Sign Up */
+    .btn-nav-auth {
+      background: var(--primary-blue);
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 0.65rem 1.4rem;
+      border-radius: 12px;
+      border: none;
+      text-decoration: none;
+      transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(30, 64, 175, 0.22);
+    }
+
+    .btn-nav-auth:hover {
+      background: var(--primary-blue-hover);
+      color: #FFFFFF;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(30, 64, 175, 0.35);
+    }
+
+    .btn-nav-auth i {
+      transition: transform 0.22s ease;
+    }
+
+    .btn-nav-auth:hover i.bi-arrow-right {
+      transform: translateX(3px);
+    }
+
+    .btn-nav-auth:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    /* -------------------------------------------------------------
+       2. Hero Layout & Entrance Animations
+    ------------------------------------------------------------- */
+    .hero-wrapper {
+      position: relative;
+      background: radial-gradient(circle at 10% 20%, #EEF7F6 0%, #F8FAFC 60%, #F1F5F9 100%);
+      padding: 3.5rem 0 4.5rem 0;
+      min-height: 75vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* Staggered Load Keyframes */
+    @keyframes anim-fade-up {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes anim-fade-scale {
+      from {
+        opacity: 0;
+        transform: scale(0.97) translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    @keyframes anim-fade-right {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* Step 1: Badge Pill */
+    .hero-badge-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 10px;
+      padding: 6px 14px;
       border-radius: 20px;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.25);
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #059669;
+      background: var(--accent-teal-light);
+      border: 1px solid rgba(11, 123, 110, 0.2);
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--accent-teal);
+      margin-bottom: 1.25rem;
+      animation: anim-fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s backwards;
     }
 
-    .pulse-dot {
-      width: 8px;
+    /* Step 2: Main Title */
+    .hero-main-title {
+      font-size: 3.4rem;
+      font-weight: 800;
+      line-height: 1.15;
+      color: var(--primary-navy);
+      letter-spacing: -1px;
+      margin-bottom: 1.2rem;
+      animation: anim-fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s backwards;
+    }
+
+    .hero-main-title .text-accent {
+      color: var(--accent-teal);
+    }
+
+    /* Step 3: Description */
+    .hero-lead-text {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 2rem;
+      max-width: 480px;
+      animation: anim-fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s backwards;
+    }
+
+    /* Step 4: CTA Group */
+    .cta-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 2.5rem;
+      animation: anim-fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.4s backwards;
+    }
+
+    /* Hero Primary CTA: Book an Appointment */
+    .btn-cta-primary {
+      background: var(--primary-blue);
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 0.98rem;
+      padding: 0.85rem 1.8rem;
+      border-radius: 14px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+      box-shadow: 0 6px 20px rgba(30, 64, 175, 0.28);
+    }
+
+    .btn-cta-primary:hover {
+      background: var(--primary-blue-hover);
+      color: #FFFFFF;
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(30, 64, 175, 0.38);
+    }
+
+    .btn-cta-primary i {
+      transition: transform 0.22s ease-out;
+    }
+
+    .btn-cta-primary:hover i {
+      transform: translateX(5px);
+    }
+
+    .btn-cta-primary:active {
+      transform: translateY(-1px) scale(0.98);
+    }
+
+    /* Hero Secondary CTA: Explore Services */
+    .btn-cta-secondary {
+      background: #FFFFFF;
+      color: var(--primary-blue);
+      border: 1.5px solid #CBD5E1;
+      font-weight: 700;
+      font-size: 0.98rem;
+      padding: 0.85rem 1.8rem;
+      border-radius: 14px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+
+    .btn-cta-secondary:hover {
+      border-color: var(--primary-blue);
+      color: var(--primary-blue-hover);
+      background: #F0F7FF;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(30, 64, 175, 0.15);
+    }
+
+    .btn-cta-secondary i {
+      transition: transform 0.22s ease-out;
+    }
+
+    .btn-cta-secondary:hover i {
+      transform: translateX(4px);
+    }
+
+    .btn-cta-secondary:active {
+      transform: translateY(-1px) scale(0.98);
+    }
+
+    /* Step 5: Statistics Card & Item Micro-Interactions */
+    .hero-stats-card {
+      background: #FFFFFF;
+      border-radius: 20px;
+      border: 1px solid #E2E8F0;
+      padding: 1.1rem 1.6rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 520px;
+      animation: anim-fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.5s backwards;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 6px;
+      border-radius: 10px;
+      transition: all 0.22s ease-out;
+    }
+
+    .stat-item:hover {
+      transform: translateY(-3px);
+      background: rgba(240, 247, 255, 0.6);
+    }
+
+    .stat-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: #EFF6FF;
+      color: var(--primary-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: transform 0.22s ease-out;
+    }
+
+    .stat-item:hover .stat-icon {
+      transform: scale(1.08);
+      background: var(--primary-blue);
+      color: #FFFFFF;
+    }
+
+    .stat-val {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--primary-navy);
+      line-height: 1.1;
+      transition: color 0.2s ease;
+    }
+
+    .stat-item:hover .stat-val {
+      color: var(--primary-blue);
+    }
+
+    .stat-lbl {
+      font-size: 0.73rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .stat-divider {
+      width: 1px;
+      height: 32px;
+      background: #E2E8F0;
+    }
+
+    /* -------------------------------------------------------------
+       3. Orbiting Rings & 4. Doctor Image Floating Animation
+    ------------------------------------------------------------- */
+    /* -------------------------------------------------------------
+       3. Medical Intelligence / Diagnostic Visualization Background System
+    ------------------------------------------------------------- */
+    .med-tech-stage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 560px;
+      height: 540px;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+      border-radius: 36px;
+    }
+
+    /* 1. Ambient Shift Gradient Glow */
+    .ambient-glow {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 40%, rgba(30, 64, 175, 0.14) 0%, rgba(11, 123, 110, 0.16) 50%, rgba(248, 250, 252, 0) 75%);
+      filter: blur(35px);
+      animation: ambient-shift 14s ease-in-out infinite alternate;
+    }
+
+    @keyframes ambient-shift {
+      0% { transform: scale(0.9) rotate(0deg); opacity: 0.7; }
+      50% { transform: scale(1.1) rotate(15deg); opacity: 1; }
+      100% { transform: scale(0.95) rotate(-10deg); opacity: 0.85; }
+    }
+
+    /* 2. Diagnostic Scanning Beam */
+    .scan-beam {
+      position: absolute;
+      top: -10%;
+      bottom: -10%;
+      width: 70px;
+      background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(11, 123, 110, 0.08) 30%, 
+        rgba(30, 64, 175, 0.18) 50%, 
+        rgba(11, 123, 110, 0.08) 70%, 
+        transparent 100%
+      );
+      filter: blur(12px);
+      animation: scan-sweep 9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes scan-sweep {
+      0% { left: -15%; opacity: 0; }
+      15% { opacity: 0.85; }
+      85% { opacity: 0.85; }
+      100% { left: 115%; opacity: 0; }
+    }
+
+    /* Full-Screen Edge-to-Edge Background Heartbeat Waveform (Left to Right) */
+    .full-screen-ecg-layer {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 120px;
+      transform: translateY(-50%);
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.38;
+      overflow: hidden;
+    }
+
+    .full-ecg-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .full-ecg-line-bg {
+      fill: none;
+      stroke: rgba(11, 123, 110, 0.18);
+      stroke-width: 2;
+    }
+
+    .full-ecg-line-pulse {
+      fill: none;
+      stroke: #0B7B6E;
+      stroke-width: 2.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 300 1300;
+      stroke-dashoffset: 1600;
+      animation: full-ecg-draw 9s linear infinite;
+      filter: drop-shadow(0 0 8px rgba(11, 123, 110, 0.5));
+    }
+
+    @keyframes full-ecg-draw {
+      from { stroke-dashoffset: 1600; }
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* 5. Floating Medical Cross (+) Elements */
+    .plus-elements-layer {
+      position: absolute;
+      inset: 0;
+    }
+
+    .med-plus {
+      position: absolute;
+      color: var(--accent-teal);
+      font-size: 1.1rem;
+      opacity: 0.35;
+      animation: float-plus 8s ease-in-out infinite alternate;
+    }
+
+    .plus-1 { top: 40px; left: 60px; animation-duration: 7s; animation-delay: 0s; }
+    .plus-2 { top: 80px; right: 50px; color: var(--primary-blue); animation-duration: 9s; animation-delay: 1.5s; }
+    .plus-3 { bottom: 60px; left: 70px; color: var(--primary-blue); animation-duration: 8.5s; animation-delay: 3s; }
+    .plus-4 { bottom: 50px; right: 60px; animation-duration: 7.5s; animation-delay: 2s; }
+
+    @keyframes float-plus {
+      0% { transform: translateY(0px) rotate(0deg); opacity: 0.25; }
+      50% { opacity: 0.55; }
+      100% { transform: translateY(-14px) rotate(10deg); opacity: 0.3; }
+    }
+
+    /* Step 6: Doctor-Patient Photograph Container (Stationary, No Floating) */
+    .doc-photo-card {
+      position: relative;
+      z-index: 2;
+      border-radius: 30px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+      border: 4px solid #FFFFFF;
+      background: #FFFFFF;
+      max-width: 440px;
+      width: 100%;
+      animation: anim-fade-scale 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.6s backwards;
+    }
+
+    .doc-photo-card img {
+      width: 100%;
+      height: 480px;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+      transition: transform 0.4s ease;
+    }
+
+    .doc-photo-card:hover img {
+      transform: scale(1.02);
+    }
+
+    /* Floating Shield Badge near Image bottom-left */
+    .floating-shield-badge {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      z-index: 3;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      padding: 10px 16px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-shield-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #E6F7F5;
+      color: var(--accent-teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    /* -------------------------------------------------------------
+       5. Care Panel & 9. Emergency Card Animations
+    ------------------------------------------------------------- */
+    .hero-right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      z-index: 2;
+    }
+
+    /* Step 7: Care Options Card */
+    .care-panel-card {
+      background: #FFFFFF;
+      border-radius: 24px;
+      border: 1px solid #E2E8F0;
+      padding: 1.6rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+      width: 100%;
+      max-width: 310px;
+      animation: anim-fade-right 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.7s backwards;
+    }
+
+    .care-panel-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--primary-navy);
+      margin-bottom: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Individual Care Option Item Hover */
+    .care-option-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 0.85rem;
+      border-radius: 14px;
+      text-decoration: none;
+      transition: all 0.22s ease-out;
+      margin-bottom: 6px;
+    }
+
+    .care-option-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .care-option-item:hover {
+      background: #F0F7FF;
+      transform: translateX(4px);
+    }
+
+    .care-option-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .care-icon-box {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      transition: transform 0.22s ease-out, background-color 0.22s ease;
+    }
+
+    .care-option-item:hover .care-icon-box {
+      transform: scale(1.1);
+    }
+
+    .care-icon-blue { background: #EFF6FF; color: var(--primary-blue); }
+    .care-icon-purple { background: #F3E8FF; color: #7C3AED; }
+    .care-icon-teal { background: #E6F7F5; color: var(--accent-teal); }
+    .care-icon-pink { background: #FCE7F3; color: #DB2777; }
+
+    .care-text-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--primary-navy);
+      line-height: 1.2;
+    }
+
+    .care-text-sub {
+      font-size: 0.73rem;
+      color: var(--text-muted);
+    }
+
+    .care-arrow {
+      color: #94A3B8;
+      font-size: 0.85rem;
+      transition: all 0.22s ease-out;
+    }
+
+    .care-option-item:hover .care-arrow {
+      color: var(--primary-blue);
+      transform: translateX(4px);
+    }
+
+    /* Step 8: Emergency Card & Icon Subtle Pulse */
+    .emergency-card {
+      background: #FEF2F2;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 20px;
+      padding: 1.2rem 1.4rem;
+      max-width: 310px;
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.06);
+      animation: anim-fade-right 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.8s backwards;
+    }
+
+    .emergency-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 0.98rem;
+      color: #DC2626;
+      margin-bottom: 2px;
+    }
+
+    /* Phone Icon Subtle Scale Pulse */
+    .emergency-header i {
+      animation: icon-pulse 3s ease-in-out infinite;
+      display: inline-block;
+    }
+
+    @keyframes icon-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    .emergency-sub {
+      font-size: 0.76rem;
+      color: #991B1B;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .emergency-phone-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 1rem;
+      color: #DC2626;
+      text-decoration: none;
+      transition: transform 0.2s ease;
+    }
+
+    .emergency-phone-btn:hover {
+      color: #B91C1C;
+      transform: scale(1.03);
+    }
+
+    /* -------------------------------------------------------------
+       Centers of Excellence & Lower Sections
+    ------------------------------------------------------------- */
+    .coe-section {
+      padding: 5rem 0;
+      background: #FFFFFF;
+      position: relative;
+      border-bottom: 1px solid #E2E8F0;
+    }
+
+    .coe-scroll-wrapper {
+      position: relative;
+      padding: 0.5rem 0.25rem;
+    }
+
+    .coe-carousel {
+      display: flex;
+      gap: 1.5rem;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      padding-bottom: 1.5rem;
+      scrollbar-width: thin;
+      scrollbar-color: var(--accent-teal) #E2E8F0;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .coe-carousel::-webkit-scrollbar {
       height: 8px;
+    }
+
+    .coe-carousel::-webkit-scrollbar-track {
+      background: #F1F5F9;
+      border-radius: 10px;
+    }
+
+    .coe-carousel::-webkit-scrollbar-thumb {
+      background: var(--accent-teal);
+      border-radius: 10px;
+    }
+
+    .coe-card {
+      flex: 0 0 340px;
+      background: #FFFFFF;
+      border-radius: 20px;
+      border: 1.5px solid #E2E8F0;
+      padding: 2rem 1.6rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    }
+
+    .coe-card:hover {
+      transform: translateY(-8px);
+      border-color: var(--accent-teal);
+      box-shadow: 0 16px 36px rgba(11, 123, 110, 0.18), 0 0 0 1px var(--accent-teal);
+    }
+
+    .coe-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+
+    .coe-icon-box {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      background: linear-gradient(135deg, rgba(11, 123, 110, 0.08) 0%, rgba(30, 64, 175, 0.08) 100%);
+      color: var(--accent-teal);
+      border: 1px solid rgba(11, 123, 110, 0.2);
+      box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.8), 0 6px 16px rgba(11, 123, 110, 0.12);
+      transition: all 0.3s ease;
+    }
+
+    .coe-card:hover .coe-icon-box {
+      transform: scale(1.1) rotate(-4deg);
+      color: var(--primary-blue);
+      background: linear-gradient(135deg, rgba(30, 64, 175, 0.15) 0%, rgba(11, 123, 110, 0.15) 100%);
+    }
+
+    .coe-dept-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0F172A;
+      margin-bottom: 0.6rem;
+    }
+
+    .coe-desc {
+      font-size: 0.88rem;
+      color: #64748B;
+      line-height: 1.5;
+      margin-bottom: 1.2rem;
+    }
+
+    .coe-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 1.5rem;
+    }
+
+    .coe-tag {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: #F1F5F9;
+      color: #334155;
+      border: 1px solid #E2E8F0;
+    }
+
+    .coe-card-bottom {
+      border-top: 1px solid #F1F5F9;
+      padding-top: 1.2rem;
+      margin-top: auto;
+    }
+
+    .coe-live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #059669;
+      margin-bottom: 0.8rem;
+    }
+
+    .live-pulse-dot {
+      width: 7px;
+      height: 7px;
       background-color: #10B981;
       border-radius: 50%;
       box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
@@ -80,334 +930,165 @@
     }
 
     @keyframes pulse-green {
-      0% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-      }
-      70% {
-        transform: scale(1);
-        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
-      }
-      100% {
-        transform: scale(0.95);
-        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-      }
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
 
-    .nav-link {
-      font-weight: 500;
-      color: #334155 !important;
-      padding: 0.5rem 0.9rem !important;
-      transition: color 0.2s ease;
-    }
-
-    .nav-link:hover {
-      color: var(--primary-deep-teal) !important;
-    }
-
-    /* Buttons */
-    .btn-coral {
-      background-color: var(--accent-coral);
-      color: #FFFFFF;
-      font-weight: 600;
-      border: none;
-      padding: 0.6rem 1.4rem;
-      border-radius: 10px;
-      transition: all 0.25s ease;
-      box-shadow: 0 4px 14px rgba(255, 107, 107, 0.35);
-    }
-
-    .btn-coral:hover {
-      background-color: #EE5253;
-      color: #FFFFFF;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.45);
-    }
-
-    .btn-teal {
-      background-color: var(--primary-deep-teal);
-      color: #FFFFFF;
-      font-weight: 600;
-      border: none;
-      padding: 0.6rem 1.4rem;
-      border-radius: 10px;
-      transition: all 0.25s ease;
-      box-shadow: 0 4px 14px rgba(0, 109, 119, 0.3);
-    }
-
-    .btn-teal:hover {
-      background-color: var(--primary-dark-teal);
-      color: #FFFFFF;
-      transform: translateY(-2px);
-    }
-
-    /* Hero Section with Video Background */
-    .hero-container {
-      position: relative;
-      min-height: 90vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      background-color: var(--navy-dark);
-      padding: 6rem 1rem 4rem 1rem;
-    }
-
-    /* Video Background Container (16:9 responsive cover) */
-    .video-bg-container {
-      position: absolute;
-      top: 0;
-      left: 0;
+    .btn-consult {
       width: 100%;
-      height: 100%;
-      overflow: hidden;
-      z-index: 1;
-      pointer-events: none;
-    }
-
-    .video-bg-container video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center;
-    }
-
-    /* Overlay Dark Gradient */
-    .hero-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(
-        135deg,
-        rgba(10, 25, 47, 0.85) 0%,
-        rgba(0, 77, 86, 0.75) 50%,
-        rgba(10, 25, 47, 0.88) 100%
-      );
-      z-index: 2;
-    }
-
-    .hero-content {
-      position: relative;
-      z-index: 3;
-      max-width: 960px;
-      color: #FFFFFF;
-      text-align: center;
-    }
-
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 16px;
-      border-radius: 30px;
-      background: rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #E2E8F0;
-      margin-bottom: 1.5rem;
-    }
-
-    .hero-headline {
-      font-size: 3.4rem;
-      font-weight: 800;
-      line-height: 1.15;
-      letter-spacing: -1px;
-      margin-bottom: 1.2rem;
-    }
-
-    .text-gradient {
-      background: linear-gradient(135deg, #FFFFFF 30%, #FFB703 70%, #FF6B6B 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .hero-subheadline {
-      font-size: 1.2rem;
-      font-weight: 400;
-      color: #CBD5E1;
-      max-width: 780px;
-      margin: 0 auto 2.5rem auto;
-      line-height: 1.6;
-    }
-
-    /* Floating Glassmorphic Search Bar */
-    .glass-search-box {
-      background: rgba(255, 255, 255, 0.18);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
-      border-radius: 16px;
-      padding: 10px;
-      margin: 0 auto 2rem auto;
-      max-width: 860px;
-    }
-
-    .search-input-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .search-field {
-      flex: 1 1 240px;
-      position: relative;
-    }
-
-    .search-field i {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #94A3B8;
-      font-size: 1.1rem;
-    }
-
-    .search-field input {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.5);
-      border-radius: 10px;
-      padding: 0.75rem 1rem 0.75rem 2.6rem;
-      font-size: 0.95rem;
-      color: #0F172A;
-      font-weight: 500;
-      transition: all 0.2s ease;
-    }
-
-    .search-field input:focus {
-      outline: none;
-      background: #FFFFFF;
-      box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.3);
-    }
-
-    .btn-search {
-      background-color: var(--accent-coral);
-      color: #FFFFFF;
+      background: #F8FAFC;
+      color: var(--accent-teal);
       font-weight: 700;
-      padding: 0.75rem 1.8rem;
-      border-radius: 10px;
-      border: none;
+      font-size: 0.9rem;
+      border: 1.5px solid var(--accent-teal);
+      border-radius: 12px;
+      padding: 0.65rem 1rem;
       transition: all 0.25s ease;
-    }
-
-    .btn-search:hover {
-      background-color: #EE5253;
-      box-shadow: 0 6px 18px rgba(255, 107, 107, 0.5);
-    }
-
-    /* Quick Action Chips */
-    .quick-chips {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-    }
-
-    .chip-item {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 18px;
-      border-radius: 30px;
-      background: rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      color: #F1F5F9;
-      font-size: 0.88rem;
-      font-weight: 600;
+      justify-content: center;
+      gap: 6px;
       text-decoration: none;
-      transition: all 0.25s ease;
     }
 
-    .chip-item:hover {
-      background: rgba(255, 255, 255, 0.25);
+    .btn-consult:hover {
+      background: var(--accent-teal);
       color: #FFFFFF;
-      transform: translateY(-2px);
-      border-color: var(--accent-gold);
+      box-shadow: 0 4px 14px rgba(11, 123, 110, 0.25);
     }
 
-    .chip-item i {
-      color: var(--accent-gold);
+    .scroll-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 1.5px solid #CBD5E1;
+      color: #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
     }
 
-    /* Feature Cards Section */
+    .scroll-btn:hover {
+      background: var(--accent-teal);
+      color: #FFFFFF;
+      border-color: var(--accent-teal);
+    }
+
     .features-section {
-      padding: 5rem 1rem;
-      background-color: #FFFFFF;
+      padding: 5rem 0;
+      background: #F8FAFC;
     }
 
     .feature-card {
       background: #FFFFFF;
-      border-radius: 16px;
-      padding: 2rem;
+      border-radius: 20px;
       border: 1px solid #E2E8F0;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-      transition: all 0.3s ease;
+      padding: 2rem 1.6rem;
       height: 100%;
+      transition: all 0.3s ease;
     }
 
     .feature-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 12px 30px rgba(0, 109, 119, 0.12);
-      border-color: var(--primary-deep-teal);
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.06);
     }
 
     .feature-icon {
-      width: 56px;
-      height: 56px;
+      width: 52px;
+      height: 52px;
       border-radius: 14px;
-      background: rgba(0, 109, 119, 0.08);
-      color: var(--primary-deep-teal);
+      background: #EFF6FF;
+      color: var(--primary-blue);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.6rem;
+      font-size: 1.5rem;
       margin-bottom: 1.25rem;
     }
 
-    /* Quick Demo Modal Styling */
-    .modal-content {
-      border-radius: 20px;
-      border: none;
-      overflow: hidden;
+    /* Scroll Reveal Animation */
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .modal-header {
-      background-color: var(--primary-deep-teal);
-      color: #FFFFFF;
-      padding: 1.25rem 1.5rem;
+    .scroll-reveal.revealed {
+      opacity: 1;
+      transform: translateY(0);
     }
 
-    .role-card {
-      border: 1px solid #E2E8F0;
-      border-radius: 12px;
-      padding: 1rem;
-      transition: all 0.2s ease;
-      background-color: #F8FAFC;
+    /* -------------------------------------------------------------
+       12. Reduced Motion Accessibility Support
+    ------------------------------------------------------------- */
+    @media (prefers-reduced-motion: reduce) {
+      .medicore-navbar,
+      .hero-badge-pill,
+      .hero-main-title,
+      .hero-lead-text,
+      .cta-group,
+      .hero-stats-card,
+      .doc-photo-card,
+      .care-panel-card,
+      .emergency-card,
+      .ambient-glow,
+      .scan-beam,
+      .full-ecg-line-pulse,
+      .med-plus,
+      .emergency-header i,
+      .scroll-reveal {
+        animation: none !important;
+        transform: none !important;
+        transition: none !important;
+        opacity: 1 !important;
+      }
     }
 
-    .role-card:hover {
-      border-color: var(--primary-deep-teal);
-      background-color: #FFFFFF;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    /* -------------------------------------------------------------
+       Responsive Adjustments
+    ------------------------------------------------------------- */
+    @media (max-width: 991px) {
+      .hero-main-title {
+        font-size: 2.5rem;
+      }
+      .med-tech-stage {
+        width: 440px;
+        height: 440px;
+      }
+      .doc-photo-card img {
+        height: 380px;
+      }
+      .care-panel-card, .emergency-card {
+        max-width: 100%;
+      }
     }
 
     @media (max-width: 768px) {
-      .hero-headline {
+      .hero-wrapper {
+        padding: 2.5rem 0 3.5rem 0;
+      }
+      .hero-main-title {
         font-size: 2.2rem;
       }
-      .hero-subheadline {
-        font-size: 1rem;
+      .cta-group {
+        flex-direction: column;
+        align-items: stretch;
       }
-      .hero-container {
-        min-height: auto;
-        padding-top: 5rem;
+      .hero-stats-card {
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .stat-divider {
+        display: none;
+      }
+      .coe-card {
+        flex: 0 0 290px;
       }
     }
   </style>
@@ -415,41 +1096,64 @@
 <body>
 
   <!-- Top Navigation Bar -->
-  <nav class="navbar navbar-expand-lg ipcms-navbar sticky-top">
-    <div class="container-fluid px-lg-5">
-      <!-- Left: Logo & Pulsing Indicator -->
-      <a class="navbar-brand d-flex align-items-center gap-3" href="/">
-        <span class="brand-logo">
-          <i class="bi bi-hospital-fill me-1"></i>IPCMS
-        </span>
-        <span class="status-badge d-none d-sm-inline-flex">
-          <span class="pulse-dot"></span> 24/7 Live System
-        </span>
+  <nav class="navbar navbar-expand-lg medicore-navbar sticky-top">
+    <div class="container px-lg-4">
+      
+      <!-- Left: Logo & Tagline -->
+      <a href="/" class="brand-box">
+        <div class="brand-icon">
+          <i class="bi bi-heart-pulse-fill"></i>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">MediCore+</span>
+          <span class="brand-tagline">Care Beyond Compare</span>
+        </div>
       </a>
 
-      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#ipcmsNav">
+      <!-- Mobile Menu Toggle -->
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#medicoreNav">
         <span class="navbar-toggler-icon"></span>
       </button>
 
-      <!-- Center: Nav Links -->
-      <div class="collapse navbar-collapse" id="ipcmsNav">
-        <ul class="navbar-nav mx-auto mb-2 mb-lg-0 align-items-center">
-          <li class="nav-item"><a class="nav-link" href="#specialties">Specialties</a></li>
-          <li class="nav-item"><a class="nav-link" href="#doctors">Find Doctors</a></li>
-          <li class="nav-item"><a class="nav-link" href="#diagnostics">Diagnostics</a></li>
-          <li class="nav-item"><a class="nav-link" href="#services">Patient Services</a></li>
-          <li class="nav-item"><a class="nav-link text-danger fw-bold" href="tel:18001234567"><i class="bi bi-telephone-fill me-1"></i>24/7 Helpline</a></li>
+      <!-- Center: Nav Links & Right Auth -->
+      <div class="collapse navbar-collapse" id="medicoreNav">
+        <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link nav-link-item active" href="/">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link nav-link-item" href="{{ url_for('appointments.book_appointment') }}">Doctors</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link nav-link-item" href="#services">Services</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link nav-link-item" href="#specialties">Departments</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link nav-link-item" href="#about">About Us</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link nav-link-item" href="tel:+919876543210">Contact</a>
+          </li>
         </ul>
 
-        <!-- Right: Sign In / Sign Up -->
-        <div class="d-flex align-items-center gap-2">
+        <!-- Right Side: Phone & Sign In/Sign Up -->
+        <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
+          <a href="tel:+919876543210" class="nav-contact-info d-none d-xl-flex">
+            <div class="nav-contact-icon">
+              <i class="bi bi-telephone-fill"></i>
+            </div>
+            <span>+91 98765 43210</span>
+          </a>
+
           {% if current_user.is_authenticated %}
-            <a href="{{ url_for('auth.dashboard') }}" class="btn btn-teal rounded-pill shadow-sm px-4 fw-bold">
-              <i class="bi bi-speedometer2 me-1"></i> Dashboard
+            <a href="{{ url_for('auth.dashboard') }}" class="btn-nav-auth">
+              <i class="bi bi-speedometer2"></i> Dashboard
             </a>
           {% else %}
-            <a href="{{ url_for('auth.login') }}" class="btn btn-coral rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
-              <i class="bi bi-box-arrow-in-right fs-5"></i> Sign In / Sign Up
+            <a href="{{ url_for('auth.login') }}" class="btn-nav-auth">
+              <i class="bi bi-person-circle"></i> Sign In / Sign Up <i class="bi bi-arrow-right"></i>
             </a>
           {% endif %}
         </div>
@@ -457,74 +1161,413 @@
     </div>
   </nav>
 
-  <!-- Hero Header with Video Background -->
-  <section class="hero-container">
-    <!-- Background Video Container -->
-    <div class="video-bg-container">
-      <video autoplay loop muted playsinline poster="/static/images/hero_poster.jpg">
-        <source src="{{ url_for('static', filename='videos/hero_video.mp4') }}" type="video/mp4">
-        Your browser does not support HTML5 video.
-      </video>
+  <!-- Hero Section -->
+  <section class="hero-wrapper">
+
+    <!-- Full-Width Background Heartbeat Waveform (Left to Right Screen Spanning) -->
+    <div class="full-screen-ecg-layer">
+      <svg class="full-ecg-svg" viewBox="0 0 1600 120" preserveAspectRatio="none">
+        <path class="full-ecg-line-bg" d="M0,60 L200,60 L220,20 L240,95 L260,10 L280,75 L300,60 L500,60 L520,25 L540,90 L560,15 L580,70 L600,60 L800,60 L820,20 L840,95 L860,10 L880,75 L900,60 L1100,60 L1120,25 L1140,90 L1160,15 L1180,70 L1200,60 L1400,60 L1420,20 L1440,95 L1460,10 L1480,75 L1500,60 L1600,60" />
+        <path class="full-ecg-line-pulse" d="M0,60 L200,60 L220,20 L240,95 L260,10 L280,75 L300,60 L500,60 L520,25 L540,90 L560,15 L580,70 L600,60 L800,60 L820,20 L840,95 L860,10 L880,75 L900,60 L1100,60 L1120,25 L1140,90 L1160,15 L1180,70 L1200,60 L1400,60 L1420,20 L1440,95 L1460,10 L1480,75 L1500,60 L1600,60" />
+      </svg>
     </div>
 
-    <!-- Overlay Dark Gradient -->
-    <div class="hero-overlay"></div>
+    <div class="container">
+      <div class="row align-items-center g-4 g-xl-5">
+        
+        <!-- Left Hero Content Column -->
+        <div class="col-lg-5 col-xl-5">
+          
+          <!-- Step 1: Badge Pill -->
+          <div class="hero-badge-pill">
+            <i class="bi bi-shield-check"></i> Trusted Healthcare
+          </div>
 
-    <!-- Hero Content -->
-    <div class="container hero-content">
-      <div class="hero-badge">
-        <i class="bi bi-shield-check text-warning"></i> Next-Gen Healthcare Operating System
+          <!-- Step 2: Main Title -->
+          <h1 class="hero-main-title">
+            Your Health,<br>
+            Our <span class="text-accent">Priority</span>
+          </h1>
+
+          <!-- Step 3: Description -->
+          <p class="hero-lead-text">
+            Advanced medical care with compassion, innovation and expertise — all for you.
+          </p>
+
+          <!-- Step 4: Hero Primary CTA (Book an Appointment) & Secondary CTA -->
+          <div class="cta-group">
+            <a href="{{ url_for('appointments.book_appointment') }}" class="btn-cta-primary">
+              Book an Appointment <i class="bi bi-arrow-right"></i>
+            </a>
+
+            <a href="#services" class="btn-cta-secondary">
+              Explore Services <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+
+          <!-- Step 5: Healthcare Statistics Card -->
+          <div class="hero-stats-card">
+            <div class="stat-item">
+              <div class="stat-icon">
+                <i class="bi bi-person-workspace"></i>
+              </div>
+              <div>
+                <div class="stat-val">20+</div>
+                <div class="stat-lbl">Specialists</div>
+              </div>
+            </div>
+
+            <div class="stat-divider"></div>
+
+            <div class="stat-item">
+              <div class="stat-icon">
+                <i class="bi bi-emoji-smile"></i>
+              </div>
+              <div>
+                <div class="stat-val">10K+</div>
+                <div class="stat-lbl">Happy Patients</div>
+              </div>
+            </div>
+
+            <div class="stat-divider"></div>
+
+            <div class="stat-item">
+              <div class="stat-icon">
+                <i class="bi bi-shield-check"></i>
+              </div>
+              <div>
+                <div class="stat-val">15+</div>
+                <div class="stat-lbl">Years of Care</div>
+              </div>
+            </div>
+
+            <div class="stat-divider"></div>
+
+            <div class="stat-item">
+              <div class="stat-icon">
+                <i class="bi bi-clock-history"></i>
+              </div>
+              <div>
+                <div class="stat-val">24/7</div>
+                <div class="stat-lbl">Emergency</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center Right - Doctor-Patient Photograph with Medical Intelligence Background Visualization -->
+        <div class="col-lg-4 col-xl-4 hero-image-stage">
+          
+          <!-- Medical Intelligence Background Animations -->
+          <div class="med-tech-stage">
+            <!-- 1. Ambient Shift Gradient Glow -->
+            <div class="ambient-glow"></div>
+
+            <!-- 2. Diagnostic Scanning Beam -->
+            <div class="scan-beam"></div>
+
+            <!-- 3. Floating Medical Cross (+) Elements -->
+            <div class="plus-elements-layer">
+              <div class="med-plus plus-1"><i class="bi bi-plus-lg"></i></div>
+              <div class="med-plus plus-2"><i class="bi bi-plus-lg"></i></div>
+              <div class="med-plus plus-3"><i class="bi bi-plus-lg"></i></div>
+              <div class="med-plus plus-4"><i class="bi bi-plus-lg"></i></div>
+            </div>
+          </div>
+
+          <!-- Step 6: Doctor-Patient Photograph Card with Gentle Float -->
+          <div class="doc-photo-card">
+            <img src="{{ url_for('static', filename='images/hero_doctor_patient.jpg') }}" alt="Doctor consulting patient at MediCore+ Hospital">
+            
+            <!-- Floating Shield Badge -->
+            <div class="floating-shield-badge">
+              <div class="badge-shield-icon">
+                <i class="bi bi-shield-plus"></i>
+              </div>
+              <div>
+                <div style="font-size: 0.85rem; font-weight: 800; color: #0F172A;">JCI Accredited</div>
+                <div style="font-size: 0.72rem; color: #64748B; font-weight: 600;">360° Personal Care</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side Panel - Care Options & Emergency Card -->
+        <div class="col-lg-3 col-xl-3 hero-right-panel">
+          
+          <!-- Step 7: Care Options Card -->
+          <div class="care-panel-card">
+            <div class="care-panel-title">
+              <span>Find the Best Care</span>
+              <i class="bi bi-stars text-warning fs-5"></i>
+            </div>
+
+            <!-- Item 1: Book Appointment -->
+            <a href="{{ url_for('appointments.book_appointment') }}" class="care-option-item">
+              <div class="care-option-left">
+                <div class="care-icon-box care-icon-blue">
+                  <i class="bi bi-calendar-event"></i>
+                </div>
+                <div>
+                  <div class="care-text-title">Book Appointment</div>
+                  <div class="care-text-sub">Schedule your visit</div>
+                </div>
+              </div>
+              <i class="bi bi-chevron-right care-arrow"></i>
+            </a>
+
+            <!-- Item 2: Find a Doctor -->
+            <a href="{{ url_for('appointments.book_appointment') }}" class="care-option-item">
+              <div class="care-option-left">
+                <div class="care-icon-box care-icon-purple">
+                  <i class="bi bi-person-badge"></i>
+                </div>
+                <div>
+                  <div class="care-text-title">Find a Doctor</div>
+                  <div class="care-text-sub">Expert specialists</div>
+                </div>
+              </div>
+              <i class="bi bi-chevron-right care-arrow"></i>
+            </a>
+
+            <!-- Item 3: Departments -->
+            <a href="#specialties" class="care-option-item">
+              <div class="care-option-left">
+                <div class="care-icon-box care-icon-teal">
+                  <i class="bi bi-grid-1x2"></i>
+                </div>
+                <div>
+                  <div class="care-text-title">Departments</div>
+                  <div class="care-text-sub">Advanced care units</div>
+                </div>
+              </div>
+              <i class="bi bi-chevron-right care-arrow"></i>
+            </a>
+
+            <!-- Item 4: Health Checkups -->
+            <a href="#specialties" class="care-option-item">
+              <div class="care-option-left">
+                <div class="care-icon-box care-icon-pink">
+                  <i class="bi bi-heart-pulse"></i>
+                </div>
+                <div>
+                  <div class="care-text-title">Health Checkups</div>
+                  <div class="care-text-sub">Preventive care</div>
+                </div>
+              </div>
+              <i class="bi bi-chevron-right care-arrow"></i>
+            </a>
+          </div>
+
+          <!-- Step 8: Emergency Care Card -->
+          <div class="emergency-card">
+            <div class="emergency-header">
+              <i class="bi bi-hospital-fill text-danger fs-5"></i> Emergency Care
+            </div>
+            <div class="emergency-sub">24/7 Emergency Support</div>
+            <a href="tel:+919876543210" class="emergency-phone-btn">
+              <i class="bi bi-telephone-fill"></i> +91 98765 43210
+            </a>
+          </div>
+
+        </div>
+
       </div>
+    </div>
+  </section>
 
-      <h1 class="hero-headline">
-        Next-Generation Healthcare,<br>
-        <span class="text-gradient">Centered Around You</span>
-      </h1>
-
-      <p class="hero-subheadline">
-        Experience seamless medical care with IPCMS. Integrated OPD queueing, AES-encrypted EHR health records, instant digital prescriptions with SVG QR verification, and 24/7 teleconsultation.
-      </p>
-
-      <!-- Floating Glassmorphic Global Search Bar -->
-      <div class="glass-search-box">
-        <form action="{{ url_for('appointments.book_appointment') }}" method="GET" class="search-input-group">
-          <div class="search-field">
-            <i class="bi bi-person-md font-weight-bold"></i>
-            <input type="text" placeholder="Search Doctor, Specialty (e.g. Cardiology)..." name="query">
-          </div>
-          <div class="search-field">
-            <i class="bi bi-geo-alt-fill"></i>
-            <input type="text" placeholder="Location or Symptom (e.g. Fever)..." name="location">
-          </div>
-          <button type="submit" class="btn-search">
-            <i class="bi bi-search me-1"></i> Find Care
+  <!-- Clinical Centers of Excellence Section -->
+  <section class="coe-section scroll-reveal" id="specialties">
+    <div class="container">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
+        <div>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-bold text-uppercase mb-2">World-Class Healthcare</span>
+          <h2 class="fw-bold fs-1 text-slate-900 m-0">Clinical Centers of Excellence</h2>
+          <p class="text-muted fs-6 mt-1 mb-0">Discover our specialized medical departments delivering multi-disciplinary clinical precision.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2 mt-3 mt-md-0">
+          <button class="scroll-btn" onclick="scrollCOE(-360)" title="Previous Department">
+            <i class="bi bi-chevron-left"></i>
           </button>
-        </form>
+          <button class="scroll-btn" onclick="scrollCOE(360)" title="Next Department">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
       </div>
 
-      <!-- Quick Action Chips Below -->
-      <div class="quick-chips">
-        <a href="{{ url_for('appointments.book_appointment') }}" class="chip-item">
-          <i class="bi bi-calendar-event"></i> Book Appointment
-        </a>
-        <a href="{{ url_for('appointments.list_appointments') }}" class="chip-item">
-          <i class="bi bi-lightning-charge"></i> Priority Waitlist
-        </a>
-        <a href="{{ url_for('auth.login') }}" class="chip-item">
-          <i class="bi bi-laptop"></i> Teleconsultation
-        </a>
-        <a href="tel:18001234567" class="chip-item">
-          <i class="bi bi-heart-pulse text-danger"></i> Emergency Triage
-        </a>
-        <a href="{{ url_for('lab.list_requests') }}" class="chip-item">
-          <i class="bi bi-vial"></i> Lab Diagnostics
-        </a>
+      <!-- Scrollable Card Carousel -->
+      <div class="coe-scroll-wrapper">
+        <div class="coe-carousel" id="coeCarousel">
+          
+          <!-- Card 1: Cardiology -->
+          <div class="coe-card">
+            <div>
+              <div class="coe-card-top">
+                <div class="coe-icon-box">
+                  <i class="bi bi-heart-pulse-fill"></i>
+                </div>
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-bold small">Ranked #1</span>
+              </div>
+              <h3 class="coe-dept-name">Cardiology & Heart Institute</h3>
+              <p class="coe-desc">Advanced cardiovascular interventions, electrophysiology, complex angioplasty, and 24/7 cardiac emergency care.</p>
+              <div class="coe-tags">
+                <span class="coe-tag">Robotic Surgery</span>
+                <span class="coe-tag">TAVR</span>
+                <span class="coe-tag">Coronary Angioplasty</span>
+              </div>
+            </div>
+            <div class="coe-card-bottom">
+              <div class="coe-live-indicator">
+                <span class="live-pulse-dot"></span> 14 Specialists Available Today
+              </div>
+              <a href="{{ url_for('appointments.book_appointment') }}" class="btn-consult">
+                Consult Specialist <i class="bi bi-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Card 2: Neurology -->
+          <div class="coe-card">
+            <div>
+              <div class="coe-card-top">
+                <div class="coe-icon-box">
+                  <i class="bi bi-cpu-fill"></i>
+                </div>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-bold small">Advanced Spine</span>
+              </div>
+              <h3 class="coe-dept-name">Neurology & Spine Care</h3>
+              <p class="coe-desc">Comprehensive brain, stroke, epilepsy management, deep brain stimulation, and minimally invasive spine surgeries.</p>
+              <div class="coe-tags">
+                <span class="coe-tag">Deep Brain Stimulation</span>
+                <span class="coe-tag">Stroke Unit</span>
+                <span class="coe-tag">Spine Fusion</span>
+              </div>
+            </div>
+            <div class="coe-card-bottom">
+              <div class="coe-live-indicator">
+                <span class="live-pulse-dot"></span> 9 Specialists Available Today
+              </div>
+              <a href="{{ url_for('appointments.book_appointment') }}" class="btn-consult">
+                Consult Specialist <i class="bi bi-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Card 3: Oncology -->
+          <div class="coe-card">
+            <div>
+              <div class="coe-card-top">
+                <div class="coe-icon-box">
+                  <i class="bi bi-shield-heart-fill"></i>
+                </div>
+                <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold small">Tumor Board</span>
+              </div>
+              <h3 class="coe-dept-name">Oncology & Cancer Center</h3>
+              <p class="coe-desc">Precision medical, surgical, and targeted radiation therapy with multi-disciplinary tumor board evaluations.</p>
+              <div class="coe-tags">
+                <span class="coe-tag">Immunotherapy</span>
+                <span class="coe-tag">Proton Beam</span>
+                <span class="coe-tag">CyberKnife</span>
+              </div>
+            </div>
+            <div class="coe-card-bottom">
+              <div class="coe-live-indicator">
+                <span class="live-pulse-dot"></span> 11 Specialists Available Today
+              </div>
+              <a href="{{ url_for('appointments.book_appointment') }}" class="btn-consult">
+                Consult Specialist <i class="bi bi-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Card 4: Orthopedics -->
+          <div class="coe-card">
+            <div>
+              <div class="coe-card-top">
+                <div class="coe-icon-box">
+                  <i class="bi bi-person-arms-up"></i>
+                </div>
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold small">Robotic Joint</span>
+              </div>
+              <h3 class="coe-dept-name">Orthopedics & Joint Care</h3>
+              <p class="coe-desc">Total joint replacements, sports medicine, complex trauma reconstruction, and minimally invasive arthroscopy.</p>
+              <div class="coe-tags">
+                <span class="coe-tag">Mako Robotic Knee</span>
+                <span class="coe-tag">Arthroscopy</span>
+                <span class="coe-tag">Cartilage Repair</span>
+              </div>
+            </div>
+            <div class="coe-card-bottom">
+              <div class="coe-live-indicator">
+                <span class="live-pulse-dot"></span> 16 Specialists Available Today
+              </div>
+              <a href="{{ url_for('appointments.book_appointment') }}" class="btn-consult">
+                Consult Specialist <i class="bi bi-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Card 5: Pediatrics -->
+          <div class="coe-card">
+            <div>
+              <div class="coe-card-top">
+                <div class="coe-icon-box">
+                  <i class="bi bi-emoji-smile-fill"></i>
+                </div>
+                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1 fw-bold small">Level-IV NICU</span>
+              </div>
+              <h3 class="coe-dept-name">Pediatrics & Child Care</h3>
+              <p class="coe-desc">Specialized neonatal intensive care, pediatric cardiology, congenital surgeries, and child neuro-development.</p>
+              <div class="coe-tags">
+                <span class="coe-tag">Level-IV NICU</span>
+                <span class="coe-tag">Pediatric Surgery</span>
+                <span class="coe-tag">Child Neurology</span>
+              </div>
+            </div>
+            <div class="coe-card-bottom">
+              <div class="coe-live-indicator">
+                <span class="live-pulse-dot"></span> 8 Specialists Available Today
+              </div>
+              <a href="{{ url_for('appointments.book_appointment') }}" class="btn-consult">
+                Consult Specialist <i class="bi bi-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Card 6: Diagnostics -->
+          <div class="coe-card">
+            <div>
+              <div class="coe-card-top">
+                <div class="coe-icon-box">
+                  <i class="bi bi-vial-fill"></i>
+                </div>
+                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-1 fw-bold small">24/7 Digital Lab</span>
+              </div>
+              <h3 class="coe-dept-name">Diagnostics & Radiology</h3>
+              <p class="coe-desc">High-field 3T MRI, 512-slice Spectral CT, PET-CT scan, and automated laboratory diagnostics with SVG QR reporting.</p>
+              <div class="coe-tags">
+                <span class="coe-tag">3T MRI</span>
+                <span class="coe-tag">PET-CT</span>
+                <span class="coe-tag">SVG QR Verified</span>
+              </div>
+            </div>
+            <div class="coe-card-bottom">
+              <div class="coe-live-indicator">
+                <span class="live-pulse-dot"></span> 24/7 Diagnostics Open
+              </div>
+              <a href="{{ url_for('lab.list_requests') }}" class="btn-consult">
+                Consult Specialist <i class="bi bi-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   </section>
 
   <!-- Key System Capabilities Highlight -->
-  <section class="features-section" id="services">
+  <section class="features-section scroll-reveal" id="services">
     <div class="container">
       <div class="text-center max-w-700 mx-auto mb-5">
         <span class="badge bg-light text-dark border px-3 py-2 rounded-pill fw-bold text-uppercase mb-2">15 Integrated Subsystems</span>
@@ -583,11 +1626,35 @@
   <!-- Footer -->
   <footer class="bg-dark text-white py-4 mt-auto">
     <div class="container text-center">
-      <p class="m-0 text-muted fs-6">&copy; 2026 IPCMS - Integrated Patient Care Management System. All rights reserved.</p>
+      <p class="m-0 text-muted fs-6">&copy; 2026 MediCore+ - Integrated Patient Care Management System. All rights reserved.</p>
     </div>
   </footer>
 
   <!-- Bootstrap 5 JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/bootstrap.bundle.min.js"></script>
+
+  <script>
+    function scrollCOE(amount) {
+      const carousel = document.getElementById('coeCarousel');
+      if (carousel) {
+        carousel.scrollBy({ left: amount, behavior: 'smooth' });
+      }
+    }
+
+    // Scroll Reveal Observer for Lower Sections
+    document.addEventListener('DOMContentLoaded', function() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+          }
+        });
+      }, { threshold: 0.15 });
+
+      document.querySelectorAll('.scroll-reveal').forEach(el => {
+        observer.observe(el);
+      });
+    });
+  </script>
 </body>
 </html>

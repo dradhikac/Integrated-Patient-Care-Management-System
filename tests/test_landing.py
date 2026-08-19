@@ -25,8 +25,11 @@ class LandingPageTestCase(unittest.TestCase):
     def test_landing_page_renders(self):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Next-Generation Healthcare', response.data)
-        self.assertIn(b'hero_video.mp4', response.data)
+        self.assertIn(b'MediCore+', response.data)
+        self.assertIn(b'Your Health,', response.data)
+        self.assertIn(b'Book an Appointment', response.data)
+        self.assertIn(b'Sign In / Sign Up', response.data)
+        self.assertIn(b'hero_doctor_patient.jpg', response.data)
 
 
 if __name__ == '__main__':

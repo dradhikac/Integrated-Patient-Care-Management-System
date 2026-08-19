@@ -20,8 +20,9 @@ def get_today_admin_kpis():
     - Emergency Cases Today
     """
     today = date.today()
-    today_start = datetime.combine(today, datetime.min.time())
-    today_end = datetime.combine(today, datetime.max.time())
+    today_utc = datetime.utcnow().date()
+    today_start = datetime.combine(today_utc, datetime.min.time())
+    today_end = datetime.combine(today_utc, datetime.max.time())
 
     # 1. Patients Registered Today
     patients_today = Patient.query.filter(
