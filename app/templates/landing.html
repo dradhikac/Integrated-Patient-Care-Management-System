@@ -1,20 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MediCore+ — Care Beyond Compare | Integrated Healthcare Management System</title>
-  
+
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
   <!-- Bootstrap 5.3 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
-  
+
   <style>
     :root {
       --primary-navy: #0F172A;
@@ -48,8 +51,15 @@
     }
 
     @keyframes nav-fade-down {
-      from { opacity: 0; transform: translateY(-12px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(-12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .brand-box {
@@ -225,6 +235,7 @@
         opacity: 0;
         transform: translateY(18px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -236,6 +247,7 @@
         opacity: 0;
         transform: scale(0.97) translateY(12px);
       }
+
       to {
         opacity: 1;
         transform: scale(1) translateY(0);
@@ -247,6 +259,7 @@
         opacity: 0;
         transform: translateX(20px);
       }
+
       to {
         opacity: 1;
         transform: translateX(0);
@@ -352,7 +365,7 @@
       align-items: center;
       gap: 8px;
       transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
 
     .btn-cta-secondary:hover {
@@ -385,7 +398,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      max-width: 520px;
+      max-width: 100%;
       animation: anim-fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.5s backwards;
     }
 
@@ -476,9 +489,20 @@
     }
 
     @keyframes ambient-shift {
-      0% { transform: scale(0.9) rotate(0deg); opacity: 0.7; }
-      50% { transform: scale(1.1) rotate(15deg); opacity: 1; }
-      100% { transform: scale(0.95) rotate(-10deg); opacity: 0.85; }
+      0% {
+        transform: scale(0.9) rotate(0deg);
+        opacity: 0.7;
+      }
+
+      50% {
+        transform: scale(1.1) rotate(15deg);
+        opacity: 1;
+      }
+
+      100% {
+        transform: scale(0.95) rotate(-10deg);
+        opacity: 0.85;
+      }
     }
 
     /* 2. Diagnostic Scanning Beam */
@@ -487,22 +511,34 @@
       top: -10%;
       bottom: -10%;
       width: 70px;
-      background: linear-gradient(90deg, 
-        transparent 0%, 
-        rgba(11, 123, 110, 0.08) 30%, 
-        rgba(30, 64, 175, 0.18) 50%, 
-        rgba(11, 123, 110, 0.08) 70%, 
-        transparent 100%
-      );
+      background: linear-gradient(90deg,
+          transparent 0%,
+          rgba(11, 123, 110, 0.08) 30%,
+          rgba(30, 64, 175, 0.18) 50%,
+          rgba(11, 123, 110, 0.08) 70%,
+          transparent 100%);
       filter: blur(12px);
       animation: scan-sweep 9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
     }
 
     @keyframes scan-sweep {
-      0% { left: -15%; opacity: 0; }
-      15% { opacity: 0.85; }
-      85% { opacity: 0.85; }
-      100% { left: 115%; opacity: 0; }
+      0% {
+        left: -15%;
+        opacity: 0;
+      }
+
+      15% {
+        opacity: 0.85;
+      }
+
+      85% {
+        opacity: 0.85;
+      }
+
+      100% {
+        left: 115%;
+        opacity: 0;
+      }
     }
 
     /* Full-Screen Edge-to-Edge Background Heartbeat Waveform (Left to Right) */
@@ -543,8 +579,13 @@
     }
 
     @keyframes full-ecg-draw {
-      from { stroke-dashoffset: 1600; }
-      to { stroke-dashoffset: 0; }
+      from {
+        stroke-dashoffset: 1600;
+      }
+
+      to {
+        stroke-dashoffset: 0;
+      }
     }
 
     /* 5. Floating Medical Cross (+) Elements */
@@ -561,71 +602,78 @@
       animation: float-plus 8s ease-in-out infinite alternate;
     }
 
-    .plus-1 { top: 40px; left: 60px; animation-duration: 7s; animation-delay: 0s; }
-    .plus-2 { top: 80px; right: 50px; color: var(--primary-blue); animation-duration: 9s; animation-delay: 1.5s; }
-    .plus-3 { bottom: 60px; left: 70px; color: var(--primary-blue); animation-duration: 8.5s; animation-delay: 3s; }
-    .plus-4 { bottom: 50px; right: 60px; animation-duration: 7.5s; animation-delay: 2s; }
-
-    @keyframes float-plus {
-      0% { transform: translateY(0px) rotate(0deg); opacity: 0.25; }
-      50% { opacity: 0.55; }
-      100% { transform: translateY(-14px) rotate(10deg); opacity: 0.3; }
+    .plus-1 {
+      top: 40px;
+      left: 60px;
+      animation-duration: 7s;
+      animation-delay: 0s;
     }
 
-    /* Step 6: Doctor-Patient Photograph Container (Stationary, No Floating) */
+    .plus-2 {
+      top: 80px;
+      right: 50px;
+      color: var(--primary-blue);
+      animation-duration: 9s;
+      animation-delay: 1.5s;
+    }
+
+    .plus-3 {
+      bottom: 60px;
+      left: 70px;
+      color: var(--primary-blue);
+      animation-duration: 8.5s;
+      animation-delay: 3s;
+    }
+
+    .plus-4 {
+      bottom: 50px;
+      right: 60px;
+      animation-duration: 7.5s;
+      animation-delay: 2s;
+    }
+
+    @keyframes float-plus {
+      0% {
+        transform: translateY(0px) rotate(0deg);
+        opacity: 0.25;
+      }
+
+      50% {
+        opacity: 0.55;
+      }
+
+      100% {
+        transform: translateY(-14px) rotate(10deg);
+        opacity: 0.3;
+      }
+    }
+
+    /* Step 6: Doctor-Patient Photograph Container */
     .doc-photo-card {
       position: relative;
       z-index: 2;
-      border-radius: 30px;
+      border-radius: 28px;
       overflow: hidden;
-      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
-      border: 4px solid #FFFFFF;
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
       background: #FFFFFF;
-      max-width: 440px;
       width: 100%;
+      max-width: 640px;
+      margin-left: auto;
       animation: anim-fade-scale 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.6s backwards;
     }
 
     .doc-photo-card img {
       width: 100%;
-      height: 480px;
+      height: 420px;
       object-fit: cover;
-      object-position: center;
+      object-position: center 20%;
       display: block;
+      border-radius: 28px;
       transition: transform 0.4s ease;
     }
 
     .doc-photo-card:hover img {
-      transform: scale(1.02);
-    }
-
-    /* Floating Shield Badge near Image bottom-left */
-    .floating-shield-badge {
-      position: absolute;
-      bottom: 24px;
-      left: 24px;
-      z-index: 3;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(12px);
-      padding: 10px 16px;
-      border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      border: 1px solid rgba(226, 232, 240, 0.8);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .badge-shield-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #E6F7F5;
-      color: var(--accent-teal);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.2rem;
+      transform: scale(1.015);
     }
 
     /* -------------------------------------------------------------
@@ -702,10 +750,25 @@
       transform: scale(1.1);
     }
 
-    .care-icon-blue { background: #EFF6FF; color: var(--primary-blue); }
-    .care-icon-purple { background: #F3E8FF; color: #7C3AED; }
-    .care-icon-teal { background: #E6F7F5; color: var(--accent-teal); }
-    .care-icon-pink { background: #FCE7F3; color: #DB2777; }
+    .care-icon-blue {
+      background: #EFF6FF;
+      color: var(--primary-blue);
+    }
+
+    .care-icon-purple {
+      background: #F3E8FF;
+      color: #7C3AED;
+    }
+
+    .care-icon-teal {
+      background: #E6F7F5;
+      color: var(--accent-teal);
+    }
+
+    .care-icon-pink {
+      background: #FCE7F3;
+      color: #DB2777;
+    }
 
     .care-text-title {
       font-size: 0.9rem;
@@ -758,8 +821,15 @@
     }
 
     @keyframes icon-pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.15); }
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.15);
+      }
     }
 
     .emergency-sub {
@@ -930,9 +1000,20 @@
     }
 
     @keyframes pulse-green {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      }
+
+      70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+      }
+
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+      }
     }
 
     .btn-consult {
@@ -971,7 +1052,7 @@
       font-size: 1.2rem;
       cursor: pointer;
       transition: all 0.2s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
 
     .scroll-btn:hover {
@@ -985,6 +1066,157 @@
       background: #F8FAFC;
     }
 
+    /* Doctor Specialists Carousel Section */
+    .doctors-section {
+      padding: 5rem 0;
+      background: linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%);
+      position: relative;
+    }
+
+    .doctor-card {
+      flex: 0 0 340px;
+      background: #FFFFFF;
+      border-radius: 24px;
+      border: 1px solid #E2E8F0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.28s cubic-bezier(0.25, 0.8, 0.25, 1);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.04);
+      height: 100%;
+    }
+
+    .doctor-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.1);
+      border-color: rgba(30, 64, 175, 0.3);
+    }
+
+    .doctor-img-box {
+      position: relative;
+      width: 100%;
+      height: 280px;
+      overflow: hidden;
+      background: #F1F5F9;
+    }
+
+    .doctor-img-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      transition: transform 0.4s ease;
+    }
+
+    .doctor-card:hover .doctor-img-box img {
+      transform: scale(1.04);
+    }
+
+    .doctor-card-body {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .doctor-spec-badge {
+      display: inline-block;
+      align-self: flex-start;
+      background: #EFF6FF;
+      color: #1E40AF;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.6rem;
+    }
+
+    .doctor-name {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #0F172A;
+      margin-bottom: 0.3rem;
+    }
+
+    .doctor-edu {
+      font-size: 0.82rem;
+      color: #64748B;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .doctor-exp-tag {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #0B7B6E;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 0.8rem;
+    }
+
+    .doctor-bio-short {
+      font-size: 0.85rem;
+      color: #475569;
+      line-height: 1.5;
+      margin-bottom: 1.2rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .doctor-card-footer {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+      padding-top: 1rem;
+      border-top: 1px solid #F1F5F9;
+    }
+
+    .btn-doc-view {
+      flex: 1;
+      border: 1.5px solid #CBD5E1;
+      color: #334155;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border-radius: 14px;
+      padding: 9px 12px;
+      text-align: center;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-doc-view:hover {
+      background: #F8FAFC;
+      border-color: #94A3B8;
+      color: #0F172A;
+    }
+
+    .btn-doc-book {
+      flex: 1.2;
+      background: #1E40AF;
+      color: #FFFFFF;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border-radius: 14px;
+      padding: 9px 12px;
+      border: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.2);
+    }
+
+    .btn-doc-book:hover {
+      background: #1E3A8A;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(30, 64, 175, 0.3);
+      color: #FFFFFF;
+    }
+
     .feature-card {
       background: #FFFFFF;
       border-radius: 20px;
@@ -996,7 +1228,7 @@
 
     .feature-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
     }
 
     .feature-icon {
@@ -1028,6 +1260,7 @@
        12. Reduced Motion Accessibility Support
     ------------------------------------------------------------- */
     @media (prefers-reduced-motion: reduce) {
+
       .medicore-navbar,
       .hero-badge-pill,
       .hero-main-title,
@@ -1057,14 +1290,18 @@
       .hero-main-title {
         font-size: 2.5rem;
       }
+
       .med-tech-stage {
         width: 440px;
         height: 440px;
       }
+
       .doc-photo-card img {
         height: 380px;
       }
-      .care-panel-card, .emergency-card {
+
+      .care-panel-card,
+      .emergency-card {
         max-width: 100%;
       }
     }
@@ -1073,32 +1310,38 @@
       .hero-wrapper {
         padding: 2.5rem 0 3.5rem 0;
       }
+
       .hero-main-title {
         font-size: 2.2rem;
       }
+
       .cta-group {
         flex-direction: column;
         align-items: stretch;
       }
+
       .hero-stats-card {
         flex-wrap: wrap;
         gap: 12px;
       }
+
       .stat-divider {
         display: none;
       }
+
       .coe-card {
         flex: 0 0 290px;
       }
     }
   </style>
 </head>
+
 <body>
 
   <!-- Top Navigation Bar -->
   <nav class="navbar navbar-expand-lg medicore-navbar sticky-top">
     <div class="container px-lg-4">
-      
+
       <!-- Left: Logo & Tagline -->
       <a href="/" class="brand-box">
         <div class="brand-icon">
@@ -1148,13 +1391,13 @@
           </a>
 
           {% if current_user.is_authenticated %}
-            <a href="{{ url_for('auth.dashboard') }}" class="btn-nav-auth">
-              <i class="bi bi-speedometer2"></i> Dashboard
-            </a>
+          <a href="{{ url_for('auth.dashboard') }}" class="btn-nav-auth">
+            <i class="bi bi-speedometer2"></i> Dashboard
+          </a>
           {% else %}
-            <a href="{{ url_for('auth.login') }}" class="btn-nav-auth">
-              <i class="bi bi-person-circle"></i> Sign In / Sign Up <i class="bi bi-arrow-right"></i>
-            </a>
+          <a href="{{ url_for('auth.login') }}" class="btn-nav-auth">
+            <i class="bi bi-person-circle"></i> Sign In / Sign Up <i class="bi bi-arrow-right"></i>
+          </a>
           {% endif %}
         </div>
       </div>
@@ -1167,17 +1410,19 @@
     <!-- Full-Width Background Heartbeat Waveform (Left to Right Screen Spanning) -->
     <div class="full-screen-ecg-layer">
       <svg class="full-ecg-svg" viewBox="0 0 1600 120" preserveAspectRatio="none">
-        <path class="full-ecg-line-bg" d="M0,60 L200,60 L220,20 L240,95 L260,10 L280,75 L300,60 L500,60 L520,25 L540,90 L560,15 L580,70 L600,60 L800,60 L820,20 L840,95 L860,10 L880,75 L900,60 L1100,60 L1120,25 L1140,90 L1160,15 L1180,70 L1200,60 L1400,60 L1420,20 L1440,95 L1460,10 L1480,75 L1500,60 L1600,60" />
-        <path class="full-ecg-line-pulse" d="M0,60 L200,60 L220,20 L240,95 L260,10 L280,75 L300,60 L500,60 L520,25 L540,90 L560,15 L580,70 L600,60 L800,60 L820,20 L840,95 L860,10 L880,75 L900,60 L1100,60 L1120,25 L1140,90 L1160,15 L1180,70 L1200,60 L1400,60 L1420,20 L1440,95 L1460,10 L1480,75 L1500,60 L1600,60" />
+        <path class="full-ecg-line-bg"
+          d="M0,60 L200,60 L220,20 L240,95 L260,10 L280,75 L300,60 L500,60 L520,25 L540,90 L560,15 L580,70 L600,60 L800,60 L820,20 L840,95 L860,10 L880,75 L900,60 L1100,60 L1120,25 L1140,90 L1160,15 L1180,70 L1200,60 L1400,60 L1420,20 L1440,95 L1460,10 L1480,75 L1500,60 L1600,60" />
+        <path class="full-ecg-line-pulse"
+          d="M0,60 L200,60 L220,20 L240,95 L260,10 L280,75 L300,60 L500,60 L520,25 L540,90 L560,15 L580,70 L600,60 L800,60 L820,20 L840,95 L860,10 L880,75 L900,60 L1100,60 L1120,25 L1140,90 L1160,15 L1180,70 L1200,60 L1400,60 L1420,20 L1440,95 L1460,10 L1480,75 L1500,60 L1600,60" />
       </svg>
     </div>
 
     <div class="container">
       <div class="row align-items-center g-4 g-xl-5">
-        
+
         <!-- Left Hero Content Column -->
         <div class="col-lg-5 col-xl-5">
-          
+
           <!-- Step 1: Badge Pill -->
           <div class="hero-badge-pill">
             <i class="bi bi-shield-check"></i> Trusted Healthcare
@@ -1255,121 +1500,19 @@
           </div>
         </div>
 
-        <!-- Center Right - Doctor-Patient Photograph with Medical Intelligence Background Visualization -->
-        <div class="col-lg-4 col-xl-4 hero-image-stage">
-          
-          <!-- Medical Intelligence Background Animations -->
+        <!-- Right Column - Doctor-Patient Photograph with Medical Ambient Background -->
+        <div class="col-lg-7 col-xl-7 hero-image-stage">
+
+          <!-- Ambient Background Glow -->
           <div class="med-tech-stage">
-            <!-- 1. Ambient Shift Gradient Glow -->
             <div class="ambient-glow"></div>
-
-            <!-- 2. Diagnostic Scanning Beam -->
-            <div class="scan-beam"></div>
-
-            <!-- 3. Floating Medical Cross (+) Elements -->
-            <div class="plus-elements-layer">
-              <div class="med-plus plus-1"><i class="bi bi-plus-lg"></i></div>
-              <div class="med-plus plus-2"><i class="bi bi-plus-lg"></i></div>
-              <div class="med-plus plus-3"><i class="bi bi-plus-lg"></i></div>
-              <div class="med-plus plus-4"><i class="bi bi-plus-lg"></i></div>
-            </div>
           </div>
 
-          <!-- Step 6: Doctor-Patient Photograph Card with Gentle Float -->
+          <!-- Doctor-Patient Photograph Card -->
           <div class="doc-photo-card">
-            <img src="{{ url_for('static', filename='images/hero_doctor_patient.jpg') }}" alt="Doctor consulting patient at MediCore+ Hospital">
-            
-            <!-- Floating Shield Badge -->
-            <div class="floating-shield-badge">
-              <div class="badge-shield-icon">
-                <i class="bi bi-shield-plus"></i>
-              </div>
-              <div>
-                <div style="font-size: 0.85rem; font-weight: 800; color: #0F172A;">JCI Accredited</div>
-                <div style="font-size: 0.72rem; color: #64748B; font-weight: 600;">360° Personal Care</div>
-              </div>
-            </div>
+            <img src="{{ url_for('static', filename='images/hero_doctor_patient.jpg') }}"
+              alt="Doctor consulting patient at MediCore+ Hospital">
           </div>
-        </div>
-
-        <!-- Right Side Panel - Care Options & Emergency Card -->
-        <div class="col-lg-3 col-xl-3 hero-right-panel">
-          
-          <!-- Step 7: Care Options Card -->
-          <div class="care-panel-card">
-            <div class="care-panel-title">
-              <span>Find the Best Care</span>
-              <i class="bi bi-stars text-warning fs-5"></i>
-            </div>
-
-            <!-- Item 1: Book Appointment -->
-            <a href="{{ url_for('appointments.book_appointment') }}" class="care-option-item">
-              <div class="care-option-left">
-                <div class="care-icon-box care-icon-blue">
-                  <i class="bi bi-calendar-event"></i>
-                </div>
-                <div>
-                  <div class="care-text-title">Book Appointment</div>
-                  <div class="care-text-sub">Schedule your visit</div>
-                </div>
-              </div>
-              <i class="bi bi-chevron-right care-arrow"></i>
-            </a>
-
-            <!-- Item 2: Find a Doctor -->
-            <a href="{{ url_for('appointments.book_appointment') }}" class="care-option-item">
-              <div class="care-option-left">
-                <div class="care-icon-box care-icon-purple">
-                  <i class="bi bi-person-badge"></i>
-                </div>
-                <div>
-                  <div class="care-text-title">Find a Doctor</div>
-                  <div class="care-text-sub">Expert specialists</div>
-                </div>
-              </div>
-              <i class="bi bi-chevron-right care-arrow"></i>
-            </a>
-
-            <!-- Item 3: Departments -->
-            <a href="#specialties" class="care-option-item">
-              <div class="care-option-left">
-                <div class="care-icon-box care-icon-teal">
-                  <i class="bi bi-grid-1x2"></i>
-                </div>
-                <div>
-                  <div class="care-text-title">Departments</div>
-                  <div class="care-text-sub">Advanced care units</div>
-                </div>
-              </div>
-              <i class="bi bi-chevron-right care-arrow"></i>
-            </a>
-
-            <!-- Item 4: Health Checkups -->
-            <a href="#specialties" class="care-option-item">
-              <div class="care-option-left">
-                <div class="care-icon-box care-icon-pink">
-                  <i class="bi bi-heart-pulse"></i>
-                </div>
-                <div>
-                  <div class="care-text-title">Health Checkups</div>
-                  <div class="care-text-sub">Preventive care</div>
-                </div>
-              </div>
-              <i class="bi bi-chevron-right care-arrow"></i>
-            </a>
-          </div>
-
-          <!-- Step 8: Emergency Care Card -->
-          <div class="emergency-card">
-            <div class="emergency-header">
-              <i class="bi bi-hospital-fill text-danger fs-5"></i> Emergency Care
-            </div>
-            <div class="emergency-sub">24/7 Emergency Support</div>
-            <a href="tel:+919876543210" class="emergency-phone-btn">
-              <i class="bi bi-telephone-fill"></i> +91 98765 43210
-            </a>
-          </div>
-
         </div>
 
       </div>
@@ -1381,9 +1524,12 @@
     <div class="container">
       <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
         <div>
-          <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-bold text-uppercase mb-2">World-Class Healthcare</span>
+          <span
+            class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-bold text-uppercase mb-2">World-Class
+            Healthcare</span>
           <h2 class="fw-bold fs-1 text-slate-900 m-0">Clinical Centers of Excellence</h2>
-          <p class="text-muted fs-6 mt-1 mb-0">Discover our specialized medical departments delivering multi-disciplinary clinical precision.</p>
+          <p class="text-muted fs-6 mt-1 mb-0">Discover our specialized medical departments delivering
+            multi-disciplinary clinical precision.</p>
         </div>
         <div class="d-flex align-items-center gap-2 mt-3 mt-md-0">
           <button class="scroll-btn" onclick="scrollCOE(-360)" title="Previous Department">
@@ -1398,7 +1544,7 @@
       <!-- Scrollable Card Carousel -->
       <div class="coe-scroll-wrapper">
         <div class="coe-carousel" id="coeCarousel">
-          
+
           <!-- Card 1: Cardiology -->
           <div class="coe-card">
             <div>
@@ -1406,10 +1552,13 @@
                 <div class="coe-icon-box">
                   <i class="bi bi-heart-pulse-fill"></i>
                 </div>
-                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-bold small">Ranked #1</span>
+                <span
+                  class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 fw-bold small">Ranked
+                  #1</span>
               </div>
               <h3 class="coe-dept-name">Cardiology & Heart Institute</h3>
-              <p class="coe-desc">Advanced cardiovascular interventions, electrophysiology, complex angioplasty, and 24/7 cardiac emergency care.</p>
+              <p class="coe-desc">Advanced cardiovascular interventions, electrophysiology, complex angioplasty, and
+                24/7 cardiac emergency care.</p>
               <div class="coe-tags">
                 <span class="coe-tag">Robotic Surgery</span>
                 <span class="coe-tag">TAVR</span>
@@ -1433,10 +1582,13 @@
                 <div class="coe-icon-box">
                   <i class="bi bi-cpu-fill"></i>
                 </div>
-                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-bold small">Advanced Spine</span>
+                <span
+                  class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-bold small">Advanced
+                  Spine</span>
               </div>
               <h3 class="coe-dept-name">Neurology & Spine Care</h3>
-              <p class="coe-desc">Comprehensive brain, stroke, epilepsy management, deep brain stimulation, and minimally invasive spine surgeries.</p>
+              <p class="coe-desc">Comprehensive brain, stroke, epilepsy management, deep brain stimulation, and
+                minimally invasive spine surgeries.</p>
               <div class="coe-tags">
                 <span class="coe-tag">Deep Brain Stimulation</span>
                 <span class="coe-tag">Stroke Unit</span>
@@ -1460,10 +1612,13 @@
                 <div class="coe-icon-box">
                   <i class="bi bi-shield-heart-fill"></i>
                 </div>
-                <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold small">Tumor Board</span>
+                <span
+                  class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold small">Tumor
+                  Board</span>
               </div>
               <h3 class="coe-dept-name">Oncology & Cancer Center</h3>
-              <p class="coe-desc">Precision medical, surgical, and targeted radiation therapy with multi-disciplinary tumor board evaluations.</p>
+              <p class="coe-desc">Precision medical, surgical, and targeted radiation therapy with multi-disciplinary
+                tumor board evaluations.</p>
               <div class="coe-tags">
                 <span class="coe-tag">Immunotherapy</span>
                 <span class="coe-tag">Proton Beam</span>
@@ -1487,10 +1642,13 @@
                 <div class="coe-icon-box">
                   <i class="bi bi-person-arms-up"></i>
                 </div>
-                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold small">Robotic Joint</span>
+                <span
+                  class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold small">Robotic
+                  Joint</span>
               </div>
               <h3 class="coe-dept-name">Orthopedics & Joint Care</h3>
-              <p class="coe-desc">Total joint replacements, sports medicine, complex trauma reconstruction, and minimally invasive arthroscopy.</p>
+              <p class="coe-desc">Total joint replacements, sports medicine, complex trauma reconstruction, and
+                minimally invasive arthroscopy.</p>
               <div class="coe-tags">
                 <span class="coe-tag">Mako Robotic Knee</span>
                 <span class="coe-tag">Arthroscopy</span>
@@ -1514,10 +1672,13 @@
                 <div class="coe-icon-box">
                   <i class="bi bi-emoji-smile-fill"></i>
                 </div>
-                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1 fw-bold small">Level-IV NICU</span>
+                <span
+                  class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-2.5 py-1 fw-bold small">Level-IV
+                  NICU</span>
               </div>
               <h3 class="coe-dept-name">Pediatrics & Child Care</h3>
-              <p class="coe-desc">Specialized neonatal intensive care, pediatric cardiology, congenital surgeries, and child neuro-development.</p>
+              <p class="coe-desc">Specialized neonatal intensive care, pediatric cardiology, congenital surgeries, and
+                child neuro-development.</p>
               <div class="coe-tags">
                 <span class="coe-tag">Level-IV NICU</span>
                 <span class="coe-tag">Pediatric Surgery</span>
@@ -1541,10 +1702,13 @@
                 <div class="coe-icon-box">
                   <i class="bi bi-vial-fill"></i>
                 </div>
-                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-1 fw-bold small">24/7 Digital Lab</span>
+                <span
+                  class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-1 fw-bold small">24/7
+                  Digital Lab</span>
               </div>
               <h3 class="coe-dept-name">Diagnostics & Radiology</h3>
-              <p class="coe-desc">High-field 3T MRI, 512-slice Spectral CT, PET-CT scan, and automated laboratory diagnostics with SVG QR reporting.</p>
+              <p class="coe-desc">High-field 3T MRI, 512-slice Spectral CT, PET-CT scan, and automated laboratory
+                diagnostics with SVG QR reporting.</p>
               <div class="coe-tags">
                 <span class="coe-tag">3T MRI</span>
                 <span class="coe-tag">PET-CT</span>
@@ -1564,15 +1728,48 @@
         </div>
       </div>
     </div>
+  <!-- Meet Our Medical Specialists Section -->
+  <section class="doctors-section scroll-reveal" id="doctors">
+    <div class="container">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
+        <div>
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-bold text-uppercase mb-2">
+            <i class="bi bi-patch-check-fill me-1 text-primary"></i> Compassionate Clinical Excellence
+          </span>
+          <h2 class="fw-bold fs-1 text-slate-900 m-0" style="font-family: 'Plus Jakarta Sans', sans-serif;">Meet Our Medical Specialists</h2>
+          <p class="text-muted fs-6 mt-1 mb-0">Experienced healthcare professionals dedicated to providing compassionate, personalized care.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2 mt-3 mt-md-0">
+          <button class="scroll-btn" onclick="scrollDoctors(-360)" title="Previous Doctor">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button class="scroll-btn" onclick="scrollDoctors(360)" title="Next Doctor">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Horizontal Carousel Container -->
+      <div class="coe-scroll-wrapper">
+        <div class="coe-carousel" id="doctorsCarousel">
+          <!-- Dynamic Doctor Cards will be rendered here via API -->
+          <div class="text-center p-5 w-100 text-muted">
+            <div class="spinner-border text-primary me-2" role="status"></div> Loading Medical Specialists...
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- Key System Capabilities Highlight -->
   <section class="features-section scroll-reveal" id="services">
     <div class="container">
       <div class="text-center max-w-700 mx-auto mb-5">
-        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill fw-bold text-uppercase mb-2">15 Integrated Subsystems</span>
+        <span class="badge bg-light text-dark border px-3 py-2 rounded-pill fw-bold text-uppercase mb-2">15 Integrated
+          Subsystems</span>
         <h2 class="fw-bold fs-1 text-slate-900">Comprehensive Clinical Ecosystem</h2>
-        <p class="text-muted fs-5">Empowering patients, doctors, nurses, and hospital administration with real-time digital care workflows.</p>
+        <p class="text-muted fs-5">Empowering patients, doctors, nurses, and hospital administration with real-time
+          digital care workflows.</p>
       </div>
 
       <div class="row g-4">
@@ -1583,7 +1780,8 @@
               <i class="bi bi-clock-history"></i>
             </div>
             <h4 class="fw-bold fs-5 mb-2">Smart Queue & TV Board</h4>
-            <p class="text-muted fs-6 mb-0">Dynamic priority queuing for OPD check-ins with rolling wait-time estimates and live TV display board API.</p>
+            <p class="text-muted fs-6 mb-0">Dynamic priority queuing for OPD check-ins with rolling wait-time estimates
+              and live TV display board API.</p>
           </div>
         </div>
 
@@ -1594,7 +1792,8 @@
               <i class="bi bi-journal-medical"></i>
             </div>
             <h4 class="fw-bold fs-5 mb-2">360° Encrypted EHR</h4>
-            <p class="text-muted fs-6 mb-0">AES-128/256 encrypted medical records, vitals graphs, diagnosis logs, and interactive clinical timeline.</p>
+            <p class="text-muted fs-6 mb-0">AES-128/256 encrypted medical records, vitals graphs, diagnosis logs, and
+              interactive clinical timeline.</p>
           </div>
         </div>
 
@@ -1605,7 +1804,8 @@
               <i class="bi bi-qr-code-scan"></i>
             </div>
             <h4 class="fw-bold fs-5 mb-2">SVG QR Prescriptions</h4>
-            <p class="text-muted fs-6 mb-0">Digital e-prescriptions with embedded standalone Base64 SVG QR codes for instant authenticity verification.</p>
+            <p class="text-muted fs-6 mb-0">Digital e-prescriptions with embedded standalone Base64 SVG QR codes for
+              instant authenticity verification.</p>
           </div>
         </div>
 
@@ -1616,7 +1816,8 @@
               <i class="bi bi-hospital"></i>
             </div>
             <h4 class="fw-bold fs-5 mb-2">Inpatient IPD Grid</h4>
-            <p class="text-muted fs-6 mb-0">Real-time ward bed occupancy grid (General, ICU, Pediatric), bed transfers, and billing integration.</p>
+            <p class="text-muted fs-6 mb-0">Real-time ward bed occupancy grid (General, ICU, Pediatric), bed transfers,
+              and billing integration.</p>
           </div>
         </div>
       </div>
@@ -1626,12 +1827,82 @@
   <!-- Footer -->
   <footer class="bg-dark text-white py-4 mt-auto">
     <div class="container text-center">
-      <p class="m-0 text-muted fs-6">&copy; 2026 MediCore+ - Integrated Patient Care Management System. All rights reserved.</p>
+      <p class="m-0 text-muted fs-6">&copy; 2026 MediCore+ - Integrated Patient Care Management System. All rights
+        reserved.</p>
     </div>
   </footer>
 
   <!-- Bootstrap 5 JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/bootstrap.bundle.min.js"></script>
+
+  <script>
+  <!-- Instant Doctor Booking Modal -->
+  <div class="modal fade" id="quickBookingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="modal-header text-white border-0 py-3" style="background: #1E40AF !important;">
+          <h5 class="modal-title fw-bold"><i class="bi bi-calendar-check me-2"></i> Book Appointment</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 mb-4">
+            <img id="quickDocImage" src="" alt="Doctor" class="rounded-circle object-fit-cover" style="width: 64px; height: 64px;">
+            <div>
+              <h5 class="fw-bold text-slate-900 mb-0" id="quickDocName">Dr. Ananya Sharma</h5>
+              <div class="text-primary fw-semibold small" id="quickDocSpec">Cardiologist</div>
+              <div class="text-muted small" id="quickDocEdu">MBBS, MD</div>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-5">
+              <label for="quickBookingDate" class="form-label fw-semibold small">Select Preferred Date *</label>
+              <input type="date" class="form-control rounded-3" id="quickBookingDate" onchange="fetchQuickSlots()">
+            </div>
+            <div class="col-md-7">
+              <label class="form-label fw-semibold small">Available Time Slot *</label>
+              <div id="quickSlotGrid" class="d-flex flex-wrap gap-2 pt-1">
+                <div class="text-muted small">Select a date to view available slots.</div>
+              </div>
+            </div>
+          </div>
+
+          <form id="quickBookingForm" onsubmit="submitQuickBooking(event)">
+            <input type="hidden" id="quickDocId" value="">
+            <input type="hidden" id="quickSelectedSlot" value="">
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label for="quickPatName" class="form-label fw-semibold small">Patient Full Name *</label>
+                <input type="text" class="form-control rounded-3" id="quickPatName" value="{% if current_user.is_authenticated %}{{ current_user.name }}{% endif %}" required>
+              </div>
+              <div class="col-md-6">
+                <label for="quickPatEmail" class="form-label fw-semibold small">Email Address *</label>
+                <input type="email" class="form-control rounded-3" id="quickPatEmail" value="{% if current_user.is_authenticated %}{{ current_user.email }}{% endif %}" required>
+              </div>
+              <div class="col-md-6">
+                <label for="quickPatMobile" class="form-label fw-semibold small">Mobile Number *</label>
+                <input type="tel" class="form-control rounded-3" id="quickPatMobile" value="{% if current_user.is_authenticated %}{{ current_user.mobile or '' }}{% endif %}" required>
+              </div>
+              <div class="col-md-6">
+                <label for="quickReason" class="form-label fw-semibold small">Reason for Visit (Optional)</label>
+                <input type="text" class="form-control rounded-3" id="quickReason" placeholder="e.g. Routine checkup">
+              </div>
+            </div>
+
+            <div id="quickBookingAlert" class="alert d-none py-2 mb-3"></div>
+
+            <div class="d-flex justify-content-end gap-2 pt-2 border-top">
+              <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" id="quickConfirmBtn" class="btn btn-success rounded-pill px-4 fw-bold" disabled>
+                <i class="bi bi-check-lg me-1"></i> Confirm Appointment
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script>
     function scrollCOE(amount) {
@@ -1641,8 +1912,179 @@
       }
     }
 
+    function scrollDoctors(amount) {
+      const carousel = document.getElementById('doctorsCarousel');
+      if (carousel) {
+        carousel.scrollBy({ left: amount, behavior: 'smooth' });
+      }
+    }
+
+    let quickDoctorObj = null;
+    let selectedQuickSlotTime = null;
+
+    function loadDoctorsCarousel() {
+      const carousel = document.getElementById('doctorsCarousel');
+      if (!carousel) return;
+
+      fetch('/api/doctors')
+        .then(res => res.json())
+        .then(data => {
+          if (!data.success || !data.doctors || data.doctors.length === 0) {
+            carousel.innerHTML = '<div class="p-4 text-muted">No doctor records found in database.</div>';
+            return;
+          }
+
+          carousel.innerHTML = '';
+          data.doctors.forEach(doc => {
+            const card = document.createElement('div');
+            card.className = 'doctor-card';
+            card.innerHTML = `
+              <div>
+                <div class="doctor-img-box">
+                  <img src="${doc.image_url}" alt="${doc.name}">
+                  <span class="position-absolute top-0 end-0 m-3 badge bg-white text-dark shadow-sm rounded-pill px-2.5 py-1 fw-bold">
+                    <i class="bi bi-star-fill text-warning me-1"></i> ${doc.rating || '4.9'}
+                  </span>
+                </div>
+                <div class="doctor-card-body">
+                  <span class="doctor-spec-badge">${doc.specialization}</span>
+                  <h4 class="doctor-name">${doc.name}</h4>
+                  <div class="doctor-edu">${doc.education}</div>
+                  <div class="doctor-exp-tag">
+                    <i class="bi bi-award-fill"></i> ${doc.experience} Experience
+                  </div>
+                  <p class="doctor-bio-short">${doc.bio || 'Dedicated healthcare specialist.'}</p>
+                </div>
+              </div>
+              <div class="p-3 pt-0">
+                <div class="doctor-card-footer">
+                  <a href="/doctors/${doc.id}" class="btn btn-doc-view">View Profile</a>
+                  <button onclick="openQuickBooking(${doc.id})" class="btn btn-doc-book">Book Appointment</button>
+                </div>
+              </div>
+            `;
+            carousel.appendChild(card);
+          });
+        })
+        .catch(err => {
+          carousel.innerHTML = '<div class="p-4 text-danger">Failed to load medical specialists from database.</div>';
+        });
+    }
+
+    function openQuickBooking(doctorId) {
+      fetch(`/api/doctors/${doctorId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.doctor) {
+            quickDoctorObj = data.doctor;
+            document.getElementById('quickDocId').value = doctorId;
+            document.getElementById('quickDocName').innerText = quickDoctorObj.name;
+            document.getElementById('quickDocSpec').innerText = quickDoctorObj.specialization;
+            document.getElementById('quickDocEdu').innerText = quickDoctorObj.education;
+            document.getElementById('quickDocImage').src = quickDoctorObj.image_url;
+
+            const todayStr = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('quickBookingDate');
+            dateInput.value = todayStr;
+            dateInput.min = todayStr;
+
+            fetchQuickSlots();
+
+            const modal = new bootstrap.Modal(document.getElementById('quickBookingModal'));
+            modal.show();
+          }
+        });
+    }
+
+    function fetchQuickSlots() {
+      const docId = document.getElementById('quickDocId').value;
+      const dateVal = document.getElementById('quickBookingDate').value;
+      const grid = document.getElementById('quickSlotGrid');
+      grid.innerHTML = '<div class="text-muted small p-2">Loading slots...</div>';
+      document.getElementById('quickConfirmBtn').disabled = true;
+      selectedQuickSlotTime = null;
+
+      if (!docId || !dateVal) return;
+
+      fetch(`/api/doctors/${docId}/availability?date=${dateVal}`)
+        .then(res => res.json())
+        .then(data => {
+          grid.innerHTML = '';
+          if (data.is_holiday) {
+            grid.innerHTML = `<div class="alert alert-warning py-1 px-2 small w-100 mb-0">Holiday: ${data.holiday_reason}</div>`;
+            return;
+          }
+          if (!data.slots || data.slots.length === 0) {
+            grid.innerHTML = '<div class="text-muted small p-2">No available slots.</div>';
+            return;
+          }
+          data.slots.forEach(slot => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `btn btn-sm ${slot.is_available ? 'btn-outline-primary' : 'btn-light text-muted border-0'} rounded-pill px-2.5 py-1 small fw-semibold`;
+            btn.innerText = slot.time_12h;
+            if (!slot.is_available) {
+              btn.disabled = true;
+            } else {
+              btn.onclick = () => {
+                document.querySelectorAll('#quickSlotGrid .btn').forEach(b => b.classList.remove('btn-primary', 'active', 'text-white'));
+                btn.classList.add('btn-primary', 'active', 'text-white');
+                selectedQuickSlotTime = slot.time_24h;
+                document.getElementById('quickConfirmBtn').disabled = false;
+              };
+            }
+            grid.appendChild(btn);
+          });
+        });
+    }
+
+    function submitQuickBooking(event) {
+      event.preventDefault();
+      const docId = document.getElementById('quickDocId').value;
+      const alertBox = document.getElementById('quickBookingAlert');
+      alertBox.classList.add('d-none');
+
+      if (!selectedQuickSlotTime) {
+        alertBox.className = 'alert alert-danger py-2 mb-3';
+        alertBox.innerText = 'Please select a slot time.';
+        alertBox.classList.remove('d-none');
+        return;
+      }
+
+      const payload = {
+        appointment_date: document.getElementById('quickBookingDate').value,
+        slot_time: selectedQuickSlotTime,
+        patient_name: document.getElementById('quickPatName').value,
+        patient_email: document.getElementById('quickPatEmail').value,
+        patient_mobile: document.getElementById('quickPatMobile').value,
+        reason: document.getElementById('quickReason').value
+      };
+
+      fetch(`/api/doctors/${docId}/book`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.success) {
+          alertBox.className = 'alert alert-danger py-2 mb-3';
+          alertBox.innerText = data.message || 'Booking failed.';
+          alertBox.classList.remove('d-none');
+        } else {
+          alertBox.className = 'alert alert-success py-2 mb-3';
+          alertBox.innerText = `🎉 Appointment ${data.appointment_code} booked successfully for ${data.appointment_date} at ${data.slot_time}!`;
+          alertBox.classList.remove('d-none');
+          document.getElementById('quickConfirmBtn').disabled = true;
+          fetchQuickSlots();
+        }
+      });
+    }
+
     // Scroll Reveal Observer for Lower Sections
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
+      loadDoctorsCarousel();
+
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
@@ -1657,4 +2099,5 @@
     });
   </script>
 </body>
+
 </html>

@@ -31,6 +31,7 @@ def create_app(config_class=Config):
     from app.notifications.routes import notifications_bp
     from app.reports.routes import reports_bp
     from app.admin.routes import admin_bp
+    from app.doctors.routes import doctors_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(patients_bp)
@@ -47,6 +48,9 @@ def create_app(config_class=Config):
     app.register_blueprint(notifications_bp)
     app.register_blueprint(reports_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(doctors_bp)
+
+    csrf.exempt(doctors_bp)
 
     # CLI Command to seed database roles and demo users
     @app.cli.command("seed-db")
@@ -176,6 +180,34 @@ def create_app(config_class=Config):
                 user.set_password('Password@123')
                 db.session.add(user)
                 click.echo(f"Created demo user: {email} ({role_name})")
+
+        db.session.commit()
+
+        # Seed sample doctors catalog
+        from app.doctors.models import Doctor
+        doc_role = roles_dict.get('Doctor')
+
+        sample_doctors = [
+            {'code': 'DOC-101', 'name': 'Dr. Ananya Sharma', 'specialization': 'Cardiologist', 'education': 'MBBS, MD (General Medicine), DM (Cardiology)', 'experience': '5+ Years', 'department': 'Cardiology & Heart Institute', 'bio': 'Experienced cardiologist specializing in non-invasive cardiac care, preventive cardiology, heart failure management, and echocardiography.', 'fee': 800.0, 'image_url': '/static/images/doctors/dr_ananya_sharma.jpg', 'email': 'ananya.sharma@medicore.com'},
+            {'code': 'DOC-102', 'name': 'Dr. Rahul Verma', 'specialization': 'Neurologist', 'education': 'MBBS, MD (General Medicine), DM (Neurology)', 'experience': '10+ Years', 'department': 'Neurology & Spine Care', 'bio': 'Senior neurologist with expertise in acute stroke care, epilepsy management, Parkinson\'s disease, and neuro-critical care.', 'fee': 1000.0, 'image_url': '/static/images/doctors/dr_rahul_verma.jpg', 'email': 'rahul.verma@medicore.com'},
+            {'code': 'DOC-103', 'name': 'Dr. Priya Nair', 'specialization': 'Gynecologist & Obstetrician', 'education': 'MBBS, MD (Obstetrics & Gynecology)', 'experience': '20+ Years', 'department': 'Obstetrics & Gynecology', 'bio': 'Leading specialist in high-risk pregnancies, minimal access laparoscopic surgery, and comprehensive maternal and reproductive healthcare.', 'fee': 900.0, 'image_url': '/static/images/doctors/dr_priya_nair.jpg', 'email': 'priya.nair@medicore.com'},
+            {'code': 'DOC-104', 'name': 'Dr. Arjun Mehta', 'specialization': 'Orthopedic Surgeon', 'education': 'MBBS, MS (Orthopedics)', 'experience': '20+ Years', 'department': 'Orthopedics & Joint Care', 'bio': 'Renowned orthopedic surgeon with extensive experience in Mako robotic joint replacements, complex fracture trauma, and sports medicine.', 'fee': 1100.0, 'image_url': '/static/images/doctors/dr_arjun_mehta.jpg', 'email': 'arjun.mehta@medicore.com'},
+            {'code': 'DOC-105', 'name': 'Dr. Kavya Rao', 'specialization': 'Pediatrician', 'education': 'MBBS, MD (Pediatrics)', 'experience': '8+ Years', 'department': 'Pediatrics & Child Care', 'bio': 'Compassionate pediatrician dedicated to newborn care, child growth and development, childhood immunizations, and pediatric emergency medicine.', 'fee': 700.0, 'image_url': '/static/images/doctors/dr_kavya_rao.jpg', 'email': 'kavya.rao@medicore.com'},
+            {'code': 'DOC-106', 'name': 'Dr. Vikram Desai', 'specialization': 'Radiologist', 'education': 'MBBS, MD (Radiodiagnosis)', 'experience': '10+ Years', 'department': 'Diagnostics & Radiology', 'bio': 'Expert radiologist specializing in 3T MRI, 512-slice Spectral CT scans, cross-sectional diagnostic imaging, and interventional radiology.', 'fee': 850.0, 'image_url': '/static/images/doctors/dr_vikram_desai.jpg', 'email': 'vikram.desai@medicore.com'}
+        ]
+
+        for data in sample_doctors:
+            usr = User.query.filter_by(email=data['email']).first()
+            if not usr:
+                usr = User(user_code=data['code'], name=data['name'], email=data['email'], role_id=doc_role.id, mobile='+91-9876543210')
+                usr.set_password('Password@123')
+                db.session.add(usr)
+                db.session.flush()
+
+            doc = Doctor.query.filter_by(doctor_code=data['code']).first()
+            if not doc:
+                doc = Doctor(user_id=usr.id, doctor_code=data['code'], name=data['name'], specialization=data['specialization'], education=data['education'], experience=data['experience'], department=data['department'], bio=data['bio'], consultation_fee=data['fee'], image_url=data['image_url'], available_days='Monday - Saturday', rating=4.9, is_active=True)
+                db.session.add(doc)
 
         db.session.commit()
         click.echo("[SUCCESS] Database seeding completed successfully! All demo users created with password: Password@123")
