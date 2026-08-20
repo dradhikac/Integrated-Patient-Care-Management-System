@@ -9,9 +9,23 @@
       <h3 class="fw-bold mb-1"><i class="bi bi-shield-lock-fill text-danger me-2"></i> System Admin Dashboard</h3>
       <p class="text-muted mb-0">System Control, Role Management, Audit Logs & Global Settings</p>
     </div>
-    <div>
+    <div class="d-flex align-items-center gap-2">
+      <a href="{{ url_for('admin.index') }}" class="btn btn-primary fw-bold px-3 py-2">
+        <i class="bi bi-grid-1x2-fill me-1"></i> Launch Control Center
+      </a>
       <span class="badge bg-danger px-3 py-2 fs-6">Role: Admin</span>
     </div>
+  </div>
+
+  <!-- Launch Full Dashboard Banner -->
+  <div class="alert alert-primary p-4 rounded-4 shadow-sm mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3" style="background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%); border: 1px solid #BFDBFE;">
+    <div>
+      <h4 class="fw-bold text-primary mb-1"><i class="bi bi-grid-1x2-fill me-2"></i> MediCore+ Administrator Control Center</h4>
+      <p class="mb-0 text-slate-700">Real-time KPI cards, bed occupancy analytics, weekly appointment trends, revenue charts, and live system monitoring.</p>
+    </div>
+    <a href="{{ url_for('admin.index') }}" class="btn btn-primary btn-lg px-4 rounded-pill fw-bold shadow-sm">
+      Open Full Dashboard <i class="bi bi-arrow-right me-1"></i>
+    </a>
   </div>
 
   <!-- Metric Cards -->

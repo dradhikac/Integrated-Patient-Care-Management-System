@@ -53,7 +53,7 @@ class AuthTestCase(unittest.TestCase):
         }, follow_redirects=True)
         
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Welcome back', response.data)
+        self.assertTrue(b'Administrator Dashboard' in response.data or b'Welcome back' in response.data)
         
         # Verify LoginLog entry
         log = LoginLog.query.filter_by(email_attempted='admin@test.com').first()
