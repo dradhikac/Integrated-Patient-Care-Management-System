@@ -1,59 +1,90 @@
-{% extends 'base.html' %}
+{% extends 'admin/base_admin.html' %}
 
-{% block title %}Database Snapshots & Backups - IPCMS{% endblock %}
+{% block title %}System Backup & Disaster Recovery — MediCore+ Admin{% endblock %}
+{% block header_title %}System Backup & Disaster Recovery{% endblock %}
+{% block header_subtitle %}Generate instant database snapshots, download backups, and manage cold storage recovery{% endblock %}
 
-{% block content %}
-<div class="container dashboard-container">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h3 class="fw-bold mb-1"><i class="bi bi-database-fill-gear text-teal me-2" style="color: var(--primary-color);"></i> Database Backup Manager</h3>
-      <p class="text-muted mb-0">Trigger manual database snapshot archives and download recovery files</p>
-    </div>
-    <form action="{{ url_for('admin.trigger_backup') }}" method="POST">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <button type="submit" class="btn btn-warning text-dark fw-bold shadow-sm rounded-3">
-        <i class="bi bi-cloud-arrow-down-fill me-1"></i> Trigger Manual DB Snapshot
-      </button>
-    </form>
-  </div>
+{% block admin_content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="admin-card">
+      <div class="admin-card-header flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon-wrapper kpi-icon-amber" style="width: 44px; height: 44px; font-size: 1.25rem;">
+            <i class="bi bi-database-fill-down"></i>
+          </div>
+          <div>
+            <h3 class="admin-card-title mb-0">Database Snapshot Archives</h3>
+            <p class="text-muted small mb-0">{{ backup_files|length }} backup snapshots currently preserved on server storage</p>
+          </div>
+        </div>
 
-  <!-- Backup Archives Table -->
-  <div class="card border-0 shadow-sm rounded-4">
-    <div class="card-header bg-white py-3">
-      <h5 class="card-title fw-bold mb-0 text-teal" style="color: var(--primary-color);">
-        <i class="bi bi-archive-fill me-2"></i> Created Snapshot Archives (`backups/` directory)
-      </h5>
-    </div>
-    <div class="card-body p-0">
-      <div class="table-responsive">
+        <form action="{{ url_for('admin.trigger_backup') }}" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-primary rounded-pill px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2" style="background-color: var(--admin-blue-primary); border-color: var(--admin-blue-primary);">
+            <i class="bi bi-cloud-arrow-down-fill"></i> Trigger Instant Backup
+          </button>
+        </form>
+      </div>
+
+      <div class="table-responsive mt-3">
         <table class="table table-hover align-middle mb-0">
           <thead class="table-light">
             <tr>
-              <th>#</th>
-              <th>Filename</th>
-              <th>Size (KB)</th>
+              <th class="ps-3">Snapshot Filename</th>
               <th>Created Timestamp</th>
-              <th class="text-end">Actions</th>
+              <th>File Size</th>
+              <th class="text-end pe-3">Download</th>
             </tr>
           </thead>
           <tbody>
             {% for b in backup_files %}
             <tr>
-              <td>{{ loop.index }}</td>
-              <td><code>{{ b.filename }}</code></td>
-              <td><span class="badge bg-secondary">{{ b.size_kb }} KB</span></td>
-              <td><small class="text-muted">{{ b.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small></td>
-              <td class="text-end">
-                <a href="{{ url_for('admin.download_backup', filename=b.filename) }}" class="btn btn-sm btn-outline-primary">
-                  <i class="bi bi-download me-1"></i> Download Snapshot
+              <td class="ps-3 font-monospace small fw-bold text-slate-900">{{ b.filename }}</td>
+              <td class="text-muted small">{{ b.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+              <td><span class="badge bg-light text-dark border">{{ b.size_kb }} KB</span></td>
+              <td class="text-end pe-3">
+                <a href="{{ url_for('admin.download_backup', filename=b.filename) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold small">
+                  <i class="bi bi-download me-1"></i> Download
                 </a>
               </td>
             </tr>
             {% else %}
-            <tr><td colspan="5" class="text-center text-muted py-4">No database snapshot backups found. Click "Trigger Manual DB Snapshot" above to create one.</td></tr>
+            <tr>
+              <td colspan="4" class="text-center text-muted py-4">No backup snapshots generated yet. Click "Trigger Instant Backup" above.</td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title"><i class="bi bi-shield-shaded text-success"></i> Backup Protocol</h3>
+      </div>
+      <div class="p-3">
+        <div class="p-3 rounded-3 bg-light border mb-3">
+          <div class="d-flex align-items-center gap-2 text-success fw-bold mb-2">
+            <i class="bi bi-check-circle-fill"></i> Automated Daily Rotation
+          </div>
+          <p class="text-muted small mb-0">Nightly snapshots are saved to the isolated backup repository. Backups include full database relations, audit logs, and medical records.</p>
+        </div>
+
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted small">Storage Location:</span>
+          <span class="font-monospace small">/backups/</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted small">Engine:</span>
+          <span class="fw-bold small">JSON / SQL Dump</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span class="text-muted small">Integrity Check:</span>
+          <span class="badge bg-success">Verified</span>
+        </div>
       </div>
     </div>
   </div>

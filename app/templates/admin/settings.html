@@ -1,66 +1,113 @@
-{% extends 'base.html' %}
+{% extends 'admin/base_admin.html' %}
 
-{% block title %}Fee Structure & System Settings - IPCMS{% endblock %}
+{% block title %}System Settings & Tariffs — MediCore+ Admin{% endblock %}
+{% block header_title %}System Settings & Tariffs{% endblock %}
+{% block header_subtitle %}Configure global hospital fee structure, billing rates, taxes, and system policies{% endblock %}
 
-{% block content %}
-<div class="container dashboard-container" style="max-width: 800px;">
-  <div class="mb-4">
-    <h3 class="fw-bold mb-1"><i class="bi bi-gear-fill text-teal me-2" style="color: var(--primary-color);"></i> Fee Structure & System Settings</h3>
-    <p class="text-muted mb-0">Master Data — Manage hospital-wide consultation rates, bed charges, tax percentage, and emergency surcharges</p>
-  </div>
+{% block admin_content %}
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon-wrapper kpi-icon-purple" style="width: 44px; height: 44px; font-size: 1.25rem;">
+            <i class="bi bi-gear-fill"></i>
+          </div>
+          <div>
+            <h3 class="admin-card-title mb-0">Hospital Configuration & Rates</h3>
+            <p class="text-muted small mb-0">System parameters and dynamic charge modifiers</p>
+          </div>
+        </div>
+      </div>
 
-  <div class="card border-0 shadow-sm rounded-4">
-    <div class="card-body p-4">
-      <form method="POST" action="{{ url_for('admin.settings') }}">
+      <form method="POST" action="{{ url_for('admin.settings') }}" class="p-3">
         {{ form.hidden_tag() }}
 
-        <h5 class="fw-bold text-teal mb-3" style="color: var(--primary-color);"><i class="bi bi-hospital me-2"></i> Hospital Information</h5>
         <div class="mb-4">
-          <label class="form-label fw-bold">Official Hospital Name</label>
-          {{ form.hospital_name(class="form-control") }}
+          <label class="form-label fw-bold small text-slate-900">Hospital Organization Name</label>
+          {{ form.hospital_name(class="form-control rounded-3 py-2", placeholder="MediCore+ Integrated Hospital") }}
+          <div class="form-text small">Used on all patient discharge summaries, bills, prescriptions, and lab reports.</div>
         </div>
 
-        <hr class="my-4">
+        <h6 class="fw-bold text-uppercase text-muted small mt-4 mb-3" style="letter-spacing: 0.5px;">Standard Consultation & Ward Charges</h6>
 
-        <h5 class="fw-bold text-teal mb-3" style="color: var(--primary-color);"><i class="bi bi-currency-rupee me-2"></i> Clinical & OPD Fee Rates</h5>
         <div class="row g-3 mb-4">
           <div class="col-md-6">
-            <label class="form-label fw-bold">Standard OPD Consultation Fee (₹)</label>
-            {{ form.opd_consultation_fee(class="form-control") }}
+            <label class="form-label fw-bold small text-slate-900">Standard OPD Consultation Fee (₹)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0">₹</span>
+              {{ form.opd_consultation_fee(class="form-control rounded-end-3", placeholder="500.00") }}
+            </div>
           </div>
           <div class="col-md-6">
-            <label class="form-label fw-bold">Emergency Care Surcharge Fee (₹)</label>
-            {{ form.emergency_surcharge(class="form-control") }}
+            <label class="form-label fw-bold small text-slate-900">Emergency Care Surcharge (₹)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0">₹</span>
+              {{ form.emergency_surcharge(class="form-control rounded-end-3", placeholder="1000.00") }}
+            </div>
           </div>
         </div>
 
-        <hr class="my-4">
-
-        <h5 class="fw-bold text-teal mb-3" style="color: var(--primary-color);"><i class="bi bi-door-open-fill me-2"></i> Inpatient (IPD) Bed Rates</h5>
         <div class="row g-3 mb-4">
           <div class="col-md-6">
-            <label class="form-label fw-bold">General Ward Daily Bed Rate (₹)</label>
-            {{ form.ipd_bed_rate_general(class="form-control") }}
+            <label class="form-label fw-bold small text-slate-900">General Ward Daily Bed Rate (₹)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0">₹</span>
+              {{ form.ipd_bed_rate_general(class="form-control rounded-end-3", placeholder="1500.00") }}
+            </div>
           </div>
           <div class="col-md-6">
-            <label class="form-label fw-bold">ICU Ward Daily Bed Rate (₹)</label>
-            {{ form.ipd_bed_rate_icu(class="form-control") }}
+            <label class="form-label fw-bold small text-slate-900">ICU Ward Daily Bed Rate (₹)</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0">₹</span>
+              {{ form.ipd_bed_rate_icu(class="form-control rounded-end-3", placeholder="5000.00") }}
+            </div>
           </div>
         </div>
 
-        <hr class="my-4">
+        <h6 class="fw-bold text-uppercase text-muted small mt-4 mb-3" style="letter-spacing: 0.5px;">Taxation & Billing Governance</h6>
 
-        <h5 class="fw-bold text-teal mb-3" style="color: var(--primary-color);"><i class="bi bi-percent me-2"></i> Taxation Configuration</h5>
-        <div class="mb-4">
-          <label class="form-label fw-bold">GST / Service Tax Rate (%)</label>
-          {{ form.gst_tax_rate(class="form-control") }}
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label fw-bold small text-slate-900">GST / Service Tax Rate (%)</label>
+            <div class="input-group">
+              {{ form.gst_tax_rate(class="form-control rounded-start-3", placeholder="18.0") }}
+              <span class="input-group-text bg-light border-start-0">%</span>
+            </div>
+          </div>
         </div>
 
-        <div class="d-flex justify-content-end gap-2">
-          <a href="{{ url_for('admin.index') }}" class="btn btn-secondary">Cancel</a>
-          {{ form.submit(class="btn btn-primary-custom", style="width: auto;") }}
+        <div class="d-flex justify-content-end pt-3 border-top">
+          <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm" style="background-color: var(--admin-blue-primary); border-color: var(--admin-blue-primary);">
+            <i class="bi bi-check2-circle me-1"></i> Save Configuration Settings
+          </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="admin-card mb-4">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title"><i class="bi bi-shield-lock-fill text-primary"></i> System Integrity</h3>
+      </div>
+      <div class="p-3">
+        <p class="text-muted small mb-3">All tariff and policy adjustments are logged to the immutable system audit trail with administrator timestamp.</p>
+        <div class="p-3 rounded-3 bg-light border">
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted small">Active Session:</span>
+            <span class="fw-bold small">{{ current_user.name }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted small">Role:</span>
+            <span class="badge bg-danger">Administrator</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted small">Security Level:</span>
+            <span class="badge bg-success">Full Access (Level 1)</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

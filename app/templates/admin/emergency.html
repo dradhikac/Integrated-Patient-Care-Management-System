@@ -1,0 +1,56 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Emergency & Triage Queue — MediCore+ Admin{% endblock %}
+{% block header_title %}Emergency & Trauma Care{% endblock %}
+{% block header_subtitle %}Real-time priority triage, trauma intake queue, and critical response monitoring{% endblock %}
+
+{% block admin_content %}
+<div class="row g-4">
+  <div class="col-12">
+    <div class="admin-card">
+      <div class="admin-card-header flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon-wrapper kpi-icon-pink" style="width: 44px; height: 44px; font-size: 1.25rem;">
+            <i class="bi bi-ambulance"></i>
+          </div>
+          <div>
+            <h3 class="admin-card-title mb-0">Emergency Intake Queue</h3>
+            <p class="text-muted small mb-0">{{ emergency_cases|length }} critical priority cases active</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-responsive mt-3">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">Triage Token</th>
+              <th>Patient</th>
+              <th>Attending Physician</th>
+              <th>Arrival Time</th>
+              <th>Triage Priority</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for em in emergency_cases %}
+            <tr>
+              <td class="ps-3"><span class="badge bg-danger text-white font-monospace">#EM-{{ em.id }}</span></td>
+              <td class="fw-bold text-slate-900">{{ em.patient.name if em.patient else 'Emergency Walk-in' }}</td>
+              <td><span class="text-muted small">{{ em.doctor.name if em.doctor else 'On-Duty Emergency Physician' }}</span></td>
+              <td><span class="text-muted small">{{ em.created_at.strftime('%H:%M:%S') if em.created_at else 'Just now' }}</span></td>
+              <td><span class="badge bg-danger-subtle text-danger px-2.5 py-1.5 fw-bold border border-danger-subtle"><i class="bi bi-exclamation-octagon-fill me-1"></i> Level 1 Critical</span></td>
+              <td><span class="badge bg-warning-subtle text-warning px-2.5 py-1.5 fw-bold border border-warning-subtle">In Triage</span></td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">No active emergency trauma cases. Emergency bay status: Normal.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

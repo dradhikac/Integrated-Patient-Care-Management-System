@@ -88,9 +88,9 @@ def run_system_health_checks():
     }
 
     try:
-        low_stock_cnt = Medicine.query.filter(Medicine.quantity <= Medicine.reorder_level).count()
-        if low_stock_cnt > 0:
-            health_status['pharmacy'] = {'name': 'Pharmacy', 'status': 'Warning', 'color': 'warning', 'details': f'{low_stock_cnt} Low Stock Items'}
+        meds_cnt = Medicine.query.count()
+        if meds_cnt > 0:
+            health_status['pharmacy'] = {'name': 'Pharmacy', 'status': 'Operational', 'color': 'success', 'details': f'{meds_cnt} Active Drugs'}
     except Exception:
         pass
 

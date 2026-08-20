@@ -1,0 +1,54 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}System Notifications & Broadcasts — MediCore+ Admin{% endblock %}
+{% block header_title %}Notifications & System Broadcasts{% endblock %}
+{% block header_subtitle %}Administrative alerts, emergency notices, and departmental communications{% endblock %}
+
+{% block admin_content %}
+<div class="row g-4">
+  <div class="col-12">
+    <div class="admin-card">
+      <div class="admin-card-header flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon-wrapper kpi-icon-amber" style="width: 44px; height: 44px; font-size: 1.25rem;">
+            <i class="bi bi-bell-fill"></i>
+          </div>
+          <div>
+            <h3 class="admin-card-title mb-0">Broadcasts & Alerts</h3>
+            <p class="text-muted small mb-0">{{ notifications|length }} broadcast records</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-responsive mt-3">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">Type</th>
+              <th>Message Content</th>
+              <th>Module</th>
+              <th>Recipient</th>
+              <th>Sent Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for n in notifications %}
+            <tr>
+              <td class="ps-3"><span class="badge bg-primary-subtle text-primary">{{ n.notification_type or 'ALERT' }}</span></td>
+              <td class="fw-bold text-slate-900">{{ n.message or n.content }}</td>
+              <td><span class="text-muted small">{{ n.module or 'System' }}</span></td>
+              <td><span class="text-muted small">{{ n.recipient_role or 'All Staff' }}</span></td>
+              <td><span class="text-muted small">{{ n.created_at.strftime('%Y-%m-%d %H:%M') if n.created_at else '—' }}</span></td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">No system broadcast notifications found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

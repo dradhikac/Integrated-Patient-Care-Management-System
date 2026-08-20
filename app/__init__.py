@@ -105,7 +105,6 @@ def create_app(config_class=Config):
                 else:
                     user.role_id = roles_dict[role_name].id
                     user.set_password('Password@123')
-                    user.is_active = True
             db.session.commit()
         except Exception as e:
             db.session.rollback()

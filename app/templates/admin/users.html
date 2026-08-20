@@ -1,79 +1,103 @@
-{% extends 'base.html' %}
+{% extends 'admin/base_admin.html' %}
 
-{% block title %}Staff User Management - IPCMS{% endblock %}
+{% block title %}Staff & User Management — MediCore+ Admin{% endblock %}
+{% block header_title %}Staff & User Management{% endblock %}
+{% block header_subtitle %}Create staff accounts, assign RBAC roles, and control access permissions{% endblock %}
 
-{% block content %}
-<div class="container dashboard-container">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h3 class="fw-bold mb-1"><i class="bi bi-person-gear text-teal me-2" style="color: var(--primary-color);"></i> Staff User Management & Role Assignment</h3>
-      <p class="text-muted mb-0">Create new staff accounts, assign roles, and activate/deactivate accounts</p>
-    </div>
-    <button class="btn btn-primary-custom shadow-sm" data-bs-toggle="modal" data-bs-target="#createStaffModal" style="width: auto;">
-      <i class="bi bi-person-plus-fill me-1"></i> Register New Staff Account
-    </button>
-  </div>
+{% block admin_content %}
+<div class="row g-4">
+  <div class="col-12">
+    <div class="admin-card">
+      <div class="admin-card-header flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon-wrapper kpi-icon-purple" style="width: 44px; height: 44px; font-size: 1.25rem;">
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <div>
+            <h3 class="admin-card-title mb-0">Hospital Staff & Users</h3>
+            <p class="text-muted small mb-0">{{ staff_users|length }} total accounts registered in database</p>
+          </div>
+        </div>
 
-  <!-- Staff Roster Table -->
-  <div class="card border-0 shadow-sm rounded-4">
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-primary rounded-pill px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#createStaffModal" style="background-color: var(--admin-blue-primary); border-color: var(--admin-blue-primary);">
+            <i class="bi bi-person-plus-fill"></i> Register New Staff
+          </button>
+        </div>
+      </div>
+
+      <!-- Staff Roster Table -->
+      <div class="table-responsive mt-3">
+        <table class="table table-hover align-middle mb-0" style="border-collapse: separate; border-spacing: 0 4px;">
           <thead class="table-light">
             <tr>
-              <th>Staff Code</th>
+              <th class="ps-3">Staff Code</th>
               <th>Full Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Specialization</th>
+              <th>Email Address</th>
+              <th>System Role</th>
+              <th>Specialization / Dept</th>
               <th>Status</th>
-              <th class="text-end">Actions</th>
+              <th class="text-end pe-3">Actions</th>
             </tr>
           </thead>
           <tbody>
             {% for u in staff_users %}
-            <tr>
-              <td><code>{{ u.user_code }}</code></td>
-              <td class="fw-bold">{{ u.name }}</td>
-              <td>{{ u.email }}</td>
+            <tr style="background: #FFFFFF;">
+              <td class="ps-3"><span class="badge bg-light text-dark border font-monospace">{{ u.user_code }}</span></td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                    {{ u.name[0] if u.name else 'U' }}
+                  </div>
+                  <div>
+                    <span class="fw-bold text-slate-900">{{ u.name }}</span>
+                    {% if u.id == current_user.id %}
+                      <span class="badge bg-secondary-subtle text-secondary small ms-1">(You)</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td><span class="text-muted small">{{ u.email }}</span></td>
               <td>
                 {% if u.role.name == 'Admin' %}
-                  <span class="badge bg-danger">Admin</span>
+                  <span class="badge rounded-pill bg-danger-subtle text-danger px-2.5 py-1.5 fw-bold border border-danger-subtle"><i class="bi bi-shield-lock-fill me-1"></i> Admin</span>
                 {% elif u.role.name == 'Doctor' %}
-                  <span class="badge bg-primary">Doctor</span>
+                  <span class="badge rounded-pill bg-primary-subtle text-primary px-2.5 py-1.5 fw-bold border border-primary-subtle"><i class="bi bi-stethoscope me-1"></i> Doctor</span>
                 {% elif u.role.name == 'Receptionist' %}
-                  <span class="badge bg-info text-dark">Receptionist</span>
+                  <span class="badge rounded-pill bg-info-subtle text-info px-2.5 py-1.5 fw-bold border border-info-subtle"><i class="bi bi-person-workspace me-1"></i> Receptionist</span>
                 {% elif u.role.name == 'Lab Technician' %}
-                  <span class="badge bg-purple text-white" style="background-color: #6f42c1;">Lab Tech</span>
+                  <span class="badge rounded-pill bg-warning-subtle text-warning px-2.5 py-1.5 fw-bold border border-warning-subtle" style="color: #B45309 !important;"><i class="bi bi-flask-fill me-1"></i> Lab Tech</span>
                 {% else %}
-                  <span class="badge bg-secondary">{{ u.role.name }}</span>
+                  <span class="badge rounded-pill bg-light text-dark px-2.5 py-1.5 fw-bold border">{{ u.role.name }}</span>
                 {% endif %}
               </td>
-              <td><small class="text-muted">{{ u.specialization or '-' }}</small></td>
+              <td><span class="text-muted small">{{ u.specialization or '—' }}</span></td>
               <td>
                 {% if u.is_active %}
-                  <span class="badge bg-success">Active</span>
+                  <span class="badge bg-success-subtle text-success px-2.5 py-1.5 fw-semibold border border-success-subtle"><i class="bi bi-check-circle-fill me-1"></i> Active</span>
                 {% else %}
-                  <span class="badge bg-secondary">Deactivated</span>
+                  <span class="badge bg-secondary-subtle text-secondary px-2.5 py-1.5 fw-semibold border"><i class="bi bi-dash-circle-fill me-1"></i> Inactive</span>
                 {% endif %}
               </td>
-              <td class="text-end">
+              <td class="text-end pe-3">
                 {% if u.id != current_user.id %}
                 <form action="{{ url_for('admin.toggle_user_active', user_id=u.id) }}" method="POST" class="d-inline">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   {% if u.is_active %}
-                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Deactivate this staff account?')">Deactivate</button>
+                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-semibold small" onclick="return confirm('Are you sure you want to deactivate {{ u.name }}?')">Deactivate</button>
                   {% else %}
-                    <button type="submit" class="btn btn-sm btn-outline-success">Activate</button>
+                    <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-semibold small">Activate</button>
                   {% endif %}
                 </form>
                 {% else %}
-                  <small class="text-muted fw-bold">(You)</small>
+                  <span class="text-muted small fw-semibold">Current Session</span>
                 {% endif %}
               </td>
             </tr>
             {% else %}
-            <tr><td colspan="7" class="text-center text-muted py-3">No staff accounts found.</td></tr>
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">No staff accounts found in database.</td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>
@@ -82,51 +106,58 @@
   </div>
 </div>
 
-<!-- Modal for Registering New Staff -->
+<!-- Modal: Register New Staff Account -->
 <div class="modal fade" id="createStaffModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4 border-0 shadow">
-      <div class="modal-header border-0 bg-light rounded-top-4">
-        <h5 class="modal-title fw-bold text-teal" style="color: var(--primary-color);"><i class="bi bi-person-plus me-2"></i> Register New Staff Account</h5>
+    <div class="modal-content rounded-4 border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0 pt-4 px-4">
+        <div class="d-flex align-items-center gap-2">
+          <div class="kpi-icon-wrapper kpi-icon-blue" style="width: 36px; height: 36px; font-size: 1rem;">
+            <i class="bi bi-person-plus-fill"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold text-slate-900 mb-0">Register New Staff</h5>
+            <p class="text-muted small mb-0">Add credentials and assign role permissions</p>
+          </div>
+        </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
+
       <form method="POST" action="{{ url_for('admin.users') }}">
         {{ form.hidden_tag() }}
         <div class="modal-body p-4">
           <div class="mb-3">
-            <label class="form-label fw-bold">Full Name</label>
-            {{ form.name(class="form-control", placeholder="Dr. Rajesh Kumar") }}
+            <label class="form-label fw-bold small text-slate-900">Full Name <span class="text-danger">*</span></label>
+            {{ form.name(class="form-control rounded-3", placeholder="e.g. Dr. Rajesh Verma") }}
           </div>
 
           <div class="mb-3">
-            <label class="form-label fw-bold">Email Address</label>
-            {{ form.email(class="form-control", placeholder="rajesh@hospital.com") }}
+            <label class="form-label fw-bold small text-slate-900">Email Address <span class="text-danger">*</span></label>
+            {{ form.email(class="form-control rounded-3", placeholder="rajesh.verma@medicore.com") }}
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold small text-slate-900">Role <span class="text-danger">*</span></label>
+              {{ form.role_id(class="form-select rounded-3") }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold small text-slate-900">Mobile Phone</label>
+              {{ form.phone(class="form-control rounded-3", placeholder="+91 98765 43210") }}
+            </div>
           </div>
 
           <div class="mb-3">
-            <label class="form-label fw-bold">Initial Password</label>
-            {{ form.password(class="form-control", placeholder="••••••••") }}
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label fw-bold">Role Assignment</label>
-            {{ form.role_id(class="form-select") }}
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label fw-bold">Mobile Phone Number</label>
-            {{ form.phone(class="form-control", placeholder="9876543210") }}
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label fw-bold">Specialization / Department</label>
-            {{ form.specialization(class="form-control", placeholder="Cardiology / General Medicine") }}
+            <label class="form-label fw-bold small text-slate-900">Password <span class="text-danger">*</span></label>
+            {{ form.password(class="form-control rounded-3", placeholder="Min. 8 characters") }}
           </div>
         </div>
 
-        <div class="modal-footer border-0 bg-light rounded-bottom-4">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          {{ form.submit(class="btn btn-primary-custom", style="width: auto;") }}
+        <div class="modal-footer border-0 pt-0 px-4 pb-4">
+          <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" style="background-color: var(--admin-blue-primary); border-color: var(--admin-blue-primary);">
+            <i class="bi bi-check-circle-fill me-1"></i> Create Account
+          </button>
         </div>
       </form>
     </div>

@@ -1,28 +1,36 @@
-{% extends 'base.html' %}
+{% extends 'admin/base_admin.html' %}
 
-{% block title %}Master Formulary Medicines - IPCMS{% endblock %}
+{% block title %}Pharmacy & Medicine Formulary — MediCore+ Admin{% endblock %}
+{% block header_title %}Pharmacy & Medicine Formulary{% endblock %}
+{% block header_subtitle %}Master Data Management — Add and manage hospital pharmacy formulary and drug inventory{% endblock %}
 
-{% block content %}
-<div class="container dashboard-container">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h3 class="fw-bold mb-1"><i class="bi bi-capsule text-teal me-2" style="color: var(--primary-color);"></i> Master Formulary Medicine Catalog</h3>
-      <p class="text-muted mb-0">Master Data Management — Add & manage hospital pharmacy drug inventory</p>
-    </div>
-    <button class="btn btn-primary-custom shadow-sm" data-bs-toggle="modal" data-bs-target="#addMedModal" style="width: auto;">
-      <i class="bi bi-plus-circle me-1"></i> Add New Medicine
-    </button>
-  </div>
+{% block admin_content %}
+<div class="row g-4">
+  <div class="col-12">
+    <div class="admin-card">
+      <div class="admin-card-header flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon-wrapper kpi-icon-pink" style="width: 44px; height: 44px; font-size: 1.25rem;">
+            <i class="bi bi-capsule"></i>
+          </div>
+          <div>
+            <h3 class="admin-card-title mb-0">Medicine Master Formulary</h3>
+            <p class="text-muted small mb-0">{{ medicines|length }} medicines currently listed in catalog</p>
+          </div>
+        </div>
 
-  <div class="card border-0 shadow-sm rounded-4">
-    <div class="card-body p-0">
-      <div class="table-responsive">
+        <button class="btn btn-primary rounded-pill px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addMedModal" style="background-color: var(--admin-blue-primary); border-color: var(--admin-blue-primary);">
+          <i class="bi bi-plus-circle-fill"></i> Add Medicine
+        </button>
+      </div>
+
+      <div class="table-responsive mt-3">
         <table class="table table-hover align-middle mb-0">
           <thead class="table-light">
             <tr>
-              <th>#</th>
+              <th class="ps-3">#</th>
               <th>Brand Name</th>
-              <th>Generic Ingredient</th>
+              <th>Generic Active Ingredient</th>
               <th>Dosage Form</th>
               <th>Strength</th>
               <th>Status</th>
@@ -31,21 +39,23 @@
           <tbody>
             {% for m in medicines %}
             <tr>
-              <td>{{ loop.index }}</td>
-              <td class="fw-bold">{{ m.brand_name }}</td>
-              <td><small class="text-muted">{{ m.generic_name }}</small></td>
+              <td class="ps-3 text-muted small">{{ loop.index }}</td>
+              <td class="fw-bold text-slate-900">{{ m.brand_name }}</td>
+              <td><span class="text-muted small">{{ m.generic_name }}</span></td>
               <td><span class="badge bg-light text-dark border">{{ m.dosage_form }}</span></td>
               <td><code>{{ m.strength or 'N/A' }}</code></td>
               <td>
                 {% if m.is_active %}
-                  <span class="badge bg-success">Active</span>
+                  <span class="badge bg-success-subtle text-success px-2.5 py-1.5 fw-semibold border border-success-subtle"><i class="bi bi-check-circle-fill me-1"></i> Active</span>
                 {% else %}
-                  <span class="badge bg-secondary">Inactive</span>
+                  <span class="badge bg-secondary-subtle text-secondary px-2.5 py-1.5 fw-semibold border"><i class="bi bi-dash-circle-fill me-1"></i> Inactive</span>
                 {% endif %}
               </td>
             </tr>
             {% else %}
-            <tr><td colspan="8" class="text-center text-muted py-3">No medicines found in master catalog.</td></tr>
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">No medicines found in master catalog.</td>
+            </tr>
             {% endfor %}
           </tbody>
         </table>
@@ -54,58 +64,69 @@
   </div>
 </div>
 
-<!-- Modal for Adding New Medicine -->
+<!-- Modal: Add New Medicine -->
 <div class="modal fade" id="addMedModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4 border-0 shadow">
-      <div class="modal-header border-0 bg-light rounded-top-4">
-        <h5 class="modal-title fw-bold text-teal" style="color: var(--primary-color);"><i class="bi bi-capsule me-2"></i> Add Medicine to Master Formulary</h5>
+    <div class="modal-content rounded-4 border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0 pt-4 px-4">
+        <div class="d-flex align-items-center gap-2">
+          <div class="kpi-icon-wrapper kpi-icon-pink" style="width: 36px; height: 36px; font-size: 1rem;">
+            <i class="bi bi-capsule"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold text-slate-900 mb-0">Add Medicine</h5>
+            <p class="text-muted small mb-0">Add pharmaceutical drug to hospital formulary</p>
+          </div>
+        </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
+
       <form method="POST" action="{{ url_for('admin.master_medicines') }}">
         {{ form.hidden_tag() }}
         <div class="modal-body p-4">
           <div class="mb-3">
-            <label class="form-label fw-bold">Brand Name</label>
-            {{ form.brand_name(class="form-control", placeholder="Paracetamol / Crocin") }}
+            <label class="form-label fw-bold small text-slate-900">Brand Name <span class="text-danger">*</span></label>
+            {{ form.brand_name(class="form-control rounded-3", placeholder="e.g. Dolo 650 / Augmentin") }}
           </div>
 
           <div class="mb-3">
-            <label class="form-label fw-bold">Generic Active Ingredient</label>
-            {{ form.generic_name(class="form-control", placeholder="Acetaminophen") }}
+            <label class="form-label fw-bold small text-slate-900">Generic Active Ingredient <span class="text-danger">*</span></label>
+            {{ form.generic_name(class="form-control rounded-3", placeholder="e.g. Paracetamol / Amoxicillin") }}
           </div>
 
-          <div class="row g-2 mb-3">
+          <div class="row g-3 mb-3">
             <div class="col-md-6">
-              <label class="form-label fw-bold">Category</label>
-              {{ form.category(class="form-select") }}
+              <label class="form-label fw-bold small text-slate-900">Dosage Form</label>
+              {{ form.category(class="form-select rounded-3") }}
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-bold">Dosage Strength</label>
-              {{ form.dosage(class="form-control", placeholder="500 mg") }}
+              <label class="form-label fw-bold small text-slate-900">Strength</label>
+              {{ form.dosage(class="form-control rounded-3", placeholder="e.g. 650 mg") }}
             </div>
           </div>
 
-          <div class="row g-2 mb-3">
+          <div class="row g-3 mb-3">
             <div class="col-md-6">
-              <label class="form-label fw-bold">Unit Price (₹)</label>
-              {{ form.unit_price(class="form-control", placeholder="15.00") }}
+              <label class="form-label fw-bold small text-slate-900">Unit Price (₹)</label>
+              {{ form.unit_price(class="form-control rounded-3", placeholder="15.00") }}
             </div>
             <div class="col-md-6">
-              <label class="form-label fw-bold">Initial Stock</label>
-              {{ form.stock_quantity(class="form-control", placeholder="100") }}
+              <label class="form-label fw-bold small text-slate-900">Initial Stock</label>
+              {{ form.stock_quantity(class="form-control rounded-3", placeholder="100") }}
             </div>
           </div>
 
           <div class="mb-3">
-            <label class="form-label fw-bold">Manufacturer</label>
-            {{ form.manufacturer(class="form-control", placeholder="Cipla / Sun Pharma") }}
+            <label class="form-label fw-bold small text-slate-900">Manufacturer / Pharma Company</label>
+            {{ form.manufacturer(class="form-control rounded-3", placeholder="e.g. Sun Pharma / Cipla / Pfizer") }}
           </div>
         </div>
 
-        <div class="modal-footer border-0 bg-light rounded-bottom-4">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          {{ form.submit(class="btn btn-primary-custom", style="width: auto;") }}
+        <div class="modal-footer border-0 pt-0 px-4 pb-4">
+          <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" style="background-color: var(--admin-blue-primary); border-color: var(--admin-blue-primary);">
+            <i class="bi bi-check-circle-fill me-1"></i> Add to Formulary
+          </button>
         </div>
       </form>
     </div>

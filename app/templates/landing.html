@@ -1548,7 +1548,7 @@
           </li>
         </ul>
 
-        <!-- Right Side: Phone & Sign In/Sign Up -->
+        <!-- Right Side: Phone & Sign In / Sign Up / Dashboard -->
         <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
           <a href="tel:+919876543210" class="nav-contact-info d-none d-xl-flex">
             <div class="nav-contact-icon">
@@ -1558,13 +1558,23 @@
           </a>
 
           {% if current_user.is_authenticated %}
-          <a href="{{ url_for('auth.dashboard') }}" class="btn-nav-auth">
-            <i class="bi bi-speedometer2"></i> Dashboard
-          </a>
+          <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('auth.dashboard') }}" class="btn-nav-auth" title="Go to {{ current_user.role.name if current_user.role else 'User' }} Dashboard">
+              <i class="bi bi-speedometer2 me-1"></i> Dashboard
+            </a>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-2 fw-semibold" title="Sign out of {{ current_user.name }}">
+              <i class="bi bi-box-arrow-right me-1"></i> Logout
+            </a>
+          </div>
           {% else %}
-          <a href="{{ url_for('auth.login') }}" class="btn-nav-auth">
-            <i class="bi bi-person-circle"></i> Sign In / Sign Up <i class="bi bi-arrow-right"></i>
-          </a>
+          <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('auth.login') }}" class="btn-nav-auth">
+              <i class="bi bi-person-circle me-1"></i> Sign In
+            </a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-2 fw-semibold" style="border-width: 1.5px;">
+              <i class="bi bi-person-plus-fill me-1"></i> Sign Up
+            </a>
+          </div>
           {% endif %}
         </div>
       </div>

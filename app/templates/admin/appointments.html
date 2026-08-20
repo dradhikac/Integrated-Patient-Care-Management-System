@@ -1,0 +1,68 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Appointments Master List — MediCore+ Admin{% endblock %}
+{% block header_title %}Hospital Appointments{% endblock %}
+{% block header_subtitle %}Overview of OPD visits, priority emergency queues, and physician bookings{% endblock %}
+
+{% block admin_content %}
+<div class="row g-4">
+  <div class="col-12">
+    <div class="admin-card">
+      <div class="admin-card-header flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="kpi-icon-wrapper kpi-icon-emerald" style="width: 44px; height: 44px; font-size: 1.25rem;">
+            <i class="bi bi-calendar-event"></i>
+          </div>
+          <div>
+            <h3 class="admin-card-title mb-0">Appointments Log</h3>
+            <p class="text-muted small mb-0">{{ appointments|length }} total appointments recorded in database</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-responsive mt-3">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">Token #</th>
+              <th>Patient Name</th>
+              <th>Doctor</th>
+              <th>Date & Time</th>
+              <th>Priority</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for apt in appointments %}
+            <tr>
+              <td class="ps-3"><span class="badge bg-light text-dark border font-monospace">#{{ apt.token_number or apt.id }}</span></td>
+              <td class="fw-bold text-slate-900">{{ apt.patient.name if apt.patient else 'Walk-in Patient' }}</td>
+              <td><span class="text-muted small">{{ apt.doctor.name if apt.doctor else 'Unassigned' }}</span></td>
+              <td><span class="text-muted small">{{ apt.appointment_date.strftime('%Y-%m-%d') if apt.appointment_date else '—' }} ({{ apt.slot_time or 'Morning' }})</span></td>
+              <td>
+                {% if apt.priority == 'Emergency' %}
+                  <span class="badge bg-danger-subtle text-danger px-2.5 py-1.5 fw-bold border border-danger-subtle">Emergency</span>
+                {% elif apt.priority == 'Urgent' %}
+                  <span class="badge bg-warning-subtle text-warning px-2.5 py-1.5 fw-bold border border-warning-subtle">Urgent</span>
+                {% else %}
+                  <span class="badge bg-light text-dark px-2.5 py-1.5 fw-medium border">Normal</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge bg-info-subtle text-info px-2.5 py-1.5 fw-semibold border border-info-subtle">
+                  {{ apt.status }}
+                </span>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">No appointments found in database.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

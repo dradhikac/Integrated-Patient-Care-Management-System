@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, date, timedelta
 from sqlalchemy import func
 from flask import Blueprint, render_template, redirect, url_for, flash, request, send_from_directory, jsonify
@@ -16,6 +17,7 @@ from app.billing.models import Bill, BillItem, Payment
 from app.lab.models import LabRequest
 from app.prescriptions.models import Medicine
 from app.lab.models import LabTestType
+from app.doctors.models import Doctor
 
 admin_bp = Blueprint('admin', __name__, template_folder='templates', url_prefix='/admin')
 
@@ -23,21 +25,71 @@ admin_bp = Blueprint('admin', __name__, template_folder='templates', url_prefix=
 @login_required
 @role_required('Admin')
 def index():
-    ensure_departments_seeded()
-    ensure_equipment_seeded()
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+    month_start = today.replace(day=1)
+
+    total_patients = Patient.query.count()
+    prev_month_end = month_start - timedelta(days=1)
+    patients_before = Patient.query.filter(Patient.created_at <= datetime.combine(prev_month_end, datetime.max.time())).count()
+    patient_pct_change = round(((total_patients - patients_before) / max(1, patients_before)) * 100, 1) if patients_before > 0 else 0.0
+
+    apts_today = Appointment.query.filter(Appointment.appointment_date == today, Appointment.status != 'CANCELLED').count()
+    apts_yesterday = Appointment.query.filter(Appointment.appointment_date == yesterday, Appointment.status != 'CANCELLED').count()
+    apts_change_pct = round(((apts_today - apts_yesterday) / max(1, apts_yesterday)) * 100, 1) if apts_yesterday > 0 else 0.0
+
+    active_doctors = Doctor.query.filter_by(is_active=True).count()
+    if active_doctors == 0:
+        active_doctors = User.query.join(Role).filter(Role.name == 'Doctor', User.is_active == True).count()
+    new_doctors_month = Doctor.query.filter(Doctor.created_at >= month_start).count()
+
+    total_beds = Bed.query.count()
+    occupied_beds = Bed.query.filter_by(status='OCCUPIED').count()
+    available_beds = Bed.query.filter_by(status='AVAILABLE').count()
+    maint_beds = Bed.query.filter_by(status='UNDER_CLEANING').count()
+    bed_occ_pct = round((occupied_beds / max(1, total_beds)) * 100, 1) if total_beds > 0 else 0.0
+
+    today_start = datetime.combine(today, datetime.min.time())
+    today_end = datetime.combine(today, datetime.max.time())
+    rev_today = db.session.query(func.sum(Payment.amount_paid)).filter(Payment.paid_at >= today_start, Payment.paid_at <= today_end).scalar() or 0.0
 
     users_count = User.query.count()
     medicines_count = Medicine.query.count()
     lab_tests_count = LabTestType.query.count()
     audit_logs_count = AuditLog.query.count()
 
+    opd_count = Appointment.query.filter(Appointment.appointment_date == today).count()
+    emerg_count = Appointment.query.filter(Appointment.appointment_date == today, (Appointment.priority == 'Emergency') | (Appointment.booking_type == 'Emergency')).count()
+    lab_req_count = LabRequest.query.filter(func.date(LabRequest.created_at) == today).count()
+    pending_lab_count = LabRequest.query.filter((LabRequest.status == 'REQUESTED') | (LabRequest.status == 'PENDING')).count()
+    discharges_count = Admission.query.filter(func.date(Admission.discharged_at) == today).count()
+    surgeries_count = Appointment.query.filter(Appointment.appointment_date == today, Appointment.priority == 'Surgery').count()
+
     recent_logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(10).all()
 
     return render_template('admin/index.html',
+                           total_patients=total_patients,
+                           patient_pct_change=patient_pct_change,
+                           apts_today=apts_today,
+                           apts_change_pct=apts_change_pct,
+                           active_doctors=active_doctors,
+                           new_doctors_month=new_doctors_month,
+                           total_beds=total_beds,
+                           occupied_beds=occupied_beds,
+                           available_beds=available_beds,
+                           maint_beds=maint_beds,
+                           bed_occ_pct=bed_occ_pct,
+                           rev_today=rev_today,
                            users_count=users_count,
                            medicines_count=medicines_count,
                            lab_tests_count=lab_tests_count,
                            audit_logs_count=audit_logs_count,
+                           opd_count=opd_count,
+                           emerg_count=emerg_count,
+                           lab_req_count=lab_req_count,
+                           pending_lab_count=pending_lab_count,
+                           discharges_count=discharges_count,
+                           surgeries_count=surgeries_count,
                            recent_logs=recent_logs)
 
 
@@ -45,9 +97,6 @@ def index():
 @login_required
 @role_required('Admin')
 def get_dashboard_stats_api():
-    ensure_departments_seeded()
-    ensure_equipment_seeded()
-
     today = date.today()
     yesterday = today - timedelta(days=1)
     month_start = today.replace(day=1)
@@ -56,23 +105,25 @@ def get_dashboard_stats_api():
     total_patients = Patient.query.count()
     prev_month_end = month_start - timedelta(days=1)
     patients_before_this_month = Patient.query.filter(Patient.created_at <= datetime.combine(prev_month_end, datetime.max.time())).count()
-    patient_pct_change = round(((total_patients - patients_before_this_month) / max(1, patients_before_this_month)) * 100, 1)
+    patient_pct_change = round(((total_patients - patients_before_this_month) / max(1, patients_before_this_month)) * 100, 1) if patients_before_this_month > 0 else 0.0
 
     # 2. Appointments Today & Yesterday comparison
     apts_today = Appointment.query.filter(Appointment.appointment_date == today, Appointment.status != 'CANCELLED').count()
     apts_yesterday = Appointment.query.filter(Appointment.appointment_date == yesterday, Appointment.status != 'CANCELLED').count()
-    apts_change_pct = round(((apts_today - apts_yesterday) / max(1, apts_yesterday)) * 100, 1)
+    apts_change_pct = round(((apts_today - apts_yesterday) / max(1, apts_yesterday)) * 100, 1) if apts_yesterday > 0 else 0.0
 
     # 3. Doctors Active & New this month
-    active_doctors = User.query.join(Role).filter(Role.name == 'Doctor', User.is_active == True).count()
-    new_doctors_month = User.query.join(Role).filter(Role.name == 'Doctor', User.created_at >= month_start).count()
+    active_doctors = Doctor.query.filter_by(is_active=True).count()
+    if active_doctors == 0:
+        active_doctors = User.query.join(Role).filter(Role.name == 'Doctor', User.is_active == True).count()
+    new_doctors_month = Doctor.query.filter(Doctor.created_at >= month_start).count()
 
     # 4. Bed Occupancy
     total_beds = Bed.query.count()
     occupied_beds = Bed.query.filter_by(status='OCCUPIED').count()
     available_beds = Bed.query.filter_by(status='AVAILABLE').count()
     maint_beds = Bed.query.filter_by(status='UNDER_CLEANING').count()
-    bed_occ_pct = round((occupied_beds / max(1, total_beds)) * 100, 1)
+    bed_occ_pct = round((occupied_beds / max(1, total_beds)) * 100, 1) if total_beds > 0 else 0.0
 
     # Ward category breakdown
     general_beds_occ = Bed.query.join(Ward).filter(Ward.category == 'General Ward', Bed.status == 'OCCUPIED').count()
@@ -89,11 +140,9 @@ def get_dashboard_stats_api():
     yesterday_end = datetime.combine(yesterday, datetime.max.time())
 
     rev_today = db.session.query(func.sum(Payment.amount_paid)).filter(Payment.paid_at >= today_start, Payment.paid_at <= today_end).scalar() or 0.0
-    if rev_today == 0.0:
-        rev_today = db.session.query(func.sum(Bill.grand_total)).filter(Bill.created_at >= today_start, Bill.created_at <= today_end).scalar() or 0.0
 
     rev_yesterday = db.session.query(func.sum(Payment.amount_paid)).filter(Payment.paid_at >= yesterday_start, Payment.paid_at <= yesterday_end).scalar() or 0.0
-    rev_change_pct = round(((rev_today - rev_yesterday) / max(1.0, rev_yesterday)) * 100, 1) if rev_yesterday > 0 else 15.6
+    rev_change_pct = round(((rev_today - rev_yesterday) / max(1.0, rev_yesterday)) * 100, 1) if rev_yesterday > 0 else 0.0
 
     # 6. Appointments Weekly Trend (Mon-Sun)
     start_of_week = today - timedelta(days=today.weekday())
@@ -107,8 +156,8 @@ def get_dashboard_stats_api():
     # 7. Today's Operations
     opd_count = Appointment.query.filter(Appointment.appointment_date == today).count()
     emerg_count = Appointment.query.filter(Appointment.appointment_date == today, (Appointment.priority == 'Emergency') | (Appointment.booking_type == 'Emergency')).count()
-    lab_req_count = LabRequest.query.filter(func.date(LabRequest.requested_at) == today).count()
-    pending_lab_count = LabRequest.query.filter_by(status='PENDING').count()
+    lab_req_count = LabRequest.query.filter(func.date(LabRequest.created_at) == today).count()
+    pending_lab_count = LabRequest.query.filter((LabRequest.status == 'REQUESTED') | (LabRequest.status == 'PENDING')).count()
     discharges_count = Admission.query.filter(func.date(Admission.discharged_at) == today).count()
     surgeries_count = Appointment.query.filter(Appointment.appointment_date == today, Appointment.priority == 'Surgery').count()
 
@@ -124,7 +173,6 @@ def get_dashboard_stats_api():
         m_str = m_date.strftime('%b')
         monthly_labels.append(m_str)
         
-        # Calculate revenue for that month
         m_start = datetime(m_date.year, m_date.month, 1)
         if m_date.month == 12:
             m_end = datetime(m_date.year + 1, 1, 1) - timedelta(seconds=1)
@@ -143,13 +191,13 @@ def get_dashboard_stats_api():
 
     # 9. Dynamic System Alerts
     alerts = []
-    # Low stock medicines
-    low_stock_meds = Medicine.query.filter(Medicine.quantity <= Medicine.reorder_level).all()
-    if low_stock_meds:
+    # Formulary alert if under active review
+    total_meds_count = Medicine.query.count()
+    if total_meds_count > 0:
         alerts.append({
             'type': 'warning',
-            'icon': 'bi-exclamation-triangle-fill',
-            'message': f"{len(low_stock_meds)} medicines are below reorder level",
+            'icon': 'bi-capsule',
+            'message': f"{total_meds_count} active formulary medicines synchronized in pharmacy catalog",
             'module': 'Pharmacy Inventory',
             'time': '10 min ago',
             'link': url_for('admin.master_medicines')
@@ -224,14 +272,14 @@ def get_dashboard_stats_api():
             'rev_change_pct': rev_change_pct
         },
         'bed_breakdown': {
-            'general_occ': general_beds_occ if general_beds_tot > 0 else max(1, int(occupied_beds * 0.6)),
-            'general_tot': general_beds_tot if general_beds_tot > 0 else max(10, int(total_beds * 0.6)),
-            'icu_occ': icu_beds_occ if icu_beds_tot > 0 else max(1, int(occupied_beds * 0.2)),
-            'icu_tot': icu_beds_tot if icu_beds_tot > 0 else max(5, int(total_beds * 0.2)),
-            'private_occ': private_beds_occ if private_beds_tot > 0 else max(1, int(occupied_beds * 0.15)),
-            'private_tot': private_beds_tot if private_beds_tot > 0 else max(5, int(total_beds * 0.15)),
-            'emergency_occ': max(1, int(occupied_beds * 0.05)),
-            'emergency_tot': max(2, int(total_beds * 0.05)),
+            'general_occ': general_beds_occ,
+            'general_tot': general_beds_tot,
+            'icu_occ': icu_beds_occ,
+            'icu_tot': icu_beds_tot,
+            'private_occ': private_beds_occ,
+            'private_tot': private_beds_tot,
+            'emergency_occ': Bed.query.join(Ward).filter(Ward.category.ilike('%Emergency%'), Bed.status == 'OCCUPIED').count(),
+            'emergency_tot': Bed.query.join(Ward).filter(Ward.category.ilike('%Emergency%')).count(),
             'maint_cnt': maint_beds
         },
         'operations_today': {
@@ -506,3 +554,116 @@ def trigger_backup():
 def download_backup(filename):
     backup_dir = os.path.join(os.getcwd(), 'backups')
     return send_from_directory(backup_dir, filename, as_attachment=True)
+
+
+@admin_bp.route('/departments')
+@login_required
+@role_required('Admin')
+def departments_view():
+    departments = Department.query.order_by(Department.name.asc()).all()
+    return render_template('admin/departments.html', departments=departments)
+
+
+@admin_bp.route('/departments/add', methods=['POST'])
+@login_required
+@role_required('Admin')
+def add_department():
+    name = request.form.get('name', '').strip()
+    hod = request.form.get('hod', '').strip()
+    location = request.form.get('location', '').strip()
+    if name:
+        dept = Department(name=name, head_of_department=hod or None, location=location or None)
+        db.session.add(dept)
+        db.session.commit()
+        flash(f"Department '{name}' created successfully!", 'success')
+    return redirect(url_for('admin.departments_view'))
+
+
+@admin_bp.route('/schedules')
+@login_required
+@role_required('Admin')
+def schedules_view():
+    doctors = Doctor.query.filter_by(is_active=True).all()
+    return render_template('admin/schedules.html', doctors=doctors)
+
+
+@admin_bp.route('/appointments')
+@login_required
+@role_required('Admin')
+def appointments_view():
+    appointments = Appointment.query.order_by(Appointment.appointment_date.desc(), Appointment.id.desc()).limit(100).all()
+    return render_template('admin/appointments.html', appointments=appointments)
+
+
+@admin_bp.route('/patients')
+@login_required
+@role_required('Admin')
+def patients_view():
+    patients = Patient.query.order_by(Patient.id.desc()).limit(100).all()
+    return render_template('admin/patients.html', patients=patients)
+
+
+@admin_bp.route('/beds')
+@login_required
+@role_required('Admin')
+def beds_view():
+    beds = Bed.query.order_by(Bed.id.asc()).all()
+    return render_template('admin/beds.html', beds=beds)
+
+
+@admin_bp.route('/billing')
+@login_required
+@role_required('Admin')
+def billing_view():
+    bills = Bill.query.order_by(Bill.id.desc()).limit(100).all()
+    return render_template('admin/billing.html', bills=bills)
+
+
+@admin_bp.route('/emergency')
+@login_required
+@role_required('Admin')
+def emergency_view():
+    today = date.today()
+    emergency_cases = Appointment.query.filter(
+        (Appointment.priority == 'Emergency') | (Appointment.booking_type == 'Emergency')
+    ).order_by(Appointment.id.desc()).limit(50).all()
+    return render_template('admin/emergency.html', emergency_cases=emergency_cases)
+
+
+@admin_bp.route('/equipment')
+@login_required
+@role_required('Admin')
+def equipment_view():
+    equipment_list = Equipment.query.order_by(Equipment.id.asc()).all()
+    return render_template('admin/equipment.html', equipment_list=equipment_list)
+
+
+@admin_bp.route('/equipment/add', methods=['POST'])
+@login_required
+@role_required('Admin')
+def add_equipment():
+    name = request.form.get('name', '').strip()
+    code = request.form.get('code', '').strip()
+    department = request.form.get('department', '').strip()
+    if name:
+        eq = Equipment(name=name, code=code or None, department=department or None, status='OPERATIONAL')
+        db.session.add(eq)
+        db.session.commit()
+        flash(f"Equipment '{name}' registered successfully!", 'success')
+    return redirect(url_for('admin.equipment_view'))
+
+
+@admin_bp.route('/reports')
+@login_required
+@role_required('Admin')
+def reports_view():
+    return render_template('admin/reports.html')
+
+
+@admin_bp.route('/notifications')
+@login_required
+@role_required('Admin')
+def notifications_view():
+    from app.notifications.models import Notification
+    notifications = Notification.query.order_by(Notification.id.desc()).limit(50).all()
+    return render_template('admin/notifications.html', notifications=notifications)

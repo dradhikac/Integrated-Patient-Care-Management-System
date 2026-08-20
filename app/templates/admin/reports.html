@@ -1,0 +1,42 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Hospital Analytics & Reports — MediCore+ Admin{% endblock %}
+{% block header_title %}Hospital Analytics & Clinical Reports{% endblock %}
+{% block header_subtitle %}Operational intelligence, revenue breakdown, bed occupancy metrics, and department KPIs{% endblock %}
+
+{% block admin_content %}
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="admin-card text-center p-4">
+      <div class="kpi-icon-wrapper kpi-icon-blue mx-auto mb-3" style="width: 54px; height: 54px; font-size: 1.5rem;">
+        <i class="bi bi-file-earmark-bar-graph"></i>
+      </div>
+      <h5 class="fw-bold text-slate-900 mb-1">OPD Patient Census Report</h5>
+      <p class="text-muted small mb-3">Daily outpatient load and clinic consultation volumes</p>
+      <a href="{{ url_for('reports.daily_census') }}" class="btn btn-outline-primary rounded-pill px-4 fw-bold small">Generate Report</a>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="admin-card text-center p-4">
+      <div class="kpi-icon-wrapper kpi-icon-emerald mx-auto mb-3" style="width: 54px; height: 54px; font-size: 1.5rem;">
+        <i class="bi bi-currency-rupee"></i>
+      </div>
+      <h5 class="fw-bold text-slate-900 mb-1">Financial Revenue Ledger</h5>
+      <p class="text-muted small mb-3">Billing collections, pending accounts, and payment methods</p>
+      <a href="{{ url_for('reports.revenue_report') }}" class="btn btn-outline-success rounded-pill px-4 fw-bold small">Generate Report</a>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="admin-card text-center p-4">
+      <div class="kpi-icon-wrapper kpi-icon-amber mx-auto mb-3" style="width: 54px; height: 54px; font-size: 1.5rem;">
+        <i class="bi bi-hospital-fill"></i>
+      </div>
+      <h5 class="fw-bold text-slate-900 mb-1">Inpatient Bed Utilization</h5>
+      <p class="text-muted small mb-3">Ward occupancy rate, average length of stay (ALOS)</p>
+      <a href="{{ url_for('reports.bed_occupancy') }}" class="btn btn-outline-warning rounded-pill px-4 fw-bold small" style="color: #D97706 !important;">Generate Report</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

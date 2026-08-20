@@ -1,621 +1,440 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Administrator Dashboard — MediCore+ Hospital</title>
-  
-  <!-- Bootstrap 5 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  
-  <!-- Admin Dashboard CSS -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
-</head>
-<body class="admin-dashboard-page">
+{% extends 'admin/base_admin.html' %}
 
-  <div class="admin-layout-wrapper">
-    <!-- Left Sidebar -->
-    <aside class="admin-sidebar" id="adminSidebar">
-      <div>
-        <div class="admin-sidebar-header">
-          <a href="{{ url_for('admin.index') }}" class="admin-brand">
-            <div class="admin-brand-icon">
-              <i class="bi bi-hospital"></i>
-            </div>
-            <div>
-              <span class="admin-brand-text">MediCore+</span>
-              <span class="admin-brand-sub">Care Beyond Compare</span>
-            </div>
-          </a>
-        </div>
+{% block title %}Administrator Dashboard — MediCore+ Hospital{% endblock %}
+{% block header_title %}Administrator Dashboard{% endblock %}
+{% block header_subtitle %}Overview of hospital operations and key metrics{% endblock %}
 
-        <!-- 17 Navigation Items -->
-        <nav class="admin-sidebar-menu">
-          <a href="{{ url_for('admin.index') }}" class="admin-nav-item active">
-            <i class="bi bi-grid-1x2-fill"></i> Dashboard
-          </a>
-          <a href="{{ url_for('admin.users') }}" class="admin-nav-item">
-            <i class="bi bi-people-fill"></i> Staff & Users
-          </a>
-          <a href="{{ url_for('admin.index') }}" class="admin-nav-item">
-            <i class="bi bi-building-fill"></i> Departments
-          </a>
-          <a href="{{ url_for('appointments.list_appointments') }}" class="admin-nav-item">
-            <i class="bi bi-calendar-range"></i> Doctor Schedules
-          </a>
-          <a href="{{ url_for('appointments.list_appointments') }}" class="admin-nav-item">
-            <i class="bi bi-calendar-event"></i> Appointments
-          </a>
-          <a href="{{ url_for('patients.list_patients') }}" class="admin-nav-item">
-            <i class="bi bi-person-heart"></i> Patients
-          </a>
-          <a href="{{ url_for('beds.index') }}" class="admin-nav-item">
-            <i class="bi bi-hospital-fill"></i> Bed Management
-          </a>
-          <a href="{{ url_for('billing.index') }}" class="admin-nav-item">
-            <i class="bi bi-receipt-cutoff"></i> Billing & Finance
-          </a>
-          <a href="{{ url_for('admin.master_lab_tests') }}" class="admin-nav-item">
-            <i class="bi bi-flask"></i> Laboratory
-          </a>
-          <a href="{{ url_for('admin.master_medicines') }}" class="admin-nav-item">
-            <i class="bi bi-capsule"></i> Pharmacy & Inventory
-          </a>
-          <a href="{{ url_for('reception.dashboard') }}" class="admin-nav-item">
-            <i class="bi bi-ambulance"></i> Emergency
-          </a>
-          <a href="{{ url_for('admin.index') }}" class="admin-nav-item">
-            <i class="bi bi-tools"></i> Equipment
-          </a>
-          <a href="{{ url_for('reports.dashboard') }}" class="admin-nav-item">
-            <i class="bi bi-bar-chart-line-fill"></i> Reports & Analytics
-          </a>
-          <a href="{{ url_for('notifications.index') }}" class="admin-nav-item">
-            <i class="bi bi-bell-fill"></i> Notifications
-          </a>
-          <a href="{{ url_for('admin.audit_trail') }}" class="admin-nav-item">
-            <i class="bi bi-shield-check"></i> Audit Logs
-          </a>
-          <a href="{{ url_for('admin.settings') }}" class="admin-nav-item">
-            <i class="bi bi-gear-fill"></i> System Settings
-          </a>
-          <a href="{{ url_for('admin.backup') }}" class="admin-nav-item">
-            <i class="bi bi-database-fill-down"></i> Backup & Restore
-          </a>
-        </nav>
+{% block admin_content %}
+<!-- Row 1: Primary 5 KPI Cards -->
+<div class="kpi-cards-grid">
+  <!-- KPI 1: Total Patients -->
+  <div class="kpi-card">
+    <div class="kpi-icon-wrapper kpi-icon-blue">
+      <i class="bi bi-people-fill"></i>
+    </div>
+    <div class="kpi-details">
+      <div class="kpi-title">Total Patients</div>
+      <div class="kpi-value" id="kpiPatientsVal">{{ total_patients }}</div>
+      <div class="kpi-subtitle text-growth-up">
+        <i class="bi bi-arrow-up-short"></i> <span id="kpiPatientsGrowth">{{ patient_pct_change }}%</span> from last month
       </div>
-
-      <!-- Bottom System Status & Admin Profile -->
-      <div class="admin-sidebar-bottom">
-        <div class="system-status-box">
-          <div class="system-status-title">
-            <span class="pulse-dot-green"></span> System Status
-          </div>
-          <div class="system-status-val">All Systems Operational</div>
-          <a href="{{ url_for('admin.audit_trail') }}" class="system-status-link">View System Health →</a>
-        </div>
-
-        <div class="admin-user-badge">
-          <div class="admin-user-avatar">
-            {{ current_user.name[0] if current_user.name else 'A' }}
-          </div>
-          <div>
-            <div class="admin-user-name">{{ current_user.name }}</div>
-            <div class="admin-user-role">Super Administrator</div>
-          </div>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="admin-main-content">
-      <!-- Top Navigation Header -->
-      <header class="admin-top-header">
-        <div class="d-flex align-items-center gap-3">
-          <button class="btn btn-sm btn-light border-0 d-md-none" onclick="toggleMobileSidebar()">
-            <i class="bi bi-list fs-4"></i>
-          </button>
-          <div class="admin-top-title-group">
-            <h1>Administrator Dashboard</h1>
-            <p>Overview of hospital operations and key metrics</p>
-          </div>
-        </div>
-
-        <div class="admin-header-middle">
-          <button type="button" class="branch-selector-btn">
-            <i class="bi bi-hospital text-primary"></i>
-            <span>MediCore+ Hospital</span>
-            <i class="bi bi-chevron-down text-muted small"></i>
-          </button>
-
-          <div class="global-search-box">
-            <i class="bi bi-search"></i>
-            <input type="text" placeholder="Search patients, staff, invoices...">
-          </div>
-        </div>
-
-        <div class="admin-header-right">
-          <button type="button" class="icon-action-btn" title="Notifications">
-            <i class="bi bi-bell-fill"></i>
-            <span class="badge-counter">12</span>
-          </button>
-          
-          <button type="button" class="icon-action-btn" title="Help & Documentation">
-            <i class="bi bi-question-circle-fill"></i>
-          </button>
-
-          <div class="date-selector-box">
-            <i class="bi bi-calendar3 text-primary me-1"></i>
-            <span id="currentDateStr">20 August 2026, Thursday</span>
-            <i class="bi bi-chevron-down text-muted small"></i>
-          </div>
-
-          <button type="button" class="btn-refresh-stats" onclick="loadDashboardStats()" title="Refresh Dashboard Stats">
-            <i class="bi bi-arrow-clockwise"></i>
-          </button>
-        </div>
-      </header>
-
-      <!-- Dashboard Body Grid -->
-      <div class="admin-dashboard-body">
-        
-        <!-- Row 1: Primary 5 KPI Cards -->
-        <div class="kpi-cards-grid">
-          <!-- KPI 1: Total Patients -->
-          <div class="kpi-card">
-            <div class="kpi-icon-wrapper kpi-icon-blue">
-              <i class="bi bi-people-fill"></i>
-            </div>
-            <div class="kpi-details">
-              <div class="kpi-title">Total Patients</div>
-              <div class="kpi-value" id="kpiPatientsVal">{{ users_count * 15 + 12482 }}</div>
-              <div class="kpi-subtitle text-growth-up">
-                <i class="bi bi-arrow-up-short"></i> <span id="kpiPatientsGrowth">8.2%</span> from last month
-              </div>
-            </div>
-          </div>
-
-          <!-- KPI 2: Appointments Today -->
-          <div class="kpi-card">
-            <div class="kpi-icon-wrapper kpi-icon-emerald">
-              <i class="bi bi-calendar-check-fill"></i>
-            </div>
-            <div class="kpi-details">
-              <div class="kpi-title">Appointments Today</div>
-              <div class="kpi-value" id="kpiAptsTodayVal">486</div>
-              <div class="kpi-subtitle text-growth-up">
-                <i class="bi bi-arrow-up-short"></i> <span id="kpiAptsGrowth">12.4%</span> from yesterday
-              </div>
-            </div>
-          </div>
-
-          <!-- KPI 3: Doctors -->
-          <div class="kpi-card">
-            <div class="kpi-icon-wrapper kpi-icon-purple">
-              <i class="bi bi-person-badge-fill"></i>
-            </div>
-            <div class="kpi-details">
-              <div class="kpi-title">Doctors</div>
-              <div class="kpi-value" id="kpiDoctorsVal">126</div>
-              <div class="kpi-subtitle text-growth-up">
-                <i class="bi bi-arrow-up-short"></i> <span id="kpiNewDoctors">4</span> New this month
-              </div>
-            </div>
-          </div>
-
-          <!-- KPI 4: Beds Occupancy -->
-          <div class="kpi-card">
-            <div class="kpi-icon-wrapper kpi-icon-amber">
-              <i class="bi bi-hospital-fill"></i>
-            </div>
-            <div class="kpi-details">
-              <div class="kpi-title">Beds Occupancy</div>
-              <div class="kpi-value" id="kpiBedOccVal">70%</div>
-              <div class="kpi-subtitle text-muted" style="color: #64748B !important;">
-                <span id="kpiBedsSub">84 / 120 Beds occupied</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- KPI 5: Today's Revenue -->
-          <div class="kpi-card">
-            <div class="kpi-icon-wrapper kpi-icon-pink">
-              <i class="bi bi-currency-rupee"></i>
-            </div>
-            <div class="kpi-details">
-              <div class="kpi-title">Today's Revenue</div>
-              <div class="kpi-value" id="kpiRevTodayVal">₹1,85,420</div>
-              <div class="kpi-subtitle text-growth-up">
-                <i class="bi bi-arrow-up-short"></i> <span id="kpiRevGrowth">15.6%</span> from yesterday
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Row 2: Appointments Overview + Bed Occupancy + Today's Operations -->
-        <div class="row g-4 mb-4">
-          <!-- Appointments Overview Chart -->
-          <div class="col-lg-6">
-            <div class="admin-card">
-              <div class="admin-card-header">
-                <h3 class="admin-card-title">
-                  <i class="bi bi-graph-up text-primary"></i> Appointments Overview
-                </h3>
-                <select class="admin-card-select" id="aptsPeriodSelect" onchange="loadDashboardStats()">
-                  <option value="week">This Week</option>
-                  <option value="today">Today</option>
-                  <option value="month">This Month</option>
-                </select>
-              </div>
-              <div style="height: 280px; position: relative;">
-                <canvas id="aptsOverviewChart"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bed Occupancy Donut Chart -->
-          <div class="col-lg-3">
-            <div class="admin-card">
-              <div class="admin-card-header">
-                <h3 class="admin-card-title">
-                  <i class="bi bi-pie-chart-fill text-warning"></i> Bed Occupancy
-                </h3>
-                <a href="{{ url_for('beds.index') }}" class="btn btn-sm btn-link text-primary fw-bold p-0 text-decoration-none small">View All</a>
-              </div>
-
-              <div class="d-flex align-items-center justify-content-center mb-3" style="height: 170px; position: relative;">
-                <canvas id="bedOccupancyChart"></canvas>
-              </div>
-
-              <div class="row text-center pt-2 border-top g-1 small fw-bold">
-                <div class="col-3">
-                  <div class="text-muted small">Total Beds</div>
-                  <div class="text-slate-900" id="bedTotCount">120</div>
-                </div>
-                <div class="col-3">
-                  <div class="text-muted small">Occupied</div>
-                  <div class="text-danger" id="bedOccCount">84</div>
-                </div>
-                <div class="col-3">
-                  <div class="text-muted small">Available</div>
-                  <div class="text-success" id="bedAvailCount">29</div>
-                </div>
-                <div class="col-3">
-                  <div class="text-muted small">Maint</div>
-                  <div class="text-warning" id="bedMaintCount">7</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Today's Operations -->
-          <div class="col-lg-3">
-            <div class="admin-card">
-              <div class="admin-card-header">
-                <h3 class="admin-card-title">
-                  <i class="bi bi-activity text-danger"></i> Today's Operations
-                </h3>
-                <a href="{{ url_for('appointments.list_appointments') }}" class="btn btn-sm btn-link text-primary fw-bold p-0 text-decoration-none small">View All</a>
-              </div>
-
-              <div class="operations-list">
-                <a href="{{ url_for('appointments.list_appointments') }}" class="op-row">
-                  <div class="op-row-left">
-                    <div class="op-icon-box bg-primary-subtle text-primary"><i class="bi bi-calendar-event"></i></div>
-                    <span class="op-name">OPD Appointments</span>
-                  </div>
-                  <span class="op-count" id="opOpdCnt">486</span>
-                </a>
-
-                <a href="{{ url_for('reception.dashboard') }}" class="op-row">
-                  <div class="op-row-left">
-                    <div class="op-icon-box bg-danger-subtle text-danger"><i class="bi bi-ambulance"></i></div>
-                    <span class="op-name">Emergency Patients</span>
-                  </div>
-                  <span class="op-count text-danger" id="opEmergCnt">38</span>
-                </a>
-
-                <a href="{{ url_for('admin.master_lab_tests') }}" class="op-row">
-                  <div class="op-row-left">
-                    <div class="op-icon-box bg-info-subtle text-info"><i class="bi bi-flask"></i></div>
-                    <span class="op-name">Lab Requests</span>
-                  </div>
-                  <span class="op-count text-info" id="opLabCnt">214</span>
-                </a>
-
-                <a href="{{ url_for('admin.master_lab_tests') }}" class="op-row">
-                  <div class="op-row-left">
-                    <div class="op-icon-box bg-warning-subtle text-warning"><i class="bi bi-hourglass-split"></i></div>
-                    <span class="op-name">Pending Lab Reports</span>
-                  </div>
-                  <span class="op-count text-warning" id="opPendingLabCnt">17</span>
-                </a>
-
-                <a href="{{ url_for('beds.index') }}" class="op-row">
-                  <div class="op-row-left">
-                    <div class="op-icon-box bg-success-subtle text-success"><i class="bi bi-box-arrow-right"></i></div>
-                    <span class="op-name">Discharges</span>
-                  </div>
-                  <span class="op-count text-success" id="opDischargeCnt">26</span>
-                </a>
-
-                <a href="{{ url_for('appointments.list_appointments') }}" class="op-row">
-                  <div class="op-row-left">
-                    <div class="op-icon-box bg-purple-subtle text-purple" style="color: #7C3AED;"><i class="bi bi-heart-pulse"></i></div>
-                    <span class="op-name">Surgeries</span>
-                  </div>
-                  <span class="op-count" style="color: #7C3AED;" id="opSurgeryCnt">8</span>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Row 3: Revenue Overview + Recent Alerts + System Overview -->
-        <div class="row g-4">
-          <!-- Revenue Overview Chart -->
-          <div class="col-lg-5">
-            <div class="admin-card">
-              <div class="admin-card-header">
-                <div>
-                  <h3 class="admin-card-title"><i class="bi bi-cash-stack text-success"></i> Revenue Overview</h3>
-                  <div class="fs-4 fw-800 text-slate-900 mt-1" id="totalRevHeading">₹68,75,420</div>
-                  <div class="small fw-semibold text-success"><i class="bi bi-arrow-up-short"></i> 18.7% from last month</div>
-                </div>
-                <select class="admin-card-select">
-                  <option>This Month</option>
-                  <option>Last Quarter</option>
-                </select>
-              </div>
-
-              <div style="height: 220px; position: relative;">
-                <canvas id="revenueOverviewChart"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <!-- Recent Alerts -->
-          <div class="col-lg-4">
-            <div class="admin-card">
-              <div class="admin-card-header">
-                <h3 class="admin-card-title"><i class="bi bi-bell-fill text-warning"></i> Recent Alerts</h3>
-                <a href="{{ url_for('notifications.index') }}" class="btn btn-sm btn-link text-primary fw-bold p-0 text-decoration-none small">View All</a>
-              </div>
-
-              <div class="alerts-list" id="alertsListContainer">
-                <div class="text-center p-4 text-muted">
-                  <div class="spinner-border spinner-border-sm text-primary me-2"></div> Loading live alerts...
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- System Overview & Quick Actions -->
-          <div class="col-lg-3">
-            <div class="admin-card">
-              <div class="admin-card-header">
-                <h3 class="admin-card-title"><i class="bi bi-cpu-fill text-info"></i> System Overview</h3>
-              </div>
-
-              <div class="sys-metric-grid">
-                <div class="sys-metric-card">
-                  <div class="sys-metric-title">Active Staff</div>
-                  <div class="sys-metric-val" id="sysStaffVal">{{ users_count }}</div>
-                </div>
-
-                <div class="sys-metric-card">
-                  <div class="sys-metric-title">Lab Tests</div>
-                  <div class="sys-metric-val" id="sysLabVal">{{ lab_tests_count }}</div>
-                </div>
-
-                <div class="sys-metric-card">
-                  <div class="sys-metric-title">Medicines</div>
-                  <div class="sys-metric-val" id="sysMedVal">{{ medicines_count }}</div>
-                </div>
-
-                <div class="sys-metric-card">
-                  <div class="sys-metric-title">Logs (Today)</div>
-                  <div class="sys-metric-val" id="sysLogsVal">{{ audit_logs_count }}</div>
-                </div>
-              </div>
-
-              <div class="fw-bold small text-muted text-uppercase mb-2">Quick Actions</div>
-              <div class="quick-actions-flex">
-                <a href="{{ url_for('admin.users') }}" class="btn-quick-act">
-                  <i class="bi bi-person-plus-fill"></i> Add Staff
-                </a>
-                <a href="{{ url_for('admin.settings') }}" class="btn-quick-act">
-                  <i class="bi bi-building"></i> Add Dept
-                </a>
-                <form action="{{ url_for('admin.trigger_backup') }}" method="POST" class="d-inline">
-                  <button type="submit" class="btn-quick-act w-100">
-                    <i class="bi bi-cloud-arrow-down-fill"></i> Backup
-                  </button>
-                </form>
-                <a href="{{ url_for('reports.dashboard') }}" class="btn-quick-act">
-                  <i class="bi bi-file-earmark-bar-graph"></i> Reports
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Footer Bar -->
-      <footer class="admin-footer-bar">
-        <div>© 2026 MediCore+. All rights reserved.</div>
-        <div class="admin-footer-status">
-          <span><span class="pulse-dot-green"></span> Database: <strong>Connected</strong></span>
-          <span><span class="pulse-dot-green"></span> Backup: <strong>Up to date</strong></span>
-          <span>Version: <strong>2.1.0</strong></span>
-          <span><i class="bi bi-clock me-1"></i> Live Time: <strong id="liveClockStr">10:31 AM</strong></span>
-        </div>
-      </footer>
-    </main>
+    </div>
   </div>
 
-  <script>
-    let aptsChartInstance = null;
-    let bedChartInstance = null;
-    let revChartInstance = null;
+  <!-- KPI 2: Appointments Today -->
+  <div class="kpi-card">
+    <div class="kpi-icon-wrapper kpi-icon-emerald">
+      <i class="bi bi-calendar-check-fill"></i>
+    </div>
+    <div class="kpi-details">
+      <div class="kpi-title">Appointments Today</div>
+      <div class="kpi-value" id="kpiAptsTodayVal">{{ apts_today }}</div>
+      <div class="kpi-subtitle text-growth-up">
+        <i class="bi bi-arrow-up-short"></i> <span id="kpiAptsGrowth">{{ apts_change_pct }}%</span> from yesterday
+      </div>
+    </div>
+  </div>
 
-    function toggleMobileSidebar() {
-      document.getElementById('adminSidebar').classList.toggle('mobile-open');
-    }
+  <!-- KPI 3: Doctors -->
+  <div class="kpi-card">
+    <div class="kpi-icon-wrapper kpi-icon-purple">
+      <i class="bi bi-person-badge-fill"></i>
+    </div>
+    <div class="kpi-details">
+      <div class="kpi-title">Doctors</div>
+      <div class="kpi-value" id="kpiDoctorsVal">{{ active_doctors }}</div>
+      <div class="kpi-subtitle text-growth-up">
+        <i class="bi bi-arrow-up-short"></i> <span id="kpiNewDoctors">{{ new_doctors_month }}</span> New this month
+      </div>
+    </div>
+  </div>
 
-    function updateClock() {
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      document.getElementById('liveClockStr').innerText = timeStr;
-    }
+  <!-- KPI 4: Beds Occupancy -->
+  <div class="kpi-card">
+    <div class="kpi-icon-wrapper kpi-icon-amber">
+      <i class="bi bi-hospital-fill"></i>
+    </div>
+    <div class="kpi-details">
+      <div class="kpi-title">Beds Occupancy</div>
+      <div class="kpi-value" id="kpiBedOccVal">{{ bed_occ_pct }}%</div>
+      <div class="kpi-subtitle text-muted" style="color: #64748B !important;">
+        <span id="kpiBedsSub">{{ occupied_beds }} / {{ total_beds }} Beds occupied</span>
+      </div>
+    </div>
+  </div>
 
-    setInterval(updateClock, 1000);
-    updateClock();
+  <!-- KPI 5: Today's Revenue -->
+  <div class="kpi-card">
+    <div class="kpi-icon-wrapper kpi-icon-pink">
+      <i class="bi bi-currency-rupee"></i>
+    </div>
+    <div class="kpi-details">
+      <div class="kpi-title">Today's Revenue</div>
+      <div class="kpi-value" id="kpiRevTodayVal">₹{{ '{:,.0f}'.format(rev_today) }}</div>
+      <div class="kpi-subtitle text-growth-up">
+        <i class="bi bi-arrow-up-short"></i> <span id="kpiRevGrowth">+0%</span> from yesterday
+      </div>
+    </div>
+  </div>
+</div>
 
-    function loadDashboardStats() {
-      fetch('/admin/api/dashboard-stats')
-        .then(res => res.json())
-        .then(data => {
-          if (!data.success) return;
+<!-- Row 2: Appointments Overview + Bed Occupancy + Today's Operations -->
+<div class="row g-4 mb-4">
+  <!-- Appointments Overview Chart -->
+  <div class="col-lg-6">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title">
+          <i class="bi bi-graph-up text-primary"></i> Appointments Overview
+        </h3>
+        <select class="admin-card-select" id="aptsPeriodSelect" onchange="loadDashboardStats()">
+          <option value="week">This Week</option>
+          <option value="today">Today</option>
+          <option value="month">This Month</option>
+        </select>
+      </div>
+      <div style="height: 280px; position: relative;">
+        <canvas id="aptsOverviewChart"></canvas>
+      </div>
+    </div>
+  </div>
 
-          // 1. Update KPI Values
-          const k = data.kpis;
-          document.getElementById('kpiPatientsVal').innerText = k.total_patients.toLocaleString();
-          document.getElementById('kpiPatientsGrowth').innerText = (k.patient_pct_change >= 0 ? '+' : '') + k.patient_pct_change + '%';
-          
-          document.getElementById('kpiAptsTodayVal').innerText = k.apts_today.toLocaleString();
-          document.getElementById('kpiAptsGrowth').innerText = (k.apts_change_pct >= 0 ? '+' : '') + k.apts_change_pct + '%';
-          
-          document.getElementById('kpiDoctorsVal').innerText = k.active_doctors.toLocaleString();
-          document.getElementById('kpiNewDoctors').innerText = k.new_doctors_month;
+  <!-- Bed Occupancy Donut Chart -->
+  <div class="col-lg-3">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title">
+          <i class="bi bi-pie-chart-fill text-warning"></i> Bed Occupancy
+        </h3>
+        <a href="{{ url_for('admin.beds_view') }}" class="btn btn-sm btn-link text-primary fw-bold p-0 text-decoration-none small">View All</a>
+      </div>
 
-          document.getElementById('kpiBedOccVal').innerText = k.bed_occ_pct + '%';
-          document.getElementById('kpiBedsSub').innerText = `${k.occupied_beds} / ${k.total_beds} Beds occupied`;
+      <div class="d-flex align-items-center justify-content-center mb-3" style="height: 170px; position: relative;">
+        <canvas id="bedOccupancyChart"></canvas>
+      </div>
 
-          document.getElementById('kpiRevTodayVal').innerText = '₹' + k.rev_today.toLocaleString('en-IN');
-          document.getElementById('kpiRevGrowth').innerText = (k.rev_change_pct >= 0 ? '+' : '') + k.rev_change_pct + '%';
+      <div class="row text-center pt-2 border-top g-1 small fw-bold">
+        <div class="col-3">
+          <div class="text-muted small">Total Beds</div>
+          <div class="text-slate-900" id="bedTotCount">{{ total_beds }}</div>
+        </div>
+        <div class="col-3">
+          <div class="text-muted small">Occupied</div>
+          <div class="text-danger" id="bedOccCount">{{ occupied_beds }}</div>
+        </div>
+        <div class="col-3">
+          <div class="text-muted small">Available</div>
+          <div class="text-success" id="bedAvailCount">{{ available_beds }}</div>
+        </div>
+        <div class="col-3">
+          <div class="text-muted small">Maint</div>
+          <div class="text-warning" id="bedMaintCount">{{ maint_beds }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-          // Bed summary counts
-          document.getElementById('bedTotCount').innerText = k.total_beds;
-          document.getElementById('bedOccCount').innerText = k.occupied_beds;
-          document.getElementById('bedAvailCount').innerText = k.available_beds;
-          document.getElementById('bedMaintCount').innerText = k.maint_beds;
+  <!-- Today's Operations -->
+  <div class="col-lg-3">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title">
+          <i class="bi bi-activity text-danger"></i> Today's Operations
+        </h3>
+        <a href="{{ url_for('admin.appointments_view') }}" class="btn btn-sm btn-link text-primary fw-bold p-0 text-decoration-none small">View All</a>
+      </div>
 
-          // 2. Today's Operations
-          const op = data.operations_today;
-          document.getElementById('opOpdCnt').innerText = op.opd_appointments;
-          document.getElementById('opEmergCnt').innerText = op.emergency_patients;
-          document.getElementById('opLabCnt').innerText = op.lab_requests;
-          document.getElementById('opPendingLabCnt').innerText = op.pending_lab_reports;
-          document.getElementById('opDischargeCnt').innerText = op.discharges;
-          document.getElementById('opSurgeryCnt').innerText = op.surgeries;
-
-          // 3. System Overview
-          const sys = data.system_overview;
-          document.getElementById('sysStaffVal').innerText = sys.active_staff;
-          document.getElementById('sysLabVal').innerText = sys.lab_tests;
-          document.getElementById('sysMedVal').innerText = sys.medicines;
-          document.getElementById('sysLogsVal').innerText = sys.today_audit_logs;
-
-          // 4. Render Alerts List
-          renderAlerts(data.alerts);
-
-          // 5. Render Charts
-          renderAptsChart(data.weekly_appointments);
-          renderBedChart(data.bed_breakdown);
-          renderRevChart(data.revenue_trend);
-        })
-        .catch(err => console.error("Failed to load dashboard stats:", err));
-    }
-
-    function renderAlerts(alerts) {
-      const container = document.getElementById('alertsListContainer');
-      if (!container) return;
-      container.innerHTML = '';
-
-      alerts.forEach(a => {
-        const item = document.createElement('a');
-        item.href = a.link || '#';
-        item.className = `alert-item-card ${a.type}`;
-        item.innerHTML = `
-          <i class="bi ${a.icon} alert-item-icon"></i>
-          <div>
-            <div class="alert-item-msg">${a.message}</div>
-            <div class="alert-item-meta">${a.module} · ${a.time}</div>
+      <div class="operations-list">
+        <a href="{{ url_for('admin.appointments_view') }}" class="op-row">
+          <div class="op-row-left">
+            <div class="op-icon-box bg-primary-subtle text-primary"><i class="bi bi-calendar-event"></i></div>
+            <span class="op-name">OPD Appointments</span>
           </div>
-        `;
-        container.appendChild(item);
-      });
+          <span class="op-count" id="opOpdCnt">{{ opd_count }}</span>
+        </a>
+
+        <a href="{{ url_for('admin.emergency_view') }}" class="op-row">
+          <div class="op-row-left">
+            <div class="op-icon-box bg-danger-subtle text-danger"><i class="bi bi-ambulance"></i></div>
+            <span class="op-name">Emergency Patients</span>
+          </div>
+          <span class="op-count text-danger" id="opEmergCnt">{{ emerg_count }}</span>
+        </a>
+
+        <a href="{{ url_for('admin.master_lab_tests') }}" class="op-row">
+          <div class="op-row-left">
+            <div class="op-icon-box bg-info-subtle text-info"><i class="bi bi-flask"></i></div>
+            <span class="op-name">Lab Requests</span>
+          </div>
+          <span class="op-count text-info" id="opLabCnt">{{ lab_req_count }}</span>
+        </a>
+
+        <a href="{{ url_for('admin.master_lab_tests') }}" class="op-row">
+          <div class="op-row-left">
+            <div class="op-icon-box bg-warning-subtle text-warning"><i class="bi bi-hourglass-split"></i></div>
+            <span class="op-name">Pending Lab Reports</span>
+          </div>
+          <span class="op-count text-warning" id="opPendingLabCnt">{{ pending_lab_count }}</span>
+        </a>
+
+        <a href="{{ url_for('admin.beds_view') }}" class="op-row">
+          <div class="op-row-left">
+            <div class="op-icon-box bg-success-subtle text-success"><i class="bi bi-box-arrow-right"></i></div>
+            <span class="op-name">Discharges</span>
+          </div>
+          <span class="op-count text-success" id="opDischargeCnt">{{ discharges_count }}</span>
+        </a>
+
+        <a href="{{ url_for('admin.appointments_view') }}" class="op-row">
+          <div class="op-row-left">
+            <div class="op-icon-box bg-purple-subtle text-purple" style="color: #7C3AED;"><i class="bi bi-heart-pulse"></i></div>
+            <span class="op-name">Surgeries</span>
+          </div>
+          <span class="op-count" style="color: #7C3AED;" id="opSurgeryCnt">{{ surgeries_count }}</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 3: Revenue Overview + Recent Alerts + System Overview -->
+<div class="row g-4">
+  <!-- Revenue Overview Chart -->
+  <div class="col-lg-5">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <div>
+          <h3 class="admin-card-title"><i class="bi bi-cash-stack text-success"></i> Revenue Overview</h3>
+          <div class="fs-4 fw-800 text-slate-900 mt-1" id="totalRevHeading">₹{{ '{:,.0f}'.format(rev_today) }}</div>
+          <div class="small fw-semibold text-muted" id="revTrendSub"><i class="bi bi-arrow-right-short"></i> Dynamic Billing Total</div>
+        </div>
+        <select class="admin-card-select">
+          <option>This Month</option>
+          <option>Last Quarter</option>
+        </select>
+      </div>
+
+      <div style="height: 220px; position: relative;">
+        <canvas id="revenueOverviewChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Alerts -->
+  <div class="col-lg-4">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title"><i class="bi bi-bell-fill text-warning"></i> Recent Alerts</h3>
+        <a href="{{ url_for('admin.notifications_view') }}" class="btn btn-sm btn-link text-primary fw-bold p-0 text-decoration-none small">View All</a>
+      </div>
+
+      <div class="alerts-list" id="alertsListContainer">
+        <div class="text-center p-4 text-muted">
+          <div class="spinner-border spinner-border-sm text-primary me-2"></div> Loading live alerts...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Overview & Quick Actions -->
+  <div class="col-lg-3">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title"><i class="bi bi-cpu-fill text-info"></i> System Overview</h3>
+      </div>
+
+      <div class="sys-metric-grid">
+        <div class="sys-metric-card">
+          <div class="sys-metric-title">Active Staff</div>
+          <div class="sys-metric-val" id="sysStaffVal">{{ users_count }}</div>
+        </div>
+
+        <div class="sys-metric-card">
+          <div class="sys-metric-title">Lab Tests</div>
+          <div class="sys-metric-val" id="sysLabVal">{{ lab_tests_count }}</div>
+        </div>
+
+        <div class="sys-metric-card">
+          <div class="sys-metric-title">Medicines</div>
+          <div class="sys-metric-val" id="sysMedVal">{{ medicines_count }}</div>
+        </div>
+
+        <div class="sys-metric-card">
+          <div class="sys-metric-title">Logs (Today)</div>
+          <div class="sys-metric-val" id="sysLogsVal">{{ audit_logs_count }}</div>
+        </div>
+      </div>
+
+      <div class="fw-bold small text-muted text-uppercase mb-2">Quick Actions</div>
+      <div class="quick-actions-flex">
+        <a href="{{ url_for('admin.users') }}" class="btn-quick-act">
+          <i class="bi bi-person-plus-fill"></i> Add Staff
+        </a>
+        <a href="{{ url_for('admin.departments_view') }}" class="btn-quick-act">
+          <i class="bi bi-building"></i> Add Dept
+        </a>
+        <form action="{{ url_for('admin.trigger_backup') }}" method="POST" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn-quick-act w-100 border-0">
+            <i class="bi bi-cloud-arrow-down-fill"></i> Backup
+          </button>
+        </form>
+        <a href="{{ url_for('admin.reports_view') }}" class="btn-quick-act">
+          <i class="bi bi-file-earmark-bar-graph"></i> Reports
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let aptsChartInstance = null;
+  let bedChartInstance = null;
+  let revChartInstance = null;
+
+  async function loadDashboardStats() {
+    try {
+      const res = await fetch('{{ url_for("admin.get_dashboard_stats_api") }}');
+      const data = await res.json();
+      if (!data.success) return;
+
+      // Update KPI Cards
+      document.getElementById('kpiPatientsVal').innerText = data.kpis.total_patients;
+      document.getElementById('kpiPatientsGrowth').innerText = data.kpis.patient_pct_change + '%';
+
+      document.getElementById('kpiAptsTodayVal').innerText = data.kpis.apts_today;
+      document.getElementById('kpiAptsGrowth').innerText = data.kpis.apts_change_pct + '%';
+
+      document.getElementById('kpiDoctorsVal').innerText = data.kpis.active_doctors;
+      document.getElementById('kpiNewDoctors').innerText = data.kpis.new_doctors_month;
+
+      document.getElementById('kpiBedOccVal').innerText = data.kpis.bed_occ_pct + '%';
+      document.getElementById('kpiBedsSub').innerText = `${data.kpis.occupied_beds} / ${data.kpis.total_beds} Beds occupied`;
+
+      document.getElementById('kpiRevTodayVal').innerText = '₹' + Number(data.kpis.rev_today || 0).toLocaleString();
+      document.getElementById('totalRevHeading').innerText = '₹' + Number(data.kpis.rev_today || 0).toLocaleString();
+
+      // Bed Breakdown Stats
+      document.getElementById('bedTotCount').innerText = data.kpis.total_beds;
+      document.getElementById('bedOccCount').innerText = data.kpis.occupied_beds;
+      document.getElementById('bedAvailCount').innerText = data.kpis.available_beds;
+      document.getElementById('bedMaintCount').innerText = data.kpis.maint_beds;
+
+      // Today's Operations
+      document.getElementById('opOpdCnt').innerText = data.operations_today.opd_appointments;
+      document.getElementById('opEmergCnt').innerText = data.operations_today.emergency_patients;
+      document.getElementById('opLabCnt').innerText = data.operations_today.lab_requests;
+      document.getElementById('opPendingLabCnt').innerText = data.operations_today.pending_lab_reports;
+      document.getElementById('opDischargeCnt').innerText = data.operations_today.discharges;
+      document.getElementById('opSurgeryCnt').innerText = data.operations_today.surgeries;
+
+      // System Overview
+      document.getElementById('sysStaffVal').innerText = data.system_overview.active_staff;
+      document.getElementById('sysLabVal').innerText = data.system_overview.lab_tests;
+      document.getElementById('sysMedVal').innerText = data.system_overview.medicines;
+      document.getElementById('sysLogsVal').innerText = data.system_overview.today_audit_logs;
+
+      // Alerts
+      renderAlerts(data.alerts);
+
+      // Render Charts
+      renderAptsChart(data.weekly_appointments);
+      renderBedChart(data.bed_breakdown);
+      renderRevChart(data.revenue_trend);
+
+    } catch (err) {
+      console.error('Failed to fetch dashboard live stats:', err);
+    }
+  }
+
+  function renderAlerts(alerts) {
+    const container = document.getElementById('alertsListContainer');
+    container.innerHTML = '';
+    if (!alerts || alerts.length === 0) {
+      container.innerHTML = '<div class="text-center p-3 text-muted small">No active critical alerts</div>';
+      return;
     }
 
-    function renderAptsChart(weekly) {
-      const ctx = document.getElementById('aptsOverviewChart').getContext('2d');
-      if (aptsChartInstance) aptsChartInstance.destroy();
+    alerts.forEach(a => {
+      const item = document.createElement('a');
+      item.href = a.link || '#';
+      item.className = `alert-item alert-item-${a.type || 'info'}`;
+      item.innerHTML = `
+        <i class="bi ${a.icon} alert-item-icon"></i>
+        <div>
+          <div class="alert-item-msg">${a.message}</div>
+          <div class="alert-item-meta">${a.module} · ${a.time}</div>
+        </div>
+      `;
+      container.appendChild(item);
+    });
+  }
 
-      aptsChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: weekly.labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-          datasets: [{
-            label: 'Appointments',
-            data: weekly.counts && weekly.counts.length ? weekly.counts : [85, 92, 128, 110, 145, 98, 76],
-            borderColor: '#2563EB',
-            backgroundColor: 'rgba(37, 99, 235, 0.08)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: '#2563EB',
-            pointRadius: 5,
-            pointHoverRadius: 8
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: '#0F172A',
-              titleFont: { family: 'Plus Jakarta Sans', weight: 'bold' },
-              bodyFont: { family: 'Plus Jakarta Sans' },
-              padding: 10,
-              cornerRadius: 10
-            }
-          },
-          scales: {
-            x: { grid: { display: false } },
-            y: { grid: { color: '#F1F5F9' }, beginAtZero: true }
+  function renderAptsChart(weekly) {
+    const ctx = document.getElementById('aptsOverviewChart').getContext('2d');
+    if (aptsChartInstance) aptsChartInstance.destroy();
+
+    aptsChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: weekly.labels || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+          label: 'Appointments',
+          data: weekly.counts || [0, 0, 0, 0, 0, 0, 0],
+          borderColor: '#2563EB',
+          backgroundColor: 'rgba(37, 99, 235, 0.08)',
+          borderWidth: 3,
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#2563EB',
+          pointRadius: 5,
+          pointHoverRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0F172A',
+            titleFont: { family: 'Plus Jakarta Sans', weight: 'bold' },
+            bodyFont: { family: 'Plus Jakarta Sans' },
+            padding: 10,
+            cornerRadius: 10
           }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: { grid: { color: '#F1F5F9' }, beginAtZero: true }
         }
-      });
-    }
+      }
+    });
+  }
 
-    function renderBedChart(breakdown) {
-      const ctx = document.getElementById('bedOccupancyChart').getContext('2d');
-      if (bedChartInstance) bedChartInstance.destroy();
+  function renderBedChart(breakdown) {
+    const ctx = document.getElementById('bedOccupancyChart').getContext('2d');
+    if (bedChartInstance) bedChartInstance.destroy();
 
+    const vals = [
+      breakdown.general_occ || 0,
+      breakdown.icu_occ || 0,
+      breakdown.private_occ || 0,
+      breakdown.emergency_occ || 0,
+      breakdown.maint_cnt || 0
+    ];
+    const sum = vals.reduce((a, b) => a + b, 0);
+
+    if (sum === 0) {
       bedChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: ['General Ward', 'ICU', 'Private Rooms', 'Emergency', 'Maintenance'],
+          labels: ['No Active Beds'],
           datasets: [{
-            data: [
-              breakdown.general_occ || 72,
-              breakdown.icu_occ || 18,
-              breakdown.private_occ || 31,
-              breakdown.emergency_occ || 6,
-              breakdown.maint_cnt || 7
-            ],
-            backgroundColor: ['#2563EB', '#10B981', '#9333EA', '#F59E0B', '#64748B'],
+            data: [1],
+            backgroundColor: ['#E2E8F0'],
             borderWidth: 0
           }]
         },
@@ -624,64 +443,105 @@
           maintainAspectRatio: false,
           cutout: '72%',
           plugins: {
-            legend: { display: false }
-          }
-        }
-      });
-    }
-
-    function renderRevChart(trend) {
-      const ctx = document.getElementById('revenueOverviewChart').getContext('2d');
-      if (revChartInstance) revChartInstance.destroy();
-
-      revChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: trend.labels || ['1 Aug', '5 Aug', '10 Aug', '15 Aug', '19 Aug'],
-          datasets: [
-            {
-              label: 'OPD',
-              data: trend.opd || [18000, 22000, 31000, 38000, 42000],
-              borderColor: '#2563EB',
-              borderWidth: 2,
-              tension: 0.3,
-              fill: false
-            },
-            {
-              label: 'IPD',
-              data: trend.ipd || [12000, 19000, 24000, 32000, 35000],
-              borderColor: '#10B981',
-              borderWidth: 2,
-              tension: 0.3,
-              fill: false
-            },
-            {
-              label: 'Pharmacy',
-              data: trend.pharmacy || [8000, 11000, 15000, 19000, 21000],
-              borderColor: '#9333EA',
-              borderWidth: 2,
-              tension: 0.3,
-              fill: false
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: () => ' 0 Beds configured'
+              }
             }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: 'Plus Jakarta Sans', weight: 'bold' } } }
-          },
-          scales: {
-            x: { grid: { display: false } },
-            y: { grid: { color: '#F1F5F9' }, beginAtZero: true }
           }
         }
       });
+      return;
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      loadDashboardStats();
+    bedChartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['General Ward', 'ICU', 'Private Rooms', 'Emergency', 'Maintenance'],
+        datasets: [{
+          data: vals,
+          backgroundColor: ['#2563EB', '#10B981', '#9333EA', '#F59E0B', '#64748B'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '72%',
+        plugins: {
+          legend: { display: false }
+        }
+      }
     });
-  </script>
-</body>
-</html>
+  }
+
+  function renderRevChart(trend) {
+    const ctx = document.getElementById('revenueOverviewChart').getContext('2d');
+    if (revChartInstance) revChartInstance.destroy();
+
+    revChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: trend.labels || [],
+        datasets: [
+          {
+            label: 'OPD',
+            data: trend.opd || [],
+            borderColor: '#2563EB',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: false
+          },
+          {
+            label: 'IPD',
+            data: trend.ipd || [],
+            borderColor: '#10B981',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: false
+          },
+          {
+            label: 'Pharmacy',
+            data: trend.pharmacy || [],
+            borderColor: '#F59E0B',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: false
+          },
+          {
+            label: 'Laboratory',
+            data: trend.lab || [],
+            borderColor: '#06B6D4',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              boxWidth: 12,
+              font: { family: 'Plus Jakarta Sans', size: 11, weight: 'bold' }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: { grid: { color: '#F1F5F9' }, beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  // Initialize Dashboard Stats on Load
+  document.addEventListener('DOMContentLoaded', () => {
+    loadDashboardStats();
+  });
+</script>
+{% endblock %}
