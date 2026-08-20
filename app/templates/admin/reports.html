@@ -1,42 +1,377 @@
 {% extends 'admin/base_admin.html' %}
 
 {% block title %}Hospital Analytics & Reports — MediCore+ Admin{% endblock %}
-{% block header_title %}Hospital Analytics & Clinical Reports{% endblock %}
-{% block header_subtitle %}Operational intelligence, revenue breakdown, bed occupancy metrics, and department KPIs{% endblock %}
+{% block header_title %}Hospital Analytics & Reports{% endblock %}
+{% block header_subtitle %}Operational intelligence, clinical statistics, financial ledgers, and downloadable reports{% endblock %}
 
 {% block admin_content %}
-<div class="row g-4">
-  <div class="col-lg-4">
-    <div class="admin-card text-center p-4">
-      <div class="kpi-icon-wrapper kpi-icon-blue mx-auto mb-3" style="width: 54px; height: 54px; font-size: 1.5rem;">
-        <i class="bi bi-file-earmark-bar-graph"></i>
-      </div>
-      <h5 class="fw-bold text-slate-900 mb-1">OPD Patient Census Report</h5>
-      <p class="text-muted small mb-3">Daily outpatient load and clinic consultation volumes</p>
-      <a href="{{ url_for('reports.daily_census') }}" class="btn btn-outline-primary rounded-pill px-4 fw-bold small">Generate Report</a>
+<!-- Row 1: Today's Clinical & Financial KPIs -->
+<div class="kpi-cards-grid mb-4">
+  <div class="kpi-card">
+    <div class="kpi-icon-wrapper kpi-icon-blue">
+      <i class="bi bi-person-plus-fill"></i>
+    </div>
+    <div class="kpi-details">
+      <div class="kpi-title">Patients Today</div>
+      <div class="kpi-value">{{ kpis.patients_today }}</div>
+      <div class="kpi-subtitle text-muted">New registrations</div>
     </div>
   </div>
 
-  <div class="col-lg-4">
-    <div class="admin-card text-center p-4">
-      <div class="kpi-icon-wrapper kpi-icon-emerald mx-auto mb-3" style="width: 54px; height: 54px; font-size: 1.5rem;">
-        <i class="bi bi-currency-rupee"></i>
-      </div>
-      <h5 class="fw-bold text-slate-900 mb-1">Financial Revenue Ledger</h5>
-      <p class="text-muted small mb-3">Billing collections, pending accounts, and payment methods</p>
-      <a href="{{ url_for('reports.revenue_report') }}" class="btn btn-outline-success rounded-pill px-4 fw-bold small">Generate Report</a>
+  <div class="kpi-card">
+    <div class="kpi-icon-wrapper kpi-icon-emerald">
+      <i class="bi bi-currency-rupee"></i>
+    </div>
+    <div class="kpi-details">
+      <div class="kpi-title">Revenue Today</div>
+      <div class="kpi-value">₹{{ '{:,.0f}'.format(kpis.revenue_today) }}</div>
+      <div class="kpi-subtitle text-muted">Collections & Billed</div>
     </div>
   </div>
 
-  <div class="col-lg-4">
-    <div class="admin-card text-center p-4">
-      <div class="kpi-icon-wrapper kpi-icon-amber mx-auto mb-3" style="width: 54px; height: 54px; font-size: 1.5rem;">
-        <i class="bi bi-hospital-fill"></i>
-      </div>
-      <h5 class="fw-bold text-slate-900 mb-1">Inpatient Bed Utilization</h5>
-      <p class="text-muted small mb-3">Ward occupancy rate, average length of stay (ALOS)</p>
-      <a href="{{ url_for('reports.bed_occupancy') }}" class="btn btn-outline-warning rounded-pill px-4 fw-bold small" style="color: #D97706 !important;">Generate Report</a>
+  <div class="kpi-card">
+    <div class="kpi-icon-wrapper kpi-icon-purple">
+      <i class="bi bi-person-badge-fill"></i>
+    </div>
+    <div class="kpi-details">
+      <div class="kpi-title">Doctors Available</div>
+      <div class="kpi-value">{{ kpis.doctors_available }}</div>
+      <div class="kpi-subtitle text-muted">Active duty today</div>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icon-wrapper kpi-icon-amber">
+      <i class="bi bi-calendar-check-fill"></i>
+    </div>
+    <div class="kpi-details">
+      <div class="kpi-title">Appointments Today</div>
+      <div class="kpi-value">{{ kpis.appointments_today }}</div>
+      <div class="kpi-subtitle text-muted">Scheduled slots</div>
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icon-wrapper kpi-icon-pink">
+      <i class="bi bi-ambulance"></i>
+    </div>
+    <div class="kpi-details">
+      <div class="kpi-title">Emergency Cases</div>
+      <div class="kpi-value">{{ kpis.emergency_cases_today }}</div>
+      <div class="kpi-subtitle text-muted">Critical triage</div>
     </div>
   </div>
 </div>
+
+<!-- Row 2: Printable & Downloadable Report Center -->
+<div class="admin-card mb-4">
+  <div class="admin-card-header">
+    <div>
+      <h3 class="admin-card-title"><i class="bi bi-file-earmark-arrow-down-fill text-primary"></i> Hospital Export Center</h3>
+      <p class="text-muted small mb-0">Generate standardized CSV datasets or formatted printable PDF reports</p>
+    </div>
+  </div>
+
+  <div class="row g-3 p-3">
+    <!-- Report 1: Patient Registry -->
+    <div class="col-lg-4 col-md-6">
+      <div class="p-3 rounded-4 border bg-light h-100 d-flex flex-column justify-content-between">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <div class="badge bg-primary-subtle text-primary p-2 rounded-3"><i class="bi bi-people-fill fs-6"></i></div>
+            <h6 class="fw-bold text-slate-900 mb-0">Patient Registry Report</h6>
+          </div>
+          <p class="text-muted small mb-3">Full patient directory with contact details, age, blood group, and registration dates.</p>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('reports.export_report', report_type='patient', format='csv') }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold flex-fill">
+            <i class="bi bi-file-earmark-excel me-1"></i> CSV
+          </a>
+          <a href="{{ url_for('reports.export_report', report_type='patient', format='pdf') }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold flex-fill" style="background-color: var(--admin-blue-primary); border-color: var(--admin-blue-primary);">
+            <i class="bi bi-printer me-1"></i> Print PDF
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report 2: Financial Revenue -->
+    <div class="col-lg-4 col-md-6">
+      <div class="p-3 rounded-4 border bg-light h-100 d-flex flex-column justify-content-between">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <div class="badge bg-success-subtle text-success p-2 rounded-3"><i class="bi bi-currency-rupee fs-6"></i></div>
+            <h6 class="fw-bold text-slate-900 mb-0">Financial Revenue Ledger</h6>
+          </div>
+          <p class="text-muted small mb-3">Itemized invoices, tax totals, discount adjustments, and outstanding dues.</p>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('reports.export_report', report_type='revenue', format='csv') }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold flex-fill">
+            <i class="bi bi-file-earmark-excel me-1"></i> CSV
+          </a>
+          <a href="{{ url_for('reports.export_report', report_type='revenue', format='pdf') }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold flex-fill" style="background-color: var(--admin-blue-primary); border-color: var(--admin-blue-primary);">
+            <i class="bi bi-printer me-1"></i> Print PDF
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report 3: Appointments -->
+    <div class="col-lg-4 col-md-6">
+      <div class="p-3 rounded-4 border bg-light h-100 d-flex flex-column justify-content-between">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <div class="badge bg-warning-subtle text-warning p-2 rounded-3"><i class="bi bi-calendar2-check-fill fs-6"></i></div>
+            <h6 class="fw-bold text-slate-900 mb-0">Appointments & OPD Census</h6>
+          </div>
+          <p class="text-muted small mb-3">Consultation schedules, booking status, doctor allocations, and time slots.</p>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('reports.export_report', report_type='appointment', format='csv') }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold flex-fill">
+            <i class="bi bi-file-earmark-excel me-1"></i> CSV
+          </a>
+          <a href="{{ url_for('reports.export_report', report_type='appointment', format='pdf') }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold flex-fill" style="background-color: var(--admin-blue-primary); border-color: var(--admin-blue-primary);">
+            <i class="bi bi-printer me-1"></i> Print PDF
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report 4: Doctor Roster -->
+    <div class="col-lg-4 col-md-6">
+      <div class="p-3 rounded-4 border bg-light h-100 d-flex flex-column justify-content-between">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <div class="badge bg-purple-subtle text-purple p-2 rounded-3" style="color: #7C3AED;"><i class="bi bi-person-badge-fill fs-6"></i></div>
+            <h6 class="fw-bold text-slate-900 mb-0">Physicians & Staff Roster</h6>
+          </div>
+          <p class="text-muted small mb-3">Active medical specialists, consultation fees, experience, and department heads.</p>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('reports.export_report', report_type='doctor', format='csv') }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold flex-fill">
+            <i class="bi bi-file-earmark-excel me-1"></i> CSV
+          </a>
+          <a href="{{ url_for('reports.export_report', report_type='doctor', format='pdf') }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold flex-fill" style="background-color: var(--admin-blue-primary); border-color: var(--admin-blue-primary);">
+            <i class="bi bi-printer me-1"></i> Print PDF
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report 5: Lab Diagnostics -->
+    <div class="col-lg-4 col-md-6">
+      <div class="p-3 rounded-4 border bg-light h-100 d-flex flex-column justify-content-between">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <div class="badge bg-info-subtle text-info p-2 rounded-3"><i class="bi bi-flask-fill fs-6"></i></div>
+            <h6 class="fw-bold text-slate-900 mb-0">Laboratory Diagnostics Log</h6>
+          </div>
+          <p class="text-muted small mb-3">Diagnostic test orders, completion status, requesting doctors, and specimen tracking.</p>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('reports.export_report', report_type='lab', format='csv') }}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold flex-fill">
+            <i class="bi bi-file-earmark-excel me-1"></i> CSV
+          </a>
+          <a href="{{ url_for('reports.export_report', report_type='lab', format='pdf') }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold flex-fill" style="background-color: var(--admin-blue-primary); border-color: var(--admin-blue-primary);">
+            <i class="bi bi-printer me-1"></i> Print PDF
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report 6: Comprehensive Backup -->
+    <div class="col-lg-4 col-md-6">
+      <div class="p-3 rounded-4 border bg-light h-100 d-flex flex-column justify-content-between">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <div class="badge bg-secondary-subtle text-secondary p-2 rounded-3"><i class="bi bi-database-fill-down fs-6"></i></div>
+            <h6 class="fw-bold text-slate-900 mb-0">Database Backup Snapshot</h6>
+          </div>
+          <p class="text-muted small mb-3">Export an instant SQL dump and data snapshot of all hospital tables.</p>
+        </div>
+        <div>
+          <a href="{{ url_for('admin.backup') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold w-100">
+            <i class="bi bi-cloud-arrow-down-fill me-1"></i> Manage Backups
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 3: Visual Analytics Charts -->
+<div class="row g-4 mb-4">
+  <!-- Chart 1: Monthly Revenue Trend -->
+  <div class="col-lg-8">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title"><i class="bi bi-graph-up-arrow text-primary"></i> Monthly Revenue Trend</h3>
+        <span class="badge bg-light text-dark border">Historical Billing</span>
+      </div>
+      <div style="height: 280px; position: relative;">
+        <canvas id="monthlyRevChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart 2: Appointment Status Breakdown -->
+  <div class="col-lg-4">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title"><i class="bi bi-pie-chart-fill text-warning"></i> Appointment Status</h3>
+        <span class="badge bg-light text-dark border">All-time</span>
+      </div>
+      <div class="d-flex align-items-center justify-content-center" style="height: 240px; position: relative;">
+        <canvas id="appointmentStatusChart"></canvas>
+      </div>
+      <div class="row text-center pt-2 border-top g-1 small fw-bold">
+        <div class="col-3">
+          <div class="text-muted small">Booked</div>
+          <div class="text-primary">{{ status_breakdown.BOOKED }}</div>
+        </div>
+        <div class="col-3">
+          <div class="text-muted small">Checked In</div>
+          <div class="text-info">{{ status_breakdown.CHECKED_IN }}</div>
+        </div>
+        <div class="col-3">
+          <div class="text-muted small">Completed</div>
+          <div class="text-success">{{ status_breakdown.COMPLETED }}</div>
+        </div>
+        <div class="col-3">
+          <div class="text-muted small">Cancelled</div>
+          <div class="text-danger">{{ status_breakdown.CANCELLED }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 4: Department Revenue & Service Utilization -->
+<div class="row g-4">
+  <div class="col-12">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h3 class="admin-card-title"><i class="bi bi-bar-chart-fill text-success"></i> Revenue Stream Distribution</h3>
+        <span class="badge bg-light text-dark border">Service Units</span>
+      </div>
+      <div style="height: 240px; position: relative;">
+        <canvas id="deptRevenueChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // 1. Monthly Revenue Line Chart
+  const revCtx = document.getElementById('monthlyRevChart').getContext('2d');
+  new Chart(revCtx, {
+    type: 'line',
+    data: {
+      labels: {{ monthly_trend.labels|tojson }},
+      datasets: [{
+        label: 'Monthly Revenue (₹)',
+        data: {{ monthly_trend.amounts|tojson }},
+        borderColor: '#2563EB',
+        backgroundColor: 'rgba(37, 99, 235, 0.08)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.35,
+        pointBackgroundColor: '#2563EB',
+        pointRadius: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` Revenue: ₹${Number(ctx.raw || 0).toLocaleString()}`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false } },
+        y: {
+          grid: { color: '#F1F5F9' },
+          beginAtZero: true,
+          ticks: {
+            callback: (v) => '₹' + Number(v).toLocaleString()
+          }
+        }
+      }
+    }
+  });
+
+  // 2. Appointment Status Doughnut Chart
+  const aptCtx = document.getElementById('appointmentStatusChart').getContext('2d');
+  const aptVals = [
+    {{ status_breakdown.BOOKED or 0 }},
+    {{ status_breakdown.CHECKED_IN or 0 }},
+    {{ status_breakdown.COMPLETED or 0 }},
+    {{ status_breakdown.CANCELLED or 0 }}
+  ];
+  const aptSum = aptVals.reduce((a, b) => a + b, 0);
+
+  new Chart(aptCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Booked', 'Checked In', 'Completed', 'Cancelled'],
+      datasets: [{
+        data: aptSum > 0 ? aptVals : [1],
+        backgroundColor: aptSum > 0 ? ['#2563EB', '#06B6D4', '#10B981', '#EF4444'] : ['#E2E8F0'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '70%',
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Plus Jakarta Sans', size: 11, weight: 'bold' } } }
+      }
+    }
+  });
+
+  // 3. Department Revenue Stream Bar Chart
+  const deptCtx = document.getElementById('deptRevenueChart').getContext('2d');
+  new Chart(deptCtx, {
+    type: 'bar',
+    data: {
+      labels: {{ revenue_share['labels']|tojson }},
+      datasets: [{
+        label: 'Revenue (₹)',
+        data: {{ revenue_share['amounts']|tojson }},
+        backgroundColor: ['#2563EB', '#10B981', '#06B6D4'],
+        borderRadius: 8,
+        maxBarThickness: 48
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` Revenue: ₹${Number(ctx.raw || 0).toLocaleString()}`
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false } },
+        y: {
+          grid: { color: '#F1F5F9' },
+          beginAtZero: true,
+          ticks: {
+            callback: (v) => '₹' + Number(v).toLocaleString()
+          }
+        }
+      }
+    }
+  });
+</script>
 {% endblock %}

@@ -54,7 +54,7 @@ def index():
     rev_today = db.session.query(func.sum(Payment.amount_paid)).filter(Payment.paid_at >= today_start, Payment.paid_at <= today_end).scalar() or 0.0
 
     users_count = User.query.count()
-    medicines_count = Medicine.query.count()
+    departments_count = Department.query.count()
     lab_tests_count = LabTestType.query.count()
     audit_logs_count = AuditLog.query.count()
 
@@ -81,7 +81,7 @@ def index():
                            bed_occ_pct=bed_occ_pct,
                            rev_today=rev_today,
                            users_count=users_count,
-                           medicines_count=medicines_count,
+                           departments_count=departments_count,
                            lab_tests_count=lab_tests_count,
                            audit_logs_count=audit_logs_count,
                            opd_count=opd_count,
@@ -191,29 +191,6 @@ def get_dashboard_stats_api():
 
     # 9. Dynamic System Alerts
     alerts = []
-    # Formulary alert if under active review
-    total_meds_count = Medicine.query.count()
-    if total_meds_count > 0:
-        alerts.append({
-            'type': 'warning',
-            'icon': 'bi-capsule',
-            'message': f"{total_meds_count} active formulary medicines synchronized in pharmacy catalog",
-            'module': 'Pharmacy Inventory',
-            'time': '10 min ago',
-            'link': url_for('admin.master_medicines')
-        })
-
-    # Equipment maintenance due
-    maint_eq = Equipment.query.filter(Equipment.next_maintenance <= today).all()
-    if maint_eq:
-        alerts.append({
-            'type': 'danger',
-            'icon': 'bi-tools',
-            'message': f"{len(maint_eq)} equipment maintenance due",
-            'module': 'Equipment Management',
-            'time': '30 min ago',
-            'link': url_for('admin.index')
-        })
 
     # Pending lab reports
     if pending_lab_count > 0:
@@ -241,7 +218,7 @@ def get_dashboard_stats_api():
         alerts.append({
             'type': 'success',
             'icon': 'bi-check-circle-fill',
-            'message': 'All inventory stock and equipment are in normal state',
+            'message': 'All clinical units and hospital services are operating normally',
             'module': 'System Status',
             'time': 'Just now',
             'link': url_for('admin.index')
@@ -251,7 +228,7 @@ def get_dashboard_stats_api():
     health = run_system_health_checks()
     active_staff_count = User.query.filter_by(is_active=True).count()
     total_lab_types = LabTestType.query.count()
-    total_medicines = Medicine.query.count()
+    total_departments = Department.query.count()
     today_audit_logs = AuditLog.query.filter(AuditLog.timestamp >= today_start).count()
 
     return jsonify({
@@ -298,14 +275,13 @@ def get_dashboard_stats_api():
             'labels': monthly_labels,
             'opd': opd_rev,
             'ipd': ipd_rev,
-            'lab': lab_rev,
-            'pharmacy': pharm_rev
+            'lab': lab_rev
         },
         'alerts': alerts,
         'system_overview': {
             'active_staff': active_staff_count,
             'lab_tests': total_lab_types,
-            'medicines': total_medicines,
+            'departments': total_departments,
             'today_audit_logs': today_audit_logs,
             'health': health
         }
@@ -792,7 +768,23 @@ def add_equipment():
 @login_required
 @role_required('Admin')
 def reports_view():
-    return render_template('admin/reports.html')
+    from app.reports.analytics import (
+        get_today_admin_kpis,
+        get_monthly_revenue_trend,
+        get_appointment_status_breakdown,
+        get_departmental_revenue_share
+    )
+    kpis = get_today_admin_kpis()
+    monthly_trend = get_monthly_revenue_trend()
+    status_breakdown = get_appointment_status_breakdown()
+    revenue_share = get_departmental_revenue_share()
+
+    return render_template('admin/reports.html',
+                           kpis=kpis,
+                           monthly_trend=monthly_trend,
+                           status_breakdown=status_breakdown,
+                           revenue_share=revenue_share,
+                           now=datetime.now())
 
 
 @admin_bp.route('/notifications')

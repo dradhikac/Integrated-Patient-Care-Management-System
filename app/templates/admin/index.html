@@ -255,8 +255,8 @@
         </div>
 
         <div class="sys-metric-card">
-          <div class="sys-metric-title">Medicines</div>
-          <div class="sys-metric-val" id="sysMedVal">{{ medicines_count }}</div>
+          <div class="sys-metric-title">Departments</div>
+          <div class="sys-metric-val" id="sysDeptVal">{{ departments_count }}</div>
         </div>
 
         <div class="sys-metric-card">
@@ -333,7 +333,7 @@
       // System Overview
       document.getElementById('sysStaffVal').innerText = data.system_overview.active_staff;
       document.getElementById('sysLabVal').innerText = data.system_overview.lab_tests;
-      document.getElementById('sysMedVal').innerText = data.system_overview.medicines;
+      document.getElementById('sysDeptVal').innerText = data.system_overview.departments;
       document.getElementById('sysLogsVal').innerText = data.system_overview.today_audit_logs;
 
       // Alerts
@@ -497,14 +497,6 @@
             label: 'IPD',
             data: trend.ipd || [],
             borderColor: '#10B981',
-            borderWidth: 2,
-            tension: 0.3,
-            fill: false
-          },
-          {
-            label: 'Pharmacy',
-            data: trend.pharmacy || [],
-            borderColor: '#F59E0B',
             borderWidth: 2,
             tension: 0.3,
             fill: false

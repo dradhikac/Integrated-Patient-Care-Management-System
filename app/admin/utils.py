@@ -88,26 +88,18 @@ def run_system_health_checks():
     health_status = {
         'database': {'name': 'Database', 'status': 'Operational', 'color': 'success', 'details': 'MySQL Connection Alive'},
         'authentication': {'name': 'Authentication', 'status': 'Operational', 'color': 'success', 'details': 'RBAC Active'},
+        'departments': {'name': 'Departments', 'status': 'Operational', 'color': 'success', 'details': 'Clinical Units Active'},
         'appointments': {'name': 'Appointments', 'status': 'Operational', 'color': 'success', 'details': 'Slot Engine Active'},
         'billing': {'name': 'Billing', 'status': 'Operational', 'color': 'success', 'details': 'Invoicing Connected'},
         'laboratory': {'name': 'Laboratory', 'status': 'Operational', 'color': 'success', 'details': 'Lab Catalog Ready'},
-        'pharmacy': {'name': 'Pharmacy', 'status': 'Operational', 'color': 'success', 'details': 'Formulary Synced'},
         'notifications': {'name': 'Notifications', 'status': 'Operational', 'color': 'success', 'details': 'System Messaging Active'},
         'backup': {'name': 'Backup Service', 'status': 'Operational', 'color': 'success', 'details': 'Snapshot System Up-to-Date'}
     }
 
     try:
-        meds_cnt = Medicine.query.count()
-        if meds_cnt > 0:
-            health_status['pharmacy'] = {'name': 'Pharmacy', 'status': 'Operational', 'color': 'success', 'details': f'{meds_cnt} Active Drugs'}
-    except Exception:
-        pass
-
-    try:
-        today = date.today()
-        maint_cnt = Equipment.query.filter(Equipment.next_maintenance <= today).count()
-        if maint_cnt > 0:
-            health_status['backup'] = {'name': 'Backup & Equipment', 'status': 'Operational', 'color': 'success', 'details': f'{maint_cnt} Maint Due'}
+        dept_cnt = Department.query.count()
+        if dept_cnt > 0:
+            health_status['departments'] = {'name': 'Departments', 'status': 'Operational', 'color': 'success', 'details': f'{dept_cnt} Clinical Units'}
     except Exception:
         pass
 

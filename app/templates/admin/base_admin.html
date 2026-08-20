@@ -67,14 +67,8 @@
           <a href="{{ url_for('admin.master_lab_tests') }}" class="admin-nav-item {% if request.endpoint == 'admin.master_lab_tests' %}active{% endif %}">
             <i class="bi bi-flask"></i> Laboratory
           </a>
-          <a href="{{ url_for('admin.master_medicines') }}" class="admin-nav-item {% if request.endpoint == 'admin.master_medicines' %}active{% endif %}">
-            <i class="bi bi-capsule"></i> Pharmacy & Inventory
-          </a>
           <a href="{{ url_for('admin.emergency_view') }}" class="admin-nav-item {% if request.endpoint == 'admin.emergency_view' %}active{% endif %}">
             <i class="bi bi-ambulance"></i> Emergency
-          </a>
-          <a href="{{ url_for('admin.equipment_view') }}" class="admin-nav-item {% if request.endpoint == 'admin.equipment_view' %}active{% endif %}">
-            <i class="bi bi-tools"></i> Equipment
           </a>
           <a href="{{ url_for('admin.reports_view') }}" class="admin-nav-item {% if request.endpoint == 'admin.reports_view' %}active{% endif %}">
             <i class="bi bi-bar-chart-line-fill"></i> Reports & Analytics

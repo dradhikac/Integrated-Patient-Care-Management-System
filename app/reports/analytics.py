@@ -122,10 +122,10 @@ def get_departmental_revenue_share():
     Aggregates revenue totals grouped by BillItem item_type for bar chart.
     """
     cns_rev = db.session.query(func.sum(BillItem.total_price)).filter(BillItem.item_type == 'CONSULTATION').scalar() or 0.0
-    med_rev = db.session.query(func.sum(BillItem.total_price)).filter(BillItem.item_type == 'MEDICINE').scalar() or 0.0
+    bed_rev = db.session.query(func.sum(BillItem.total_price)).filter(BillItem.item_type == 'BED_CHARGE').scalar() or 0.0
     lab_rev = db.session.query(func.sum(BillItem.total_price)).filter(BillItem.item_type == 'LAB_TEST').scalar() or 0.0
 
     return {
-        'labels': ['OPD Consultations', 'Pharmacy Medicines', 'Lab Diagnostics'],
-        'values': [round(cns_rev, 2), round(med_rev, 2), round(lab_rev, 2)]
+        'labels': ['OPD Consultations', 'Inpatient Care & Beds', 'Lab Diagnostics'],
+        'amounts': [round(cns_rev, 2), round(bed_rev, 2), round(lab_rev, 2)]
     }
