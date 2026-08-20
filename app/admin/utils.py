@@ -7,26 +7,35 @@ from app.prescriptions.models import Medicine
 from app.lab.models import LabTestType
 
 def ensure_departments_seeded():
-    """Ensure standard hospital departments exist in the database."""
+    """Ensure standard hospital clinical departments exist in the database."""
     try:
         if Department.query.count() == 0:
-            doc_head = User.query.join(Role).filter(Role.name == 'Doctor').first()
-            head_id = doc_head.id if doc_head else None
+            doc_map = {
+                'Cardiology & Heart Institute': 'DOC-101',
+                'Neurology & Spine Care': 'DOC-102',
+                'Obstetrics & Gynecology': 'DOC-103',
+                'Orthopedics & Joint Care': 'DOC-104',
+                'Pediatrics & Child Care': 'DOC-105',
+                'Diagnostics & Radiology': 'DOC-106',
+                'General Medicine & OPD': 'DOC-001'
+            }
 
             depts = [
-                ('DEPT-CARD', 'Cardiology', 'Clinical', 'Comprehensive cardiovascular care & surgery', '08:00 AM - 08:00 PM', 'Rooms 101-108'),
-                ('DEPT-NEUR', 'Neurology', 'Clinical', 'Brain, stroke & spine care', '08:00 AM - 06:00 PM', 'Rooms 201-206'),
-                ('DEPT-ORTH', 'Orthopedics', 'Clinical', 'Robotic joint replacement & trauma', '09:00 AM - 05:00 PM', 'Rooms 301-305'),
-                ('DEPT-PEDI', 'Pediatrics', 'Clinical', 'Level-IV NICU & child healthcare', '24/7 Open', 'Rooms 401-410'),
-                ('DEPT-GYNE', 'Gynecology', 'Clinical', 'Maternity, prenatal & women health', '08:00 AM - 08:00 PM', 'Rooms 501-508'),
-                ('DEPT-RADI', 'Radiology', 'Diagnostic', 'High-field MRI, CT & Digital X-Ray', '24/7 Open', 'Ground Floor Wing B'),
-                ('DEPT-PATH', 'Pathology', 'Diagnostic', 'Automated hematology & biochemistry lab', '24/7 Open', 'Ground Floor Wing A'),
-                ('DEPT-GENM', 'General Medicine', 'Clinical', 'Outpatient primary care & health checkups', '08:00 AM - 08:00 PM', 'Rooms 110-116'),
-                ('DEPT-EMER', 'Emergency & Trauma', 'Critical Care', 'Level-1 emergency & resuscitation', '24/7 Open', 'ER Bay 1-12'),
-                ('DEPT-ICU', 'Intensive Care (ICU)', 'Critical Care', 'Advanced critical life support unit', '24/7 Open', '3rd Floor ICU')
+                ('DEP-01', 'Cardiology & Heart Institute', 'Clinical', 'Comprehensive cardiovascular care & catheterization lab', '08:00 AM - 08:00 PM', 'Wing A, Floor 2'),
+                ('DEP-02', 'Neurology & Spine Care', 'Clinical', 'Brain, stroke, EEG diagnostics & spine care', '08:00 AM - 06:00 PM', 'Wing B, Floor 2'),
+                ('DEP-03', 'Obstetrics & Gynecology', 'Clinical', 'Maternity, prenatal & women healthcare', '08:00 AM - 08:00 PM', 'Wing C, Floor 1'),
+                ('DEP-04', 'Orthopedics & Joint Care', 'Clinical', 'Robotic joint replacement & trauma surgery', '09:00 AM - 05:00 PM', 'Wing A, Floor 3'),
+                ('DEP-05', 'Pediatrics & Child Care', 'Clinical', 'Level-IV NICU & child healthcare', '24/7 Open', 'Wing B, Floor 1'),
+                ('DEP-06', 'Diagnostics & Radiology', 'Diagnostic', 'High-field 3T MRI, 512-Slice CT & Digital X-Ray', '24/7 Open', 'Ground Floor Wing B'),
+                ('DEP-07', 'General Medicine & OPD', 'Clinical', 'Outpatient primary care & health checkups', '08:00 AM - 08:00 PM', 'Ground Floor Wing A')
             ]
 
             for code, name, cat, desc, hrs, rms in depts:
+                doc_code = doc_map.get(name)
+                head_user = User.query.filter_by(user_code=doc_code).first() if doc_code else None
+                if not head_user:
+                    head_user = User.query.join(Role).filter(Role.name == 'Doctor').first()
+
                 d = Department(
                     dept_code=code,
                     dept_name=name,
@@ -34,7 +43,7 @@ def ensure_departments_seeded():
                     description=desc,
                     operating_hours=hrs,
                     room_numbers=rms,
-                    head_doctor_id=head_id,
+                    head_doctor_id=head_user.id if head_user else None,
                     is_active=True
                 )
                 db.session.add(d)

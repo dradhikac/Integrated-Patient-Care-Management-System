@@ -30,29 +30,31 @@
             <tr>
               <th class="ps-3">Asset Code</th>
               <th>Equipment Name</th>
+              <th>Category</th>
               <th>Department / Wing</th>
               <th>Status</th>
-              <th>Next Maintenance Date</th>
+              <th>Next Maintenance</th>
             </tr>
           </thead>
           <tbody>
             {% for eq in equipment_list %}
             <tr>
-              <td class="ps-3"><span class="badge bg-light text-dark border font-monospace">{{ eq.code or eq.id }}</span></td>
+              <td class="ps-3"><span class="badge bg-light text-dark border font-monospace">{{ eq.equipment_code }}</span></td>
               <td class="fw-bold text-slate-900">{{ eq.name }}</td>
+              <td><span class="badge bg-info-subtle text-info">{{ eq.category or 'Diagnostic' }}</span></td>
               <td><span class="text-muted small">{{ eq.department or 'Radiology / ICU' }}</span></td>
               <td>
                 {% if eq.status == 'OPERATIONAL' %}
                   <span class="badge bg-success-subtle text-success px-2.5 py-1.5 fw-bold border border-success-subtle"><i class="bi bi-check-circle-fill me-1"></i> Operational</span>
                 {% else %}
-                  <span class="badge bg-warning-subtle text-warning px-2.5 py-1.5 fw-bold border border-warning-subtle"><i class="bi bi-wrench me-1"></i> Maintenance Due</span>
+                  <span class="badge bg-warning-subtle text-warning px-2.5 py-1.5 fw-bold border border-warning-subtle" style="color: #92400E !important;"><i class="bi bi-wrench me-1"></i> Maintenance Due</span>
                 {% endif %}
               </td>
               <td><span class="text-muted small">{{ eq.next_maintenance.strftime('%Y-%m-%d') if eq.next_maintenance else '—' }}</span></td>
             </tr>
             {% else %}
             <tr>
-              <td colspan="5" class="text-center text-muted py-4">No equipment records added to database yet.</td>
+              <td colspan="6" class="text-center text-muted py-4">No equipment records added to database yet.</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -87,14 +89,21 @@
             <input type="text" name="name" class="form-control rounded-3" placeholder="e.g. 3T MRI Scanner / ICU Ventilator" required>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label fw-bold small text-slate-900">Asset Code / Serial #</label>
-            <input type="text" name="code" class="form-control rounded-3" placeholder="e.g. EQ-MRI-01">
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label fw-bold small text-slate-900">Department / Department Wing</label>
-            <input type="text" name="department" class="form-control rounded-3" placeholder="e.g. Radiology Wing">
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold small text-slate-900">Category</label>
+              <select name="category" class="form-select rounded-3">
+                <option value="Diagnostic" selected>Diagnostic</option>
+                <option value="Life Support">Life Support</option>
+                <option value="Surgical">Surgical</option>
+                <option value="Monitoring">Monitoring</option>
+                <option value="Laboratory">Laboratory</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold small text-slate-900">Department / Wing</label>
+              <input type="text" name="department" class="form-control rounded-3" placeholder="e.g. Radiology Wing / ICU">
+            </div>
           </div>
         </div>
 

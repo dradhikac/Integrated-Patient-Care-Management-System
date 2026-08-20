@@ -2,122 +2,678 @@
 
 {% block title %}Staff & User Management — MediCore+ Admin{% endblock %}
 {% block header_title %}Staff & User Management{% endblock %}
-{% block header_subtitle %}Create staff accounts, assign RBAC roles, and control access permissions{% endblock %}
+{% block header_subtitle %}Directory of administrators, doctors, hospital staff, and registered patients{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* -------------------------------------------------------------
+     Clean Summary Cards Grid
+  ------------------------------------------------------------- */
+  .user-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 1200px) {
+    .user-summary-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .user-summary-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .user-summary-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .user-summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    border-color: #CBD5E1;
+    color: inherit;
+  }
+
+  .user-summary-card.active-card {
+    border-color: #2563EB;
+    background: #F8FAFC;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  }
+
+  .summary-icon-box {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .summary-icon-blue    { background: #EFF6FF; color: #2563EB; }
+  .summary-icon-red     { background: #FEF2F2; color: #DC2626; }
+  .summary-icon-purple  { background: #FAF5FF; color: #7C3AED; }
+  .summary-icon-teal    { background: #F0FDFA; color: #0D9488; }
+  .summary-icon-amber   { background: #FFFBEB; color: #D97706; }
+  .summary-icon-emerald { background: #ECFDF5; color: #059669; }
+
+  .summary-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 2px;
+  }
+
+  .summary-num {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: #0F172A;
+    line-height: 1.1;
+  }
+
+  /* -------------------------------------------------------------
+     Clean Category Navigation Tabs
+  ------------------------------------------------------------- */
+  .category-nav-wrapper {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 20px;
+  }
+
+  .cat-tab-btn {
+    border: none;
+    background: transparent;
+    padding: 8px 18px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #64748B;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.18s ease;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .cat-tab-btn:hover {
+    color: #0F172A;
+    background: #F1F5F9;
+  }
+
+  .cat-tab-btn.active {
+    background: #0F172A;
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+  }
+
+  .cat-tab-badge {
+    font-size: 0.72rem;
+    padding: 2px 7px;
+    border-radius: 20px;
+    font-weight: 700;
+  }
+
+  .cat-tab-btn .cat-tab-badge {
+    background: #F1F5F9;
+    color: #475569;
+  }
+
+  .cat-tab-btn.active .cat-tab-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: #FFFFFF;
+  }
+
+  /* -------------------------------------------------------------
+     Table Toolbar & Filters
+  ------------------------------------------------------------- */
+  .user-table-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+  }
+
+  .user-table-toolbar {
+    padding: 18px 22px;
+    border-bottom: 1px solid #F1F5F9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .search-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-grow: 1;
+    max-width: 600px;
+  }
+
+  .table-search-input-box {
+    position: relative;
+    flex-grow: 1;
+  }
+
+  .table-search-input-box i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94A3B8;
+    font-size: 0.95rem;
+  }
+
+  .table-search-input-box input {
+    width: 100%;
+    padding: 9px 14px 9px 38px;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    color: #0F172A;
+    background: #F8FAFC;
+    transition: all 0.2s ease;
+  }
+
+  .table-search-input-box input:focus {
+    outline: none;
+    border-color: #2563EB;
+    background: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+
+  .status-filter-select {
+    padding: 9px 16px;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: #334155;
+    background: #F8FAFC;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .status-filter-select:focus {
+    border-color: #2563EB;
+    background: #FFFFFF;
+  }
+
+  /* -------------------------------------------------------------
+     Table Rows & Clean Typography
+  ------------------------------------------------------------- */
+  .clean-user-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .clean-user-table th {
+    background: #F8FAFC;
+    color: #64748B;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 20px;
+    border-bottom: 1px solid #E2E8F0;
+  }
+
+  .clean-user-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #F1F5F9;
+    font-size: 0.88rem;
+    color: #1E293B;
+    vertical-align: middle;
+    background: #FFFFFF;
+    transition: background 0.15s ease;
+  }
+
+  .clean-user-table tr:hover td {
+    background: #F8FAFC;
+  }
+
+  .clean-user-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .user-avatar-initial {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #EFF6FF;
+    color: #1D4ED8;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(29, 78, 216, 0.15);
+  }
+
+  .code-pill {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #F1F5F9;
+    color: #334155;
+    border: 1px solid #E2E8F0;
+  }
+
+  /* Subtle Role Badges */
+  .role-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .role-tag-admin   { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+  .role-tag-doctor  { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+  .role-tag-recep   { background: #F0FDFA; color: #0F766E; border: 1px solid #99F6E4; }
+  .role-tag-lab     { background: #FAF5FF; color: #6B21A8; border: 1px solid #E9D5FF; }
+  .role-tag-patient { background: #F8FAFC; color: #475569; border: 1px solid #E2E8F0; }
+
+  /* Status Indicators */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .status-pill-active   { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
+  .status-pill-inactive { background: #F1F5F9; color: #475569; border: 1px solid #CBD5E1; }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .status-dot-active   { background: #10B981; }
+  .status-dot-inactive { background: #94A3B8; }
+
+  /* Action Dropdown Menu */
+  .action-btn-clean {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #64748B;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+    cursor: pointer;
+  }
+
+  .action-btn-clean:hover {
+    background: #F1F5F9;
+    color: #0F172A;
+    border-color: #CBD5E1;
+  }
+</style>
+{% endblock %}
 
 {% block admin_content %}
-<div class="row g-4">
-  <div class="col-12">
-    <div class="admin-card">
-      <div class="admin-card-header flex-wrap gap-3">
-        <div class="d-flex align-items-center gap-3">
-          <div class="kpi-icon-wrapper kpi-icon-purple" style="width: 44px; height: 44px; font-size: 1.25rem;">
-            <i class="bi bi-people-fill"></i>
-          </div>
-          <div>
-            <h3 class="admin-card-title mb-0">Hospital Staff & Users</h3>
-            <p class="text-muted small mb-0">{{ staff_users|length }} total accounts registered in database</p>
-          </div>
-        </div>
+<!-- 1. Row of 6 Clean Summary Cards -->
+<div class="user-summary-grid">
+  <!-- Total Users -->
+  <div class="user-summary-card active-card" onclick="filterByTab('all')" id="card-all" title="View All Users">
+    <div class="summary-icon-box summary-icon-blue">
+      <i class="bi bi-people-fill"></i>
+    </div>
+    <div>
+      <div class="summary-label">Total Users</div>
+      <div class="summary-num">{{ total_users_count }}</div>
+    </div>
+  </div>
 
-        <div class="d-flex align-items-center gap-2">
-          <button class="btn btn-primary rounded-pill px-3 py-2 fw-bold shadow-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#createStaffModal" style="background-color: var(--admin-blue-primary); border-color: var(--admin-blue-primary);">
-            <i class="bi bi-person-plus-fill"></i> Register New Staff
-          </button>
-        </div>
-      </div>
+  <!-- Administrators -->
+  <div class="user-summary-card" onclick="filterByTab('admin')" id="card-admin" title="View Administrators">
+    <div class="summary-icon-box summary-icon-red">
+      <i class="bi bi-shield-lock-fill"></i>
+    </div>
+    <div>
+      <div class="summary-label">Admins</div>
+      <div class="summary-num">{{ admin_users_count }}</div>
+    </div>
+  </div>
 
-      <!-- Staff Roster Table -->
-      <div class="table-responsive mt-3">
-        <table class="table table-hover align-middle mb-0" style="border-collapse: separate; border-spacing: 0 4px;">
-          <thead class="table-light">
-            <tr>
-              <th class="ps-3">Staff Code</th>
-              <th>Full Name</th>
-              <th>Email Address</th>
-              <th>System Role</th>
-              <th>Specialization / Dept</th>
-              <th>Status</th>
-              <th class="text-end pe-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for u in staff_users %}
-            <tr style="background: #FFFFFF;">
-              <td class="ps-3"><span class="badge bg-light text-dark border font-monospace">{{ u.user_code }}</span></td>
-              <td>
-                <div class="d-flex align-items-center gap-2">
-                  <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.85rem;">
-                    {{ u.name[0] if u.name else 'U' }}
-                  </div>
-                  <div>
-                    <span class="fw-bold text-slate-900">{{ u.name }}</span>
-                    {% if u.id == current_user.id %}
-                      <span class="badge bg-secondary-subtle text-secondary small ms-1">(You)</span>
-                    {% endif %}
-                  </div>
-                </div>
-              </td>
-              <td><span class="text-muted small">{{ u.email }}</span></td>
-              <td>
-                {% if u.role.name == 'Admin' %}
-                  <span class="badge rounded-pill bg-danger-subtle text-danger px-2.5 py-1.5 fw-bold border border-danger-subtle"><i class="bi bi-shield-lock-fill me-1"></i> Admin</span>
-                {% elif u.role.name == 'Doctor' %}
-                  <span class="badge rounded-pill bg-primary-subtle text-primary px-2.5 py-1.5 fw-bold border border-primary-subtle"><i class="bi bi-stethoscope me-1"></i> Doctor</span>
-                {% elif u.role.name == 'Receptionist' %}
-                  <span class="badge rounded-pill bg-info-subtle text-info px-2.5 py-1.5 fw-bold border border-info-subtle"><i class="bi bi-person-workspace me-1"></i> Receptionist</span>
-                {% elif u.role.name == 'Lab Technician' %}
-                  <span class="badge rounded-pill bg-warning-subtle text-warning px-2.5 py-1.5 fw-bold border border-warning-subtle" style="color: #B45309 !important;"><i class="bi bi-flask-fill me-1"></i> Lab Tech</span>
-                {% else %}
-                  <span class="badge rounded-pill bg-light text-dark px-2.5 py-1.5 fw-bold border">{{ u.role.name }}</span>
-                {% endif %}
-              </td>
-              <td><span class="text-muted small">{{ u.specialization or '—' }}</span></td>
-              <td>
-                {% if u.is_active %}
-                  <span class="badge bg-success-subtle text-success px-2.5 py-1.5 fw-semibold border border-success-subtle"><i class="bi bi-check-circle-fill me-1"></i> Active</span>
-                {% else %}
-                  <span class="badge bg-secondary-subtle text-secondary px-2.5 py-1.5 fw-semibold border"><i class="bi bi-dash-circle-fill me-1"></i> Inactive</span>
-                {% endif %}
-              </td>
-              <td class="text-end pe-3">
-                {% if u.id != current_user.id %}
-                <form action="{{ url_for('admin.toggle_user_active', user_id=u.id) }}" method="POST" class="d-inline">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  {% if u.is_active %}
-                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-semibold small" onclick="return confirm('Are you sure you want to deactivate {{ u.name }}?')">Deactivate</button>
-                  {% else %}
-                    <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 fw-semibold small">Activate</button>
-                  {% endif %}
-                </form>
-                {% else %}
-                  <span class="text-muted small fw-semibold">Current Session</span>
-                {% endif %}
-              </td>
-            </tr>
-            {% else %}
-            <tr>
-              <td colspan="7" class="text-center text-muted py-4">No staff accounts found in database.</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+  <!-- Doctors -->
+  <div class="user-summary-card" onclick="filterByTab('doctor')" id="card-doctor" title="View Medical Doctors">
+    <div class="summary-icon-box summary-icon-purple">
+      <i class="bi bi-stethoscope"></i>
+    </div>
+    <div>
+      <div class="summary-label">Doctors</div>
+      <div class="summary-num">{{ doctor_users_count }}</div>
+    </div>
+  </div>
+
+  <!-- Hospital Staff -->
+  <div class="user-summary-card" onclick="filterByTab('staff')" id="card-staff" title="View Receptionists & Lab Technicians">
+    <div class="summary-icon-box summary-icon-teal">
+      <i class="bi bi-person-workspace"></i>
+    </div>
+    <div>
+      <div class="summary-label">Staff</div>
+      <div class="summary-num">{{ staff_users_count }}</div>
+    </div>
+  </div>
+
+  <!-- Registered Patients -->
+  <div class="user-summary-card" onclick="filterByTab('patient')" id="card-patient" title="View Patients">
+    <div class="summary-icon-box summary-icon-amber">
+      <i class="bi bi-person-heart"></i>
+    </div>
+    <div>
+      <div class="summary-label">Patients</div>
+      <div class="summary-num">{{ patient_users_count }}</div>
+    </div>
+  </div>
+
+  <!-- Active Accounts -->
+  <div class="user-summary-card" onclick="filterByStatusOnly('active')" id="card-active" title="View Active Accounts">
+    <div class="summary-icon-box summary-icon-emerald">
+      <i class="bi bi-check-circle-fill"></i>
+    </div>
+    <div>
+      <div class="summary-label">Active Users</div>
+      <div class="summary-num">{{ active_users_count }}</div>
     </div>
   </div>
 </div>
 
-<!-- Modal: Register New Staff Account -->
+<!-- 2. Horizontal Category Navigation Tabs -->
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+  <div class="category-nav-wrapper">
+    <button type="button" class="cat-tab-btn active" id="tab-all" onclick="filterByTab('all')">
+      <span>All Users</span>
+      <span class="cat-tab-badge">{{ total_users_count }}</span>
+    </button>
+    <button type="button" class="cat-tab-btn" id="tab-admin" onclick="filterByTab('admin')">
+      <i class="bi bi-shield-lock-fill small text-danger"></i>
+      <span>Admins</span>
+      <span class="cat-tab-badge">{{ admin_users_count }}</span>
+    </button>
+    <button type="button" class="cat-tab-btn" id="tab-doctor" onclick="filterByTab('doctor')">
+      <i class="bi bi-stethoscope small text-primary"></i>
+      <span>Doctors</span>
+      <span class="cat-tab-badge">{{ doctor_users_count }}</span>
+    </button>
+    <button type="button" class="cat-tab-btn" id="tab-staff" onclick="filterByTab('staff')">
+      <i class="bi bi-person-workspace small text-teal"></i>
+      <span>Staff</span>
+      <span class="cat-tab-badge">{{ staff_users_count }}</span>
+    </button>
+    <button type="button" class="cat-tab-btn" id="tab-patient" onclick="filterByTab('patient')">
+      <i class="bi bi-person-heart small text-warning"></i>
+      <span>Patients</span>
+      <span class="cat-tab-badge">{{ patient_users_count }}</span>
+    </button>
+  </div>
+
+  <div>
+    <button class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#createStaffModal" style="background-color: var(--admin-blue-primary); border-color: var(--admin-blue-primary);">
+      <i class="bi bi-person-plus-fill"></i> Register New Staff
+    </button>
+  </div>
+</div>
+
+<!-- 3. Table Card with Instant Search, Filter Toolbar & Single Unified Table -->
+<div class="user-table-card">
+  <div class="user-table-toolbar">
+    <div class="search-filter-group">
+      <!-- Instant Search Input -->
+      <div class="table-search-input-box">
+        <i class="bi bi-search"></i>
+        <input type="text" id="userSearchInput" onkeyup="applyUserFilters()" placeholder="Search by name, email, or staff code...">
+      </div>
+
+      <!-- Status Filter -->
+      <select id="userStatusFilter" onchange="applyUserFilters()" class="status-filter-select">
+        <option value="all">All Statuses</option>
+        <option value="active">Active Only</option>
+        <option value="inactive">Inactive Only</option>
+      </select>
+    </div>
+
+    <!-- Filter Counter Indicator -->
+    <div class="text-muted small fw-semibold" id="filterResultSummary">
+      Showing {{ staff_users|length }} of {{ staff_users|length }} users
+    </div>
+  </div>
+
+  <!-- Single Spacious Table -->
+  <div class="table-responsive">
+    <table class="clean-user-table" id="usersMainTable">
+      <thead>
+        <tr>
+          <th class="ps-4">Staff / User Code</th>
+          <th>Full Name</th>
+          <th>Email Address</th>
+          <th>System Role</th>
+          <th>Specialization / Dept</th>
+          <th>Status</th>
+          <th class="text-end pe-4">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in staff_users %}
+        {% set role_category = 'admin' if u.role and u.role.name == 'Admin' 
+          else ('doctor' if u.role and u.role.name == 'Doctor' 
+          else ('patient' if u.role and u.role.name == 'Patient' 
+          else 'staff')) %}
+        
+        <tr class="user-row" 
+            data-category="{{ role_category }}" 
+            data-status="{{ 'active' if u.is_active else 'inactive' }}"
+            data-search="{{ u.name|lower }} {{ u.email|lower }} {{ u.user_code|lower }} {{ u.role.name|lower if u.role else '' }} {{ u.specialization|lower if u.specialization else '' }}">
+          
+          <!-- Staff Code -->
+          <td class="ps-4">
+            <span class="code-pill">{{ u.user_code }}</span>
+          </td>
+
+          <!-- Full Name with Avatar -->
+          <td>
+            <div class="d-flex align-items-center gap-2.5">
+              <div class="user-avatar-initial">
+                {{ u.name[0] if u.name else 'U' }}
+              </div>
+              <div>
+                <div class="fw-bold text-slate-900">{{ u.name }}</div>
+                {% if u.mobile %}
+                  <div class="text-muted small" style="font-size: 0.75rem;">{{ u.mobile }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+
+          <!-- Email Address -->
+          <td>
+            <span class="text-muted">{{ u.email }}</span>
+          </td>
+
+          <!-- System Role -->
+          <td>
+            {% if u.role.name == 'Admin' %}
+              <span class="role-tag role-tag-admin"><i class="bi bi-shield-lock-fill"></i> Admin</span>
+            {% elif u.role.name == 'Doctor' %}
+              <span class="role-tag role-tag-doctor"><i class="bi bi-stethoscope"></i> Doctor</span>
+            {% elif u.role.name == 'Receptionist' %}
+              <span class="role-tag role-tag-recep"><i class="bi bi-person-workspace"></i> Receptionist</span>
+            {% elif u.role.name == 'Lab Technician' %}
+              <span class="role-tag role-tag-lab"><i class="bi bi-flask-fill"></i> Lab Tech</span>
+            {% elif u.role.name == 'Patient' %}
+              <span class="role-tag role-tag-patient"><i class="bi bi-person-heart"></i> Patient</span>
+            {% else %}
+              <span class="role-tag role-tag-patient">{{ u.role.name }}</span>
+            {% endif %}
+          </td>
+
+          <!-- Specialization / Department Adaptability -->
+          <td>
+            {% if u.role and u.role.name == 'Doctor' %}
+              <span class="text-dark fw-semibold small">
+                {{ u.specialization or (u.doctor_profile[0].specialization if u.doctor_profile else 'General Practice') }}
+              </span>
+            {% elif u.role and u.role.name == 'Patient' %}
+              <span class="text-muted small">Registered Patient</span>
+            {% elif u.role and u.role.name == 'Receptionist' %}
+              <span class="text-muted small">Front Desk & Triage</span>
+            {% elif u.role and u.role.name == 'Lab Technician' %}
+              <span class="text-muted small">Pathology & Diagnostics</span>
+            {% elif u.role and u.role.name == 'Admin' %}
+              <span class="text-muted small">Executive Administration</span>
+            {% else %}
+              <span class="text-muted small">{{ u.specialization or '—' }}</span>
+            {% endif %}
+          </td>
+
+          <!-- Status -->
+          <td>
+            {% if u.is_active %}
+              <span class="status-pill status-pill-active">
+                <span class="status-dot status-dot-active"></span> Active
+              </span>
+            {% else %}
+              <span class="status-pill status-pill-inactive">
+                <span class="status-dot status-dot-inactive"></span> Inactive
+              </span>
+            {% endif %}
+          </td>
+
+          <!-- Actions: Compact Dropdown Menu -->
+          <td class="text-end pe-4">
+            <div class="dropdown d-inline-block">
+              <button class="action-btn-clean" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions for {{ u.name }}">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 py-1" style="min-width: 170px;">
+                <li>
+                  <button class="dropdown-item py-2 small d-flex align-items-center gap-2" 
+                          data-code="{{ u.user_code }}"
+                          data-name="{{ u.name }}"
+                          data-email="{{ u.email }}"
+                          data-role="{{ u.role.name if u.role else '' }}"
+                          data-mobile="{{ u.mobile or '' }}"
+                          data-spec="{{ u.specialization or (u.doctor_profile[0].specialization if u.doctor_profile else '') }}"
+                          data-dept="{{ u.department or (u.doctor_profile[0].department if u.doctor_profile else '') }}"
+                          data-status="{{ 'Active' if u.is_active else 'Inactive' }}"
+                          data-joined="{{ u.created_at.strftime('%d %b %Y') if u.created_at else '' }}"
+                          onclick="handleViewUser(this)">
+                    <i class="bi bi-eye text-primary"></i> View Details
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item py-2 small d-flex align-items-center gap-2" 
+                          data-id="{{ u.id }}"
+                          data-name="{{ u.name }}"
+                          data-email="{{ u.email }}"
+                          data-mobile="{{ u.mobile or '' }}"
+                          data-role-id="{{ u.role_id }}"
+                          data-spec="{{ u.specialization or (u.doctor_profile[0].specialization if u.doctor_profile else '') }}"
+                          onclick="handleEditUser(this)">
+                    <i class="bi bi-pencil text-info"></i> Edit Account
+                  </button>
+                </li>
+                <li>
+                  <button class="dropdown-item py-2 small d-flex align-items-center gap-2" 
+                          data-id="{{ u.id }}"
+                          data-name="{{ u.name }}"
+                          data-code="{{ u.user_code }}"
+                          onclick="handleResetPassword(this)">
+                    <i class="bi bi-key text-warning"></i> Reset Password
+                  </button>
+                </li>
+                <li><hr class="dropdown-divider my-1"></li>
+                <li>
+                  {% if u.id != current_user.id %}
+                    <form action="{{ url_for('admin.toggle_user_active', user_id=u.id) }}" method="POST">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      {% if u.is_active %}
+                        <button type="submit" class="dropdown-item py-2 small text-danger d-flex align-items-center gap-2" onclick="return confirm('Deactivate account for {{ u.name }}?')">
+                          <i class="bi bi-person-x-fill"></i> Deactivate
+                        </button>
+                      {% else %}
+                        <button type="submit" class="dropdown-item py-2 small text-success d-flex align-items-center gap-2">
+                          <i class="bi bi-person-check-fill"></i> Activate Account
+                        </button>
+                      {% endif %}
+                    </form>
+                  {% else %}
+                    <span class="dropdown-item disabled py-2 small text-muted">Current Session</span>
+                  {% endif %}
+                </li>
+              </ul>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr id="noUsersRow">
+          <td colspan="7" class="text-center text-muted py-5">
+            <i class="bi bi-people fs-1 d-block text-muted mb-2 opacity-50"></i>
+            No users found in database. Click "Register New Staff" to add accounts.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal 1: Register New Staff -->
 <div class="modal fade" id="createStaffModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content rounded-4 border-0 shadow-lg">
       <div class="modal-header border-0 pb-0 pt-4 px-4">
-        <div class="d-flex align-items-center gap-2">
-          <div class="kpi-icon-wrapper kpi-icon-blue" style="width: 36px; height: 36px; font-size: 1rem;">
+        <div class="d-flex align-items-center gap-2.5">
+          <div class="summary-icon-box summary-icon-blue" style="width: 36px; height: 36px; font-size: 1.1rem;">
             <i class="bi bi-person-plus-fill"></i>
           </div>
           <div>
-            <h5 class="modal-title fw-bold text-slate-900 mb-0">Register New Staff</h5>
-            <p class="text-muted small mb-0">Add credentials and assign role permissions</p>
+            <h5 class="modal-title fw-bold text-slate-900 mb-0">Register New Staff Account</h5>
+            <p class="text-muted small mb-0">Create credentials and assign system access level</p>
           </div>
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -138,8 +694,8 @@
 
           <div class="row g-3 mb-3">
             <div class="col-md-6">
-              <label class="form-label fw-bold small text-slate-900">Role <span class="text-danger">*</span></label>
-              {{ form.role_id(class="form-select rounded-3") }}
+              <label class="form-label fw-bold small text-slate-900">System Role <span class="text-danger">*</span></label>
+              {{ form.role_id(class="form-select rounded-3", id="newRoleSelect", onchange="toggleSpecializationField(this.value)") }}
             </div>
             <div class="col-md-6">
               <label class="form-label fw-bold small text-slate-900">Mobile Phone</label>
@@ -147,20 +703,287 @@
             </div>
           </div>
 
+          <div class="mb-3" id="specializationFieldWrapper">
+            <label class="form-label fw-bold small text-slate-900">Specialization / Department</label>
+            {{ form.specialization(class="form-control rounded-3", placeholder="e.g. Cardiology / General Medicine") }}
+          </div>
+
           <div class="mb-3">
-            <label class="form-label fw-bold small text-slate-900">Password <span class="text-danger">*</span></label>
-            {{ form.password(class="form-control rounded-3", placeholder="Min. 8 characters") }}
+            <label class="form-label fw-bold small text-slate-900">Initial Password <span class="text-danger">*</span></label>
+            {{ form.password(class="form-control rounded-3", placeholder="Min. 8 characters (e.g. Password@123)") }}
           </div>
         </div>
 
         <div class="modal-footer border-0 pt-0 px-4 pb-4">
           <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
           <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" style="background-color: var(--admin-blue-primary); border-color: var(--admin-blue-primary);">
-            <i class="bi bi-check-circle-fill me-1"></i> Create Account
+            <i class="bi bi-check-circle-fill me-1"></i> Create Staff Account
           </button>
         </div>
       </form>
     </div>
   </div>
 </div>
+
+<!-- Modal 2: Edit User Account -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0 pt-4 px-4">
+        <div class="d-flex align-items-center gap-2.5">
+          <div class="summary-icon-box summary-icon-teal" style="width: 36px; height: 36px; font-size: 1.1rem;">
+            <i class="bi bi-pencil-fill"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold text-slate-900 mb-0">Edit User Account</h5>
+            <p class="text-muted small mb-0">Update contact details and assigned permissions</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form id="editUserForm" method="POST" action="">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-slate-900">Full Name <span class="text-danger">*</span></label>
+            <input type="text" name="name" id="editUserName" class="form-control rounded-3" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-slate-900">Email Address <span class="text-danger">*</span></label>
+            <input type="email" name="email" id="editUserEmail" class="form-control rounded-3" required>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-bold small text-slate-900">System Role <span class="text-danger">*</span></label>
+              <select name="role_id" id="editUserRoleId" class="form-select rounded-3">
+                {% for r in roles %}
+                  <option value="{{ r.id }}">{{ r.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold small text-slate-900">Mobile Phone</label>
+              <input type="text" name="mobile" id="editUserMobile" class="form-control rounded-3">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-slate-900">Specialization / Department</label>
+            <input type="text" name="specialization" id="editUserSpecialization" class="form-control rounded-3" placeholder="e.g. Cardiology">
+          </div>
+        </div>
+
+        <div class="modal-footer border-0 pt-0 px-4 pb-4">
+          <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" style="background-color: var(--admin-blue-primary); border-color: var(--admin-blue-primary);">
+            <i class="bi bi-check2-circle me-1"></i> Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal 3: View User Details -->
+<div class="modal fade" id="viewUserModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0 pt-4 px-4">
+        <h5 class="modal-title fw-bold text-slate-900 mb-0">User Account Profile</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body p-4">
+        <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 mb-4">
+          <div class="user-avatar-initial" id="viewAvatarInitial" style="width: 48px; height: 48px; font-size: 1.25rem;">
+            U
+          </div>
+          <div>
+            <div class="fw-bold fs-6 text-slate-900" id="viewName">Full Name</div>
+            <div class="text-muted small" id="viewEmail">email@example.com</div>
+          </div>
+        </div>
+
+        <div class="row g-3 small">
+          <div class="col-6">
+            <div class="text-muted">Staff / User Code</div>
+            <div class="fw-bold font-monospace text-slate-900" id="viewCode">STF-001</div>
+          </div>
+          <div class="col-6">
+            <div class="text-muted">System Role</div>
+            <div class="fw-bold text-slate-900" id="viewRole">Role</div>
+          </div>
+          <div class="col-6">
+            <div class="text-muted">Specialization</div>
+            <div class="fw-bold text-slate-900" id="viewSpec">—</div>
+          </div>
+          <div class="col-6">
+            <div class="text-muted">Department</div>
+            <div class="fw-bold text-slate-900" id="viewDept">—</div>
+          </div>
+          <div class="col-6">
+            <div class="text-muted">Phone Number</div>
+            <div class="fw-bold text-slate-900" id="viewPhone">—</div>
+          </div>
+          <div class="col-6">
+            <div class="text-muted">Account Status</div>
+            <div class="fw-bold" id="viewStatus">Active</div>
+          </div>
+          <div class="col-12">
+            <div class="text-muted">Member Since</div>
+            <div class="fw-bold text-slate-900" id="viewJoined">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer border-0 pt-0 px-4 pb-4">
+        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal 4: Reset Password -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0 pt-4 px-4">
+        <div class="d-flex align-items-center gap-2.5">
+          <div class="summary-icon-box summary-icon-amber" style="width: 36px; height: 36px; font-size: 1.1rem;">
+            <i class="bi bi-key-fill"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold text-slate-900 mb-0">Reset User Password</h5>
+            <p class="text-muted small mb-0" id="resetModalSub">Set a new temporary password</p>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form id="resetPasswordForm" method="POST" action="">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-body p-4">
+          <p class="text-muted small mb-3">Enter the new password for this user account. If left blank, it will reset to <code>Password@123</code>.</p>
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-slate-900">New Password</label>
+            <input type="text" name="new_password" class="form-control rounded-3 font-monospace" placeholder="Password@123" value="Password@123">
+          </div>
+        </div>
+
+        <div class="modal-footer border-0 pt-0 px-4 pb-4">
+          <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold" style="color: #78350F !important;">
+            <i class="bi bi-key-fill me-1"></i> Reset Password
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let currentActiveTab = 'all';
+
+  function filterByTab(category) {
+    currentActiveTab = category;
+
+    // Update active tab buttons
+    document.querySelectorAll('.cat-tab-btn').forEach(btn => btn.classList.remove('active'));
+    const targetTab = document.getElementById(`tab-${category}`);
+    if (targetTab) targetTab.classList.add('active');
+
+    // Update active card highlighting
+    document.querySelectorAll('.user-summary-card').forEach(card => card.classList.remove('active-card'));
+    const targetCard = document.getElementById(`card-${category}`);
+    if (targetCard) targetCard.classList.add('active-card');
+
+    applyUserFilters();
+  }
+
+  function filterByStatusOnly(status) {
+    document.getElementById('userStatusFilter').value = status;
+    filterByTab('all');
+  }
+
+  function applyUserFilters() {
+    const searchVal = document.getElementById('userSearchInput').value.toLowerCase().trim();
+    const statusVal = document.getElementById('userStatusFilter').value;
+    const rows = document.querySelectorAll('.user-row');
+
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const rowCategory = row.getAttribute('data-category');
+      const rowStatus = row.getAttribute('data-status');
+      const rowSearch = row.getAttribute('data-search');
+
+      // 1. Tab category match
+      const categoryMatch = (currentActiveTab === 'all') || (rowCategory === currentActiveTab);
+
+      // 2. Status match
+      const statusMatch = (statusVal === 'all') || (rowStatus === statusVal);
+
+      // 3. Search query match
+      const searchMatch = !searchVal || (rowSearch && rowSearch.includes(searchVal));
+
+      if (categoryMatch && statusMatch && searchMatch) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    // Update summary text
+    const totalRows = rows.length;
+    const summaryEl = document.getElementById('filterResultSummary');
+    if (summaryEl) {
+      summaryEl.innerText = `Showing ${visibleCount} of ${totalRows} users`;
+    }
+  }
+
+  function handleEditUser(btn) {
+    const d = btn.dataset;
+    document.getElementById('editUserForm').action = `/admin/users/edit/${d.id}`;
+    document.getElementById('editUserName').value = d.name;
+    document.getElementById('editUserEmail').value = d.email;
+    document.getElementById('editUserMobile').value = d.mobile || '';
+    document.getElementById('editUserRoleId').value = d.roleId;
+    document.getElementById('editUserSpecialization').value = d.spec || '';
+
+    const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+    editModal.show();
+  }
+
+  function handleViewUser(btn) {
+    const d = btn.dataset;
+    document.getElementById('viewAvatarInitial').innerText = (d.name && d.name[0]) ? d.name[0] : 'U';
+    document.getElementById('viewName').innerText = d.name;
+    document.getElementById('viewEmail').innerText = d.email;
+    document.getElementById('viewCode').innerText = d.code;
+    document.getElementById('viewRole').innerText = d.role || 'Staff';
+    document.getElementById('viewPhone').innerText = d.mobile || '—';
+    document.getElementById('viewSpec').innerText = d.spec || '—';
+    document.getElementById('viewDept').innerText = d.dept || '—';
+    document.getElementById('viewStatus').innerText = d.status;
+    document.getElementById('viewJoined').innerText = d.joined || '—';
+
+    const viewModal = new bootstrap.Modal(document.getElementById('viewUserModal'));
+    viewModal.show();
+  }
+
+  function handleResetPassword(btn) {
+    const d = btn.dataset;
+    document.getElementById('resetPasswordForm').action = `/admin/users/reset-password/${d.id}`;
+    document.getElementById('resetModalSub').innerText = `Reset password for ${d.name} (${d.code})`;
+
+    const resetModal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+    resetModal.show();
+  }
+</script>
 {% endblock %}

@@ -56,6 +56,20 @@ class User(UserMixin, db.Model):
         self.last_login_at = datetime.utcnow()
         db.session.commit()
 
+    @property
+    def specialization(self):
+        if self.doctor_profile:
+            doc = self.doctor_profile[0] if isinstance(self.doctor_profile, list) else self.doctor_profile
+            return getattr(doc, 'specialization', None) or getattr(doc, 'department', None)
+        return None
+
+    @property
+    def department(self):
+        if self.doctor_profile:
+            doc = self.doctor_profile[0] if isinstance(self.doctor_profile, list) else self.doctor_profile
+            return getattr(doc, 'department', None) or getattr(doc, 'specialization', None)
+        return None
+
     def __repr__(self):
         return f"<User {self.user_code} - {self.name}>"
 

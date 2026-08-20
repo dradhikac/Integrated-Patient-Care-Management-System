@@ -344,6 +344,23 @@ def users():
             db.session.add(new_user)
             db.session.commit()
 
+            # If doctor role, register Doctor model entry
+            if role and role.name == 'Doctor':
+                doc = Doctor(
+                    user_id=new_user.id,
+                    doctor_code=new_user.user_code,
+                    name=new_user.name,
+                    specialization=form.specialization.data or 'General Medicine',
+                    education='MBBS, MD',
+                    experience='5 Years',
+                    department='General Medicine',
+                    consultation_fee=500.0,
+                    image_url='/static/images/doctors/doctor-default.jpg',
+                    is_active=True
+                )
+                db.session.add(doc)
+                db.session.commit()
+
             # Audit log
             log = AuditLog(
                 user_id=current_user.id,
@@ -359,7 +376,107 @@ def users():
             return redirect(url_for('admin.users'))
 
     staff_users = User.query.order_by(User.id.desc()).all()
-    return render_template('admin/users.html', form=form, staff_users=staff_users, roles=roles)
+
+    # Pre-calculated summary counts
+    total_users_count = len(staff_users)
+    admin_users_count = sum(1 for u in staff_users if u.role and u.role.name == 'Admin')
+    doctor_users_count = sum(1 for u in staff_users if u.role and u.role.name == 'Doctor')
+    staff_users_count = sum(1 for u in staff_users if u.role and u.role.name in ['Receptionist', 'Lab Technician'])
+    patient_users_count = sum(1 for u in staff_users if u.role and u.role.name == 'Patient')
+    active_users_count = sum(1 for u in staff_users if u.is_active)
+
+    return render_template('admin/users.html',
+                           form=form,
+                           staff_users=staff_users,
+                           roles=roles,
+                           total_users_count=total_users_count,
+                           admin_users_count=admin_users_count,
+                           doctor_users_count=doctor_users_count,
+                           staff_users_count=staff_users_count,
+                           patient_users_count=patient_users_count,
+                           active_users_count=active_users_count)
+
+
+@admin_bp.route('/users/edit/<int:user_id>', methods=['POST'])
+@login_required
+@role_required('Admin')
+def edit_user(user_id):
+    user = User.query.get_or_404(user_id)
+    name = request.form.get('name', '').strip()
+    email = request.form.get('email', '').strip()
+    mobile = request.form.get('mobile', '').strip()
+    role_id = request.form.get('role_id', type=int)
+    specialization = request.form.get('specialization', '').strip()
+
+    if name:
+        user.name = name
+    if email:
+        user.email = email
+    user.mobile = mobile or None
+    if role_id:
+        user.role_id = role_id
+
+    # If doctor, update or create doctor profile specialization
+    role = Role.query.get(user.role_id)
+    if role and role.name == 'Doctor':
+        if user.doctor_profile:
+            doc = user.doctor_profile[0] if isinstance(user.doctor_profile, list) else user.doctor_profile
+            if specialization:
+                doc.specialization = specialization
+            doc.name = user.name
+        else:
+            doc = Doctor(
+                user_id=user.id,
+                doctor_code=user.user_code,
+                name=user.name,
+                specialization=specialization or 'General Medicine',
+                education='MBBS, MD',
+                experience='5 Years',
+                department='General Medicine',
+                consultation_fee=500.0,
+                image_url='/static/images/doctors/doctor-default.jpg',
+                is_active=True
+            )
+            db.session.add(doc)
+
+    db.session.commit()
+
+    log = AuditLog(
+        user_id=current_user.id,
+        action='UPDATE_USER',
+        entity_type='User',
+        entity_id=user.id,
+        details=f"Updated details for user account {user.user_code} ({user.name})."
+    )
+    db.session.add(log)
+    db.session.commit()
+
+    flash(f"User account {user.user_code} updated successfully!", 'success')
+    return redirect(url_for('admin.users'))
+
+
+@admin_bp.route('/users/reset-password/<int:user_id>', methods=['POST'])
+@login_required
+@role_required('Admin')
+def reset_user_password(user_id):
+    user = User.query.get_or_404(user_id)
+    new_password = request.form.get('new_password', '').strip() or 'Password@123'
+    user.set_password(new_password)
+    user.reset_failed_attempts()
+    db.session.commit()
+
+    log = AuditLog(
+        user_id=current_user.id,
+        action='RESET_USER_PASSWORD',
+        entity_type='User',
+        entity_id=user.id,
+        details=f"Reset password for user account {user.user_code} ({user.name})."
+    )
+    db.session.add(log)
+    db.session.commit()
+
+    flash(f"Password reset successfully for {user.name} ({user.user_code})! Temporary password set to: {new_password}", 'info')
+    return redirect(url_for('admin.users'))
 
 
 @admin_bp.route('/users/toggle/<int:user_id>', methods=['POST'])
@@ -560,7 +677,8 @@ def download_backup(filename):
 @login_required
 @role_required('Admin')
 def departments_view():
-    departments = Department.query.order_by(Department.name.asc()).all()
+    ensure_departments_seeded()
+    departments = Department.query.order_by(Department.dept_code.asc()).all()
     return render_template('admin/departments.html', departments=departments)
 
 
@@ -568,14 +686,24 @@ def departments_view():
 @login_required
 @role_required('Admin')
 def add_department():
-    name = request.form.get('name', '').strip()
-    hod = request.form.get('hod', '').strip()
-    location = request.form.get('location', '').strip()
-    if name:
-        dept = Department(name=name, head_of_department=hod or None, location=location or None)
+    dept_name = request.form.get('name', '').strip()
+    category = request.form.get('category', 'Clinical').strip()
+    room_numbers = request.form.get('room_numbers', '').strip()
+    description = request.form.get('description', '').strip()
+    if dept_name:
+        count = Department.query.count() + 1
+        dept_code = f"DEP-{count:02d}"
+        dept = Department(
+            dept_code=dept_code,
+            dept_name=dept_name,
+            category=category or 'Clinical',
+            room_numbers=room_numbers or None,
+            description=description or None,
+            is_active=True
+        )
         db.session.add(dept)
         db.session.commit()
-        flash(f"Department '{name}' created successfully!", 'success')
+        flash(f"Department '{dept_name}' ({dept_code}) created successfully!", 'success')
     return redirect(url_for('admin.departments_view'))
 
 
@@ -623,7 +751,6 @@ def billing_view():
 @login_required
 @role_required('Admin')
 def emergency_view():
-    today = date.today()
     emergency_cases = Appointment.query.filter(
         (Appointment.priority == 'Emergency') | (Appointment.booking_type == 'Emergency')
     ).order_by(Appointment.id.desc()).limit(50).all()
@@ -643,13 +770,21 @@ def equipment_view():
 @role_required('Admin')
 def add_equipment():
     name = request.form.get('name', '').strip()
-    code = request.form.get('code', '').strip()
+    category = request.form.get('category', 'Diagnostic').strip()
     department = request.form.get('department', '').strip()
     if name:
-        eq = Equipment(name=name, code=code or None, department=department or None, status='OPERATIONAL')
+        count = Equipment.query.count() + 1
+        equipment_code = f"EQ-{count:03d}"
+        eq = Equipment(
+            equipment_code=equipment_code,
+            name=name,
+            category=category or 'Diagnostic',
+            department=department or 'Main Ward',
+            status='OPERATIONAL'
+        )
         db.session.add(eq)
         db.session.commit()
-        flash(f"Equipment '{name}' registered successfully!", 'success')
+        flash(f"Equipment '{name}' ({equipment_code}) registered successfully!", 'success')
     return redirect(url_for('admin.equipment_view'))
 
 
