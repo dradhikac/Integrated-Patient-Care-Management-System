@@ -1,0 +1,92 @@
+{% extends 'reception/base_reception.html' %}
+
+{% block title %}Emergency Desk & Triage — MediCore+ Desk{% endblock %}
+{% block header_title %}Emergency Walk-In & Triage Desk{% endblock %}
+{% block header_subtitle %}Rapid check-in and priority routing for critical and emergency patient cases{% endblock %}
+
+{% block admin_content %}
+<div class="row g-4">
+  <div class="col-12">
+    <div class="alert alert-danger border-0 rounded-4 shadow-sm p-4 d-flex align-items-center justify-content-between mb-4" style="background: #FEF2F2; border-left: 5px solid #DC2626 !important;">
+      <div class="d-flex align-items-center gap-3">
+        <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center" style="width: 46px; height: 46px; font-size: 1.4rem;">
+          <i class="bi bi-ambulance"></i>
+        </div>
+        <div>
+          <h5 class="fw-bold text-danger mb-0">Emergency High-Priority Intake Active</h5>
+          <div class="text-muted small">Emergency cases bypass standard queues and are routed immediately to the Emergency Room / On-Duty Physician.</div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#quickCheckInModal">
+        <i class="bi bi-plus-circle me-1"></i> Rapid Emergency Intake
+      </button>
+    </div>
+
+    <!-- Active Emergency Cases Table -->
+    <div class="user-table-card">
+      <div class="p-4 border-bottom d-flex align-items-center justify-content-between">
+        <h5 class="fw-bold mb-0 text-slate-900">
+          <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i> Today's Emergency Cases ({{ emergency_checkins|length }})
+        </h5>
+        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 font-monospace">Priority 1: Urgent</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="user-custom-table align-middle mb-0">
+          <thead>
+            <tr>
+              <th class="ps-4">Token #</th>
+              <th>Patient</th>
+              <th>Assigned Doctor / Triage</th>
+              <th>Check-In Time</th>
+              <th>Current Status</th>
+              <th class="text-end pe-4">Desk Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for em in emergency_checkins %}
+            <tr>
+              <td class="ps-4">
+                <span class="badge bg-danger text-white rounded-pill px-3 py-1 font-monospace fw-bold">{{ em.token_no }}</span>
+              </td>
+              <td>
+                <div class="fw-bold text-slate-900">{{ em.patient.full_name }}</div>
+                <div class="text-muted font-monospace small" style="font-size: 0.75rem;">{{ em.patient.patient_code }} · {{ em.patient.mobile }}</div>
+              </td>
+              <td>
+                <div class="fw-semibold text-slate-900">{{ em.doctor.name }}</div>
+                <div class="text-muted small" style="font-size: 0.75rem;">{{ em.department }}</div>
+              </td>
+              <td>
+                <span class="text-muted font-monospace small">{{ em.check_in_time.strftime('%I:%M %p') }}</span>
+              </td>
+              <td>
+                {% if em.status == 'IN_CONSULTATION' %}
+                  <span class="badge bg-info text-white rounded-pill px-2.5 py-1">In Cabin</span>
+                {% elif em.status == 'COMPLETED' %}
+                  <span class="badge bg-success text-white rounded-pill px-2.5 py-1">Completed</span>
+                {% else %}
+                  <span class="badge bg-danger text-white rounded-pill px-2.5 py-1 pulse-dot-red">Immediate Attention</span>
+                {% endif %}
+              </td>
+              <td class="text-end pe-4">
+                <a href="{{ url_for('reception.print_token', check_in_id=em.id) }}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold">
+                  <i class="bi bi-printer me-1"></i> Print Token
+                </a>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" class="text-center text-muted py-5">
+                <i class="bi bi-shield-check fs-1 text-success d-block mb-2 opacity-50"></i>
+                No active emergency walk-ins today. All clinical services operating normally.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

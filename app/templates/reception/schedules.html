@@ -1,0 +1,84 @@
+{% extends 'reception/base_reception.html' %}
+
+{% block title %}Doctor Schedules & Roster — MediCore+ Desk{% endblock %}
+{% block header_title %}Doctor OPD Schedules & Consultation Roster{% endblock %}
+{% block header_subtitle %}Weekly doctor availability, consultation hours, departments, and OPD slot capacities{% endblock %}
+
+{% block admin_content %}
+<div class="row g-4">
+  <div class="col-12">
+    <div class="user-table-card">
+      <div class="p-4 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div>
+          <h5 class="fw-bold mb-0 text-slate-900">
+            <i class="bi bi-calendar-range-fill text-primary me-2"></i> Weekly OPD Duty Roster
+          </h5>
+          <span class="text-muted small">Consultation shifts for all hospital medical specialists</span>
+        </div>
+        <a href="{{ url_for('appointments.book_appointment') }}" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold" style="background-color: #2563EB;">
+          <i class="bi bi-calendar-plus me-1"></i> Book Appointment
+        </a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="user-custom-table align-middle mb-0">
+          <thead>
+            <tr>
+              <th class="ps-4">Doctor & Specialist</th>
+              <th>Department</th>
+              <th>Available Days</th>
+              <th>Shift Hours</th>
+              <th>Consultation Fee</th>
+              <th>Today's Status</th>
+              <th class="text-end pe-4">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for doc in doctors %}
+            <tr>
+              <td class="ps-4">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="user-avatar-initial" style="background: #EFF6FF; color: #2563EB; width: 38px; height: 38px;">
+                    {{ doc.name[0] if doc.name else 'D' }}
+                  </div>
+                  <div>
+                    <div class="fw-bold text-slate-900">{{ doc.name }}</div>
+                    <div class="text-muted font-monospace small" style="font-size: 0.75rem;">{{ doc.user_code }} · {{ doc.specialization or 'Physician' }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border">{{ doc.department or 'General OPD' }}</span>
+              </td>
+              <td>
+                <span class="small fw-semibold text-slate-900">Monday - Saturday</span>
+              </td>
+              <td>
+                <span class="small text-muted font-monospace"><i class="bi bi-clock me-1 text-primary"></i> 09:00 AM - 01:00 PM</span>
+              </td>
+              <td>
+                <span class="fw-bold text-slate-900 font-monospace">₹500</span>
+              </td>
+              <td>
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
+                  <span class="pulse-dot-green me-1"></span> Available Today
+                </span>
+              </td>
+              <td class="text-end pe-4">
+                <a href="{{ url_for('appointments.book_appointment') }}?doctor_id={{ doc.id }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
+                  Book Slot
+                </a>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="7" class="text-center text-muted py-5">No doctors found in the database.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
