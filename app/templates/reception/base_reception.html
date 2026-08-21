@@ -60,7 +60,7 @@
 
           <!-- PATIENT SERVICES -->
           <div class="sidebar-section-title">Patient Services</div>
-          <a href="{{ url_for('patients.list_patients') }}" class="admin-nav-item {% if 'patients.list_patients' in request.endpoint or 'patients.view_patient' in request.endpoint %}active{% endif %}">
+          <a href="{{ url_for('patients.list_patients') }}" class="admin-nav-item {% if request.endpoint in ['patients.list_patients','patients.view_patient'] %}active{% endif %}">
             <i class="bi bi-people-fill"></i> Patients Directory
           </a>
           <a href="{{ url_for('patients.register_patient') }}" class="admin-nav-item {% if request.endpoint == 'patients.register_patient' %}active{% endif %}">
@@ -75,17 +75,17 @@
 
           <!-- FRONT DESK -->
           <div class="sidebar-section-title">Front Desk</div>
+          <a href="{{ url_for('reception.emergency_desk') }}" class="admin-nav-item {% if request.endpoint == 'reception.emergency_desk' %}active{% endif %}">
+            <i class="bi bi-ambulance" style="color: #EF4444;"></i> Emergency Walk-In
+          </a>
+          <a href="{{ url_for('queue.public_display_board') }}" class="admin-nav-item" target="_blank">
+            <i class="bi bi-people"></i> Waiting Queue <i class="bi bi-box-arrow-up-right ms-auto" style="font-size: 0.65rem; opacity: 0.5;"></i>
+          </a>
           <a href="{{ url_for('reception.schedules') }}" class="admin-nav-item {% if request.endpoint == 'reception.schedules' %}active{% endif %}">
             <i class="bi bi-calendar-range"></i> Doctor Schedules
           </a>
-          <a href="{{ url_for('queue.public_display_board') }}" class="admin-nav-item" target="_blank">
-            <i class="bi bi-tv-fill"></i> Waiting Queue TV <i class="bi bi-box-arrow-up-right ms-auto small text-muted" style="font-size: 0.7rem;"></i>
-          </a>
-          <a href="{{ url_for('reception.emergency_desk') }}" class="admin-nav-item {% if request.endpoint == 'reception.emergency_desk' %}active{% endif %}">
-            <i class="bi bi-ambulance text-danger"></i> Emergency Walk-In
-          </a>
 
-          <!-- OTHER -->
+          <!-- COMMUNICATION -->
           <div class="sidebar-section-title">Communication</div>
           <a href="{{ url_for('notifications.index') }}" class="admin-nav-item {% if 'notifications' in request.endpoint %}active{% endif %}">
             <i class="bi bi-bell-fill"></i> Notifications

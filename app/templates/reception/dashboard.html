@@ -1,750 +1,641 @@
 {% extends 'reception/base_reception.html' %}
 
-{% block title %}Front Desk & Reception Desk — MediCore+{% endblock %}
-{% block header_title %}Front Desk Operational Dashboard{% endblock %}
-{% block header_subtitle %}Real-time patient check-in, scheduled appointments, live queue monitoring, and token issuing{% endblock %}
+{% block title %}Front Desk Dashboard — MediCore+{% endblock %}
+{% block header_title %}Front Desk Dashboard{% endblock %}
+{% block header_subtitle %}{{ now.strftime('%A, %d %B %Y') }} · Live view: Who is arriving? Who has arrived? Who needs attention?{% endblock %}
 
 {% block extra_css %}
 <style>
-  /* Summary Grid */
-  .rec-summary-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 14px;
-    margin-bottom: 24px;
-  }
+/* ── KPI Strip ─────────────────────────────────────────────── */
+.rec-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+  margin-bottom: 22px;
+}
+@media (max-width: 1100px) { .rec-kpi-strip { grid-template-columns: repeat(3,1fr); } }
+@media (max-width: 640px)  { .rec-kpi-strip { grid-template-columns: repeat(2,1fr); } }
 
-  @media (max-width: 1200px) {
-    .rec-summary-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
+.rec-kpi {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.rec-kpi:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.07); }
 
-  @media (max-width: 768px) {
-    .rec-summary-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
+.rec-kpi-icon {
+  width: 42px; height: 42px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem; flex-shrink: 0;
+}
+.ki-blue    { background:#EFF6FF; color:#2563EB; }
+.ki-green   { background:#ECFDF5; color:#059669; }
+.ki-amber   { background:#FFFBEB; color:#D97706; }
+.ki-teal    { background:#F0FDFA; color:#0D9488; }
+.ki-purple  { background:#FAF5FF; color:#7C3AED; }
 
-  .rec-summary-card {
-    background: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: 16px;
-    padding: 16px 18px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    transition: all 0.2s ease;
-  }
+.rec-kpi-num  { font-size: 1.7rem; font-weight: 800; color: #0F172A; line-height: 1; }
+.rec-kpi-lbl  { font-size: 0.72rem; font-weight: 700; color: #64748B;
+                text-transform: uppercase; letter-spacing: .4px; margin-bottom: 2px; }
 
-  .rec-summary-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-    border-color: #CBD5E1;
-  }
+/* ── Middle Row (Quick Actions + Waiting Queue) ─────────────── */
+.rec-mid-row {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+@media (max-width: 900px) { .rec-mid-row { grid-template-columns: 1fr; } }
 
-  .rec-icon-box {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-    flex-shrink: 0;
-  }
+/* ── Shared Card Shell ──────────────────────────────────────── */
+.rec-card {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.03);
+  overflow: hidden;
+}
+.rec-card-hdr {
+  padding: 14px 18px;
+  border-bottom: 1px solid #F1F5F9;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.rec-card-title {
+  font-size: 1rem; font-weight: 800; color: #0F172A;
+  display: flex; align-items: center; gap: 8px;
+  margin: 0;
+}
 
-  .rec-icon-blue    { background: #EFF6FF; color: #2563EB; }
-  .rec-icon-emerald { background: #ECFDF5; color: #059669; }
-  .rec-icon-amber   { background: #FFFBEB; color: #D97706; }
-  .rec-icon-purple  { background: #FAF5FF; color: #7C3AED; }
-  .rec-icon-teal    { background: #F0FDFA; color: #0D9488; }
-  .rec-icon-rose    { background: #FEF2F2; color: #DC2626; }
+/* ── Quick Actions Panel ────────────────────────────────────── */
+.quick-action-btn {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 16px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 0.9rem; font-weight: 700;
+  transition: all .15s ease;
+  margin-bottom: 8px;
+}
+.quick-action-btn:last-child { margin-bottom: 0; }
+.qa-icon {
+  width: 34px; height: 34px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; flex-shrink: 0;
+}
 
-  .rec-label {
-    font-size: 0.74rem;
-    font-weight: 700;
-    color: #64748B;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    margin-bottom: 2px;
-  }
+.qa-primary { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+.qa-primary:hover { background: #2563EB; color: #fff; border-color: #2563EB; }
+.qa-primary .qa-icon { background: #DBEAFE; color: #1D4ED8; }
+.qa-primary:hover .qa-icon { background: rgba(255,255,255,.2); color: #fff; }
 
-  .rec-num {
-    font-size: 1.55rem;
-    font-weight: 800;
-    color: #0F172A;
-    line-height: 1.1;
-  }
+.qa-green { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+.qa-green:hover { background: #059669; color: #fff; border-color: #059669; }
+.qa-green .qa-icon { background: #D1FAE5; color: #047857; }
+.qa-green:hover .qa-icon { background: rgba(255,255,255,.2); color: #fff; }
 
-  /* Quick Search & Actions Hub */
-  .rec-action-hub {
-    background: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: 16px;
-    padding: 18px 22px;
-    margin-bottom: 24px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
-  }
+.qa-dark { background: #F8FAFC; color: #0F172A; border: 1px solid #E2E8F0; }
+.qa-dark:hover { background: #0F172A; color: #fff; border-color: #0F172A; }
+.qa-dark .qa-icon { background: #E2E8F0; color: #0F172A; }
+.qa-dark:hover .qa-icon { background: rgba(255,255,255,.15); color: #fff; }
 
-  .search-patient-bar {
-    position: relative;
-  }
+.qa-amber { background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
+.qa-amber:hover { background: #D97706; color: #fff; border-color: #D97706; }
+.qa-amber .qa-icon { background: #FEF3C7; color: #B45309; }
+.qa-amber:hover .qa-icon { background: rgba(255,255,255,.2); color: #fff; }
 
-  .search-patient-bar i {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #94A3B8;
-    font-size: 1.05rem;
-  }
+/* ── Waiting Queue List ─────────────────────────────────────── */
+.wq-item {
+  padding: 11px 16px;
+  border-bottom: 1px solid #F1F5F9;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: background .12s;
+}
+.wq-item:last-child { border-bottom: none; }
+.wq-item:hover { background: #F8FAFC; }
+.wq-token { font-family: monospace; font-size: .8rem; font-weight: 800;
+             background: #EFF6FF; color: #1D4ED8;
+             border: 1px solid #BFDBFE; border-radius: 7px;
+             padding: 3px 9px; flex-shrink: 0; }
+.wq-wait  { font-size: .75rem; color: #D97706; font-weight: 700; }
 
-  .search-patient-bar input {
-    width: 100%;
-    padding: 11px 16px 11px 44px;
-    border: 1.5px solid #E2E8F0;
-    border-radius: 12px;
-    font-size: 0.92rem;
-    color: #0F172A;
-    background: #F8FAFC;
-    transition: all 0.2s ease;
-  }
+/* ── Filter Tabs ────────────────────────────────────────────── */
+.filter-tab-bar {
+  display: flex; gap: 4px; align-items: center;
+  background: #F1F5F9; padding: 4px; border-radius: 9px;
+}
+.filter-tab {
+  border: none; background: transparent;
+  padding: 5px 11px; border-radius: 7px;
+  font-size: .77rem; font-weight: 700; color: #64748B; cursor: pointer;
+  transition: all .13s;
+}
+.filter-tab.active { background: #fff; color: #0F172A; box-shadow: 0 1px 3px rgba(0,0,0,.09); }
 
-  .search-patient-bar input:focus {
-    outline: none;
-    border-color: #2563EB;
-    background: #FFFFFF;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
-  }
+/* ── Main Appointments Table ────────────────────────────────── */
+.rec-tbl { width: 100%; border-collapse: separate; border-spacing: 0; }
+.rec-tbl th {
+  background: #F8FAFC; color: #64748B; font-size: .73rem;
+  font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+  padding: 11px 16px; border-bottom: 1px solid #E2E8F0;
+}
+.rec-tbl td {
+  padding: 13px 16px; border-bottom: 1px solid #F1F5F9;
+  font-size: .87rem; color: #1E293B; vertical-align: middle;
+  transition: background .12s;
+}
+.rec-tbl tr:hover td { background: #F8FAFC; }
 
-  .btn-rec-action {
-    padding: 10px 18px;
-    border-radius: 12px;
-    font-size: 0.88rem;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s ease;
-    text-decoration: none;
-  }
+/* ── Status Badges ──────────────────────────────────────────── */
+.sb { display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 20px; font-size: .73rem; font-weight: 700; border: 1px solid; }
+.sb-scheduled  { background:#F8FAFC;  color:#475569; border-color:#CBD5E1; }
+.sb-checked-in { background:#ECFDF5;  color:#047857; border-color:#A7F3D0; }
+.sb-waiting    { background:#FFFBEB;  color:#B45309; border-color:#FDE68A; }
+.sb-consult    { background:#EFF6FF;  color:#1D4ED8; border-color:#BFDBFE; }
+.sb-completed  { background:#EFF6FF;  color:#2563EB; border-color:#BFDBFE; }
+.sb-cancelled  { background:#FEF2F2;  color:#B91C1C; border-color:#FECACA; }
+.sb-noshow     { background:#F1F5F9;  color:#64748B; border-color:#CBD5E1; }
 
-  .btn-rec-primary {
-    background: #2563EB;
-    color: #FFFFFF;
-    border: 1px solid #2563EB;
-  }
-  .btn-rec-primary:hover {
-    background: #1D4ED8;
-    color: #FFFFFF;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-  }
+/* ── Bottom Row ─────────────────────────────────────────────── */
+.rec-bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 18px;
+}
+@media (max-width: 900px) { .rec-bottom-row { grid-template-columns: 1fr; } }
 
-  .btn-rec-success {
-    background: #ECFDF5;
-    color: #059669;
-    border: 1px solid #A7F3D0;
-  }
-  .btn-rec-success:hover {
-    background: #059669;
-    color: #FFFFFF;
-  }
+/* ── Upcoming Item ──────────────────────────────────────────── */
+.upcoming-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; border-bottom: 1px solid #F1F5F9;
+  transition: background .12s;
+}
+.upcoming-item:last-child { border-bottom: none; }
+.upcoming-item:hover { background: #F8FAFC; }
 
-  .btn-rec-dark {
-    background: #0F172A;
-    color: #FFFFFF;
-    border: 1px solid #0F172A;
-  }
-  .btn-rec-dark:hover {
-    background: #1E293B;
-    color: #FFFFFF;
-  }
+/* ── Activity Log ───────────────────────────────────────────── */
+.act-item {
+  display: flex; align-items: flex-start; gap: 11px;
+  padding: 10px 16px; border-bottom: 1px solid #F1F5F9;
+  transition: background .12s;
+}
+.act-item:last-child { border-bottom: none; }
+.act-item:hover { background: #F8FAFC; }
+.act-dot {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: .9rem; flex-shrink: 0; margin-top: 1px;
+}
 
-  /* Table Cards */
-  .rec-card {
-    background: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: 16px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
-    overflow: hidden;
-    margin-bottom: 24px;
-  }
-
-  .rec-card-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid #F1F5F9;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #FFFFFF;
-  }
-
-  .rec-card-title {
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: #0F172A;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  /* Filter Tabs */
-  .rec-filter-tabs {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: #F1F5F9;
-    padding: 4px;
-    border-radius: 10px;
-  }
-
-  .rec-filter-btn {
-    border: none;
-    background: transparent;
-    padding: 5px 12px;
-    border-radius: 8px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: #64748B;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-
-  .rec-filter-btn.active {
-    background: #FFFFFF;
-    color: #0F172A;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  }
-
-  /* Front Desk Table */
-  .rec-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-  }
-
-  .rec-table th {
-    background: #F8FAFC;
-    color: #64748B;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 12px 18px;
-    border-bottom: 1px solid #E2E8F0;
-  }
-
-  .rec-table td {
-    padding: 14px 18px;
-    border-bottom: 1px solid #F1F5F9;
-    font-size: 0.88rem;
-    color: #1E293B;
-    vertical-align: middle;
-    background: #FFFFFF;
-    transition: background 0.15s ease;
-  }
-
-  .rec-table tr:hover td {
-    background: #F8FAFC;
-  }
-
-  .token-badge {
-    font-family: 'SFMono-Regular', Consolas, monospace;
-    font-weight: 800;
-    font-size: 0.85rem;
-    padding: 4px 10px;
-    border-radius: 8px;
-    background: #EFF6FF;
-    color: #1D4ED8;
-    border: 1px solid #BFDBFE;
-    display: inline-block;
-  }
-
-  /* Live Queue Item */
-  .queue-item {
-    padding: 12px 16px;
-    border-bottom: 1px solid #F1F5F9;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    transition: background 0.15s ease;
-  }
-
-  .queue-item:hover {
-    background: #F8FAFC;
-  }
-
-  .queue-item:last-child {
-    border-bottom: none;
-  }
-
-  /* Doctor Status Row */
-  .doc-duty-row {
-    padding: 12px 16px;
-    border-bottom: 1px solid #F1F5F9;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .doc-duty-row:last-child {
-    border-bottom: none;
-  }
+/* ── Compact patient search bar ─────────────────────────────── */
+.rec-search-bar { position: relative; }
+.rec-search-bar i { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #94A3B8; }
+.rec-search-bar input {
+  width: 100%; padding: 10px 12px 10px 38px;
+  border: 1.5px solid #E2E8F0; border-radius: 10px;
+  font-size: .9rem; color: #0F172A; background: #F8FAFC;
+  transition: all .18s;
+}
+.rec-search-bar input:focus {
+  outline: none; border-color: #2563EB; background: #fff;
+  box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+}
 </style>
 {% endblock %}
 
-{% block admin_content %}
-<!-- 1. Top 5 Front-Desk Summary KPI Cards -->
-<div class="rec-summary-grid">
-  <!-- KPI 1: Today's Scheduled Appointments -->
-  <div class="rec-summary-card">
-    <div class="rec-icon-box rec-icon-blue">
-      <i class="bi bi-calendar-check-fill"></i>
-    </div>
-    <div>
-      <div class="rec-label">Today's Slots</div>
-      <div class="rec-num">{{ count_today_apts }}</div>
-    </div>
+{% block reception_content %}
+
+{# ══════════════════════════════════════════════════════════════
+   PATIENT SEARCH (shown when search_q is present)
+══════════════════════════════════════════════════════════════ #}
+{% if search_q %}
+<div class="rec-card mb-4">
+  <div class="rec-card-hdr">
+    <h3 class="rec-card-title"><i class="bi bi-search text-primary"></i> Search Results for "{{ search_q }}"</h3>
+    <a href="{{ url_for('reception.dashboard') }}" class="btn btn-sm btn-light border rounded-pill px-3">
+      <i class="bi bi-x-lg me-1"></i> Clear
+    </a>
   </div>
-
-  <!-- KPI 2: Checked-In Patients -->
-  <div class="rec-summary-card">
-    <div class="rec-icon-box rec-icon-emerald">
-      <i class="bi bi-person-check-fill"></i>
-    </div>
-    <div>
-      <div class="rec-label">Checked-In</div>
-      <div class="rec-num">{{ count_checked_in }}</div>
-    </div>
+  {% if searched_patients %}
+  <div class="table-responsive">
+    <table class="rec-tbl">
+      <thead>
+        <tr>
+          <th class="ps-4">Patient Code</th>
+          <th>Full Name</th>
+          <th>Age / Gender</th>
+          <th>Mobile</th>
+          <th>Blood Group</th>
+          <th class="text-end pe-4">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in searched_patients %}
+        <tr>
+          <td class="ps-4"><span class="badge bg-dark font-monospace">{{ p.patient_code }}</span></td>
+          <td><div class="fw-bold">{{ p.full_name }}</div><small class="text-muted">{{ p.email or '—' }}</small></td>
+          <td>{{ p.age }} yrs · {{ p.gender }}</td>
+          <td><code>{{ p.mobile }}</code></td>
+          <td>
+            {% if p.blood_group %}<span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">{{ p.blood_group }}</span>
+            {% else %}<span class="text-muted">—</span>{% endif %}
+          </td>
+          <td class="text-end pe-4">
+            <a href="{{ url_for('reception.check_in', patient_id=p.id) }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold me-1">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Check In
+            </a>
+            <a href="{{ url_for('patients.view_patient', patient_id=p.id) }}" class="btn btn-sm btn-light border rounded-pill px-2" title="View Profile">
+              <i class="bi bi-eye"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
-
-  <!-- KPI 3: Waiting in Queue -->
-  <div class="rec-summary-card">
-    <div class="rec-icon-box rec-icon-amber">
-      <i class="bi bi-hourglass-split"></i>
-    </div>
-    <div>
-      <div class="rec-label">Waiting in Queue</div>
-      <div class="rec-num text-warning" style="color: #D97706 !important;">{{ count_waiting }}</div>
-    </div>
-  </div>
-
-  <!-- KPI 4: Currently In Consultation -->
-  <div class="rec-summary-card">
-    <div class="rec-icon-box rec-icon-teal">
-      <i class="bi bi-stethoscope"></i>
-    </div>
-    <div>
-      <div class="rec-label">In Consultation</div>
-      <div class="rec-num text-info">{{ count_consulting }}</div>
-    </div>
-  </div>
-
-  <!-- KPI 5: New Patient Intakes Today -->
-  <div class="rec-summary-card">
-    <div class="rec-icon-box rec-icon-purple">
-      <i class="bi bi-person-plus-fill"></i>
-    </div>
-    <div>
-      <div class="rec-label">New Patients</div>
-      <div class="rec-num">{{ count_new_patients_today }}</div>
-    </div>
-  </div>
-</div>
-
-<!-- 2. Patient Fast Search & Quick Actions Hub -->
-<div class="rec-action-hub" id="checkInDesk">
-  <div class="row align-items-center g-3">
-    <!-- Search Bar -->
-    <div class="col-lg-7">
-      <form method="GET" action="{{ url_for('reception.dashboard') }}" class="d-flex gap-2">
-        <div class="search-patient-bar flex-grow-1">
-          <i class="bi bi-search"></i>
-          <input type="text" name="q" value="{{ search_q }}" placeholder="Lookup patient by Name, Patient Code (PAT-...), or Mobile number..." autofocus>
-        </div>
-        <button type="submit" class="btn btn-rec-primary px-4">
-          <i class="bi bi-search me-1"></i> Search
-        </button>
-        {% if search_q %}
-          <a href="{{ url_for('reception.dashboard') }}" class="btn btn-light border rounded-3 px-3 d-flex align-items-center" title="Clear Search">
-            <i class="bi bi-x-lg"></i>
-          </a>
-        {% endif %}
-      </form>
-    </div>
-
-    <!-- Quick Buttons -->
-    <div class="col-lg-5 d-flex justify-content-lg-end gap-2 flex-wrap">
-      <a href="{{ url_for('patients.register_patient') }}" class="btn-rec-action btn-rec-success shadow-sm">
-        <i class="bi bi-person-plus-fill"></i> Register Patient
-      </a>
-      <a href="{{ url_for('appointments.book_appointment') }}" class="btn-rec-action btn-rec-primary shadow-sm">
-        <i class="bi bi-calendar-plus-fill"></i> Book Slot
-      </a>
-      <button type="button" class="btn-rec-action btn-rec-dark shadow-sm" data-bs-toggle="modal" data-bs-target="#quickCheckInModal">
-        <i class="bi bi-ticket-perforated-fill"></i> Fast Check-In
-      </button>
-    </div>
-  </div>
-
-  <!-- Search Results Dropdown List (if searched) -->
-  {% if search_q %}
-  <div class="mt-3 pt-3 border-top">
-    <div class="d-flex align-items-center justify-content-between mb-2">
-      <span class="small fw-bold text-muted text-uppercase">
-        Search Results for "<span class="text-dark">{{ search_q }}</span>" ({{ searched_patients|length }} match{{ 'es' if searched_patients|length != 1 else '' }})
-      </span>
-      <small class="text-muted">Click Check-In to issue an OPD token immediately</small>
-    </div>
-
-    {% if searched_patients %}
-    <div class="table-responsive border rounded-3 overflow-hidden">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light small">
-          <tr>
-            <th class="ps-3">Patient Code</th>
-            <th>Full Name</th>
-            <th>Gender / Age</th>
-            <th>Contact Phone</th>
-            <th>Blood Group</th>
-            <th class="text-end pe-3">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for p in searched_patients %}
-          <tr>
-            <td class="ps-3"><span class="badge bg-dark font-monospace">{{ p.patient_code }}</span></td>
-            <td>
-              <div class="fw-bold text-slate-900">{{ p.full_name }}</div>
-              <small class="text-muted">{{ p.email or 'No email' }}</small>
-            </td>
-            <td>{{ p.gender }} · {{ p.age }} yrs</td>
-            <td><code>{{ p.mobile }}</code></td>
-            <td>
-              {% if p.blood_group %}
-                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">{{ p.blood_group }}</span>
-              {% else %}
-                <span class="text-muted">—</span>
-              {% endif %}
-            </td>
-            <td class="text-end pe-3">
-              <a href="{{ url_for('reception.check_in', patient_id=p.id) }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold">
-                <i class="bi bi-box-arrow-in-right me-1"></i> Check In
-              </a>
-              <a href="{{ url_for('patients.view_patient', patient_id=p.id) }}" class="btn btn-sm btn-light border rounded-pill px-2.5 ms-1" title="View Medical Profile">
-                <i class="bi bi-eye"></i>
-              </a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% else %}
-    <div class="alert alert-warning rounded-3 py-3 px-4 d-flex align-items-center justify-content-between mb-0">
-      <div class="d-flex align-items-center gap-2">
-        <i class="bi bi-person-x fs-4"></i>
-        <div>
-          <strong>No existing patient records match "{{ search_q }}"</strong>
-          <div class="small">Would you like to register this walk-in patient as a new profile?</div>
-        </div>
-      </div>
-      <a href="{{ url_for('patients.register_patient') }}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold">
-        <i class="bi bi-person-plus-fill me-1"></i> Register New Patient
-      </a>
-    </div>
-    {% endif %}
+  {% else %}
+  <div class="d-flex align-items-center justify-content-between p-4">
+    <div class="text-muted"><i class="bi bi-person-x fs-4 me-2 opacity-50"></i> No patients found for "<strong>{{ search_q }}</strong>".</div>
+    <a href="{{ url_for('patients.register_patient') }}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold">
+      <i class="bi bi-person-plus-fill me-1"></i> Register New Patient
+    </a>
   </div>
   {% endif %}
 </div>
+{% endif %}
 
-<!-- 3. Dual-Panel Front Desk Operations -->
-<div class="row g-4">
-  <!-- Left Panel: Today's Scheduled Appointments (7 Cols) -->
-  <div class="col-lg-7">
-    <div class="rec-card h-100">
-      <div class="rec-card-header">
-        <div>
-          <h3 class="rec-card-title">
-            <i class="bi bi-calendar2-check-fill text-primary"></i> Today's Appointments
-          </h3>
-          <span class="text-muted small">Live schedule for {{ now.strftime('%A, %d %B %Y') }}</span>
-        </div>
+{# ══════════════════════════════════════════════════════════════
+   ROW 1 — 5 KPI SUMMARY CARDS
+══════════════════════════════════════════════════════════════ #}
+<div class="rec-kpi-strip">
+  <div class="rec-kpi">
+    <div class="rec-kpi-icon ki-blue"><i class="bi bi-calendar-check-fill"></i></div>
+    <div><div class="rec-kpi-lbl">Today's Appts</div><div class="rec-kpi-num">{{ count_today_apts }}</div></div>
+  </div>
+  <div class="rec-kpi">
+    <div class="rec-kpi-icon ki-green"><i class="bi bi-person-check-fill"></i></div>
+    <div><div class="rec-kpi-lbl">Checked-In</div><div class="rec-kpi-num">{{ count_checked_in }}</div></div>
+  </div>
+  <div class="rec-kpi">
+    <div class="rec-kpi-icon ki-amber"><i class="bi bi-hourglass-split"></i></div>
+    <div><div class="rec-kpi-lbl">Waiting</div><div class="rec-kpi-num" style="color:#D97706;">{{ count_waiting }}</div></div>
+  </div>
+  <div class="rec-kpi">
+    <div class="rec-kpi-icon ki-teal"><i class="bi bi-check2-all"></i></div>
+    <div><div class="rec-kpi-lbl">Completed</div><div class="rec-kpi-num" style="color:#0D9488;">{{ count_completed }}</div></div>
+  </div>
+  <div class="rec-kpi">
+    <div class="rec-kpi-icon ki-purple"><i class="bi bi-person-plus-fill"></i></div>
+    <div><div class="rec-kpi-lbl">New Registrations</div><div class="rec-kpi-num">{{ count_new_patients_today }}</div></div>
+  </div>
+</div>
 
-        <div class="rec-filter-tabs">
-          <button class="rec-filter-btn active" onclick="filterApts('all', this)">All ({{ today_apts|length }})</button>
-          <button class="rec-filter-btn" onclick="filterApts('BOOKED', this)">Pending ({{ today_apts|selectattr('status', 'equalto', 'BOOKED')|list|length }})</button>
-          <button class="rec-filter-btn" onclick="filterApts('CHECKED_IN', this)">Arrived ({{ today_apts|selectattr('status', 'equalto', 'CHECKED_IN')|list|length }})</button>
-          <button class="rec-filter-btn" onclick="filterApts('COMPLETED', this)">Done ({{ today_apts|selectattr('status', 'equalto', 'COMPLETED')|list|length }})</button>
-        </div>
-      </div>
+{# ══════════════════════════════════════════════════════════════
+   ROW 2 — QUICK ACTIONS (left) + WAITING QUEUE (right)
+══════════════════════════════════════════════════════════════ #}
+<div class="rec-mid-row">
 
-      <div class="table-responsive">
-        <table class="rec-table align-middle mb-0" id="aptsTable">
-          <thead>
-            <tr>
-              <th class="ps-4">Time & Slot</th>
-              <th>Patient Details</th>
-              <th>Assigned Doctor</th>
-              <th>Priority</th>
-              <th>Status</th>
-              <th class="text-end pe-4">Desk Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for apt in today_apts %}
-            <tr class="apt-row" data-status="{{ apt.status }}">
-              <td class="ps-4">
-                <div class="fw-bold text-slate-900 font-monospace">{{ apt.slot_time.strftime('%I:%M %p') }}</div>
-                <div class="badge bg-light text-muted border small" style="font-size: 0.68rem;">{{ apt.booking_type or 'Online' }}</div>
-              </td>
-              <td>
-                <div class="fw-bold text-slate-900 small">{{ apt.patient.full_name }}</div>
-                <div class="text-muted font-monospace" style="font-size: 0.72rem;">{{ apt.patient.patient_code }} · {{ apt.patient.mobile }}</div>
-              </td>
-              <td>
-                <div class="fw-semibold text-slate-900 small">{{ apt.doctor.name }}</div>
-                <div class="text-muted small" style="font-size: 0.72rem;">{{ apt.doctor.department or 'OPD' }}</div>
-              </td>
-              <td>
-                {% if apt.priority == 'Emergency' %}
-                  <span class="badge bg-danger text-white rounded-pill px-2 py-1 small fw-bold">🔴 Emergency</span>
-                {% elif apt.priority == 'Senior Citizen' %}
-                  <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-1 small fw-bold">👴 Senior</span>
-                {% elif apt.priority == 'Pregnant Woman' %}
-                  <span class="badge bg-pink-subtle text-pink border rounded-pill px-2 py-1 small fw-bold" style="background-color: #FDF2F8; color: #DB2777;">🤰 Pregnant</span>
-                {% elif apt.priority == 'Child' %}
-                  <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-1 small fw-bold">👶 Child</span>
-                {% else %}
-                  <span class="badge bg-light text-dark border rounded-pill px-2 py-1 small">Regular</span>
-                {% endif %}
-              </td>
-              <td>
-                {% if apt.status == 'BOOKED' %}
-                  <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2.5 py-1 fw-bold">
-                    <i class="bi bi-clock me-1"></i> Booked
-                  </span>
-                {% elif apt.status == 'CHECKED_IN' %}
-                  <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold">
-                    <i class="bi bi-check2-circle me-1"></i> Arrived
-                  </span>
-                {% elif apt.status == 'COMPLETED' %}
-                  <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-bold">
-                    <i class="bi bi-check-all me-1"></i> Completed
-                  </span>
-                {% else %}
-                  <span class="badge bg-light text-muted border rounded-pill px-2 py-1">{{ apt.status }}</span>
-                {% endif %}
-              </td>
-              <td class="text-end pe-4">
-                {% if apt.status == 'BOOKED' %}
-                  <form action="{{ url_for('reception.quick_checkin_apt', appointment_id=apt.id) }}" method="POST" class="d-inline">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" style="background-color: #2563EB; border-color: #2563EB;">
-                      <i class="bi bi-box-arrow-in-right me-1"></i> Check In
-                    </button>
-                  </form>
-                {% elif apt.status == 'CHECKED_IN' %}
-                  <span class="badge bg-emerald text-white rounded-pill px-2.5 py-1 font-monospace" style="background-color: #059669;">
-                    <i class="bi bi-ticket-fill me-1"></i> Token Issued
-                  </span>
-                {% else %}
-                  <span class="text-muted small">—</span>
-                {% endif %}
-              </td>
-            </tr>
-            {% else %}
-            <tr>
-              <td colspan="6" class="text-center text-muted py-5">
-                <i class="bi bi-calendar-x fs-1 d-block text-muted mb-2 opacity-50"></i>
-                No appointments scheduled for today.
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+  {# — Left: Quick Actions — #}
+  <div class="rec-card" id="checkInDesk">
+    <div class="rec-card-hdr">
+      <h3 class="rec-card-title"><i class="bi bi-lightning-charge-fill text-warning"></i> Quick Actions</h3>
+    </div>
+    <div class="p-3">
+      <a href="{{ url_for('patients.register_patient') }}" class="quick-action-btn qa-green">
+        <div class="qa-icon"><i class="bi bi-person-plus-fill"></i></div>
+        <span>Register New Patient</span>
+      </a>
+      <a href="{{ url_for('appointments.book_appointment') }}" class="quick-action-btn qa-primary">
+        <div class="qa-icon"><i class="bi bi-calendar-plus-fill"></i></div>
+        <span>Book Appointment</span>
+      </a>
+      <button type="button" class="quick-action-btn qa-dark w-100 text-start border-0" data-bs-toggle="modal" data-bs-target="#quickCheckInModal">
+        <div class="qa-icon"><i class="bi bi-ticket-perforated-fill"></i></div>
+        <span>Check-In Patient</span>
+      </button>
+      <form method="GET" action="{{ url_for('reception.dashboard') }}" class="quick-action-btn qa-amber p-0 border-0 m-0" style="margin-bottom:0!important;">
+        <div class="qa-icon ms-3 me-0" style="margin-right:12px!important;"><i class="bi bi-search"></i></div>
+        <input type="text" name="q" placeholder="Search patient…" class="border-0 bg-transparent fw-bold flex-grow-1 outline-0" style="outline:none; font-size:.9rem; color:inherit;" value="{{ search_q }}">
+      </form>
     </div>
   </div>
 
-  <!-- Right Panel: Live Queue Monitor & Doctors on Duty (5 Cols) -->
-  <div class="col-lg-5">
-    <!-- Card 1: Live OPD Waiting Queue Monitor -->
-    <div class="rec-card mb-4">
-      <div class="rec-card-header">
-        <div>
-          <h3 class="rec-card-title">
-            <i class="bi bi-hourglass-split text-warning"></i> Live OPD Queue
-          </h3>
-          <span class="text-muted small">Currently waiting & in consultation</span>
-        </div>
-        <a href="{{ url_for('queue.public_display_board') }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
-          <i class="bi bi-tv me-1"></i> TV Screen
-        </a>
+  {# — Right: Live Waiting Queue — #}
+  <div class="rec-card">
+    <div class="rec-card-hdr">
+      <div>
+        <h3 class="rec-card-title"><i class="bi bi-people-fill text-warning"></i> Waiting Queue
+          <span class="badge bg-warning text-dark rounded-pill ms-1" style="font-size:.72rem;">{{ count_waiting }}</span>
+        </h3>
+        <span class="text-muted" style="font-size:.77rem;">Live queue — sorted by priority</span>
       </div>
-
-      <div class="queue-list-box" style="max-height: 280px; overflow-y: auto;">
-        {% for chk in today_check_ins %}
-        {% if chk.status in ['WAITING', 'IN_CONSULTATION'] %}
-        <div class="queue-item">
-          <div class="d-flex align-items-center gap-2">
-            <div class="token-badge">{{ chk.token_no }}</div>
-            <div>
-              <div class="fw-bold text-slate-900 small">{{ chk.patient.full_name }}</div>
-              <div class="text-muted small" style="font-size: 0.72rem;">Dr. {{ chk.doctor.name }} · {{ chk.department }}</div>
-            </div>
-          </div>
-
-          <div class="d-flex align-items-center gap-2">
-            {% if chk.status == 'IN_CONSULTATION' %}
-              <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1 fw-bold small">
-                <i class="bi bi-door-open-fill me-1"></i> In Cabin
-              </span>
-            {% else %}
-              <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1 fw-bold small">
-                <i class="bi bi-clock me-1"></i> ~{{ chk.estimated_wait_minutes() }}m
-              </span>
-            {% endif %}
-
-            <div class="dropdown">
-              <button class="btn btn-sm btn-light border rounded-pill px-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-three-dots-vertical"></i>
-              </button>
-              <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 small">
-                <li>
-                  <a class="dropdown-item" href="{{ url_for('reception.print_token', check_in_id=chk.id) }}" target="_blank">
-                    <i class="bi bi-printer me-2 text-primary"></i> Print Receipt Token
-                  </a>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                  <form action="{{ url_for('reception.update_status', check_in_id=chk.id) }}" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="hidden" name="status" value="IN_CONSULTATION">
-                    <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-in-right me-2 text-info"></i> Call into Cabin</button>
-                  </form>
-                </li>
-                <li>
-                  <form action="{{ url_for('reception.update_status', check_in_id=chk.id) }}" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="hidden" name="status" value="COMPLETED">
-                    <button type="submit" class="dropdown-item"><i class="bi bi-check-circle-fill me-2 text-success"></i> Mark Completed</button>
-                  </form>
-                </li>
-                <li>
-                  <form action="{{ url_for('reception.update_status', check_in_id=chk.id) }}" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="hidden" name="status" value="NO_SHOW">
-                    <button type="submit" class="dropdown-item text-danger"><i class="bi bi-x-circle me-2"></i> Patient No-Show</button>
-                  </form>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        {% endif %}
-        {% else %}
-        <div class="text-center text-muted py-4">
-          <i class="bi bi-check2-all fs-2 d-block text-success mb-1"></i>
-          <span class="small">Queue is currently clear. No patients waiting.</span>
-        </div>
-        {% endfor %}
-      </div>
+      <a href="{{ url_for('queue.public_display_board') }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-bold" style="font-size:.78rem;">
+        <i class="bi bi-tv me-1"></i> TV Display
+      </a>
     </div>
-
-    <!-- Card 2: Doctors on Duty Today -->
-    <div class="rec-card">
-      <div class="rec-card-header">
-        <div>
-          <h3 class="rec-card-title">
-            <i class="bi bi-person-badge-fill text-purple" style="color: #7C3AED;"></i> OPD Doctors on Duty
-          </h3>
-          <span class="text-muted small">Roster for {{ now.strftime('%A') }}</span>
-        </div>
-        <a href="{{ url_for('reception.schedules') }}" class="btn btn-sm btn-link text-primary fw-bold text-decoration-none small p-0">All Schedules</a>
-      </div>
-
-      <div class="doc-duty-list" style="max-height: 250px; overflow-y: auto;">
-        {% for d in doctors_today %}
-        <div class="doc-duty-row">
-          <div class="d-flex align-items-center gap-2">
-            <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; font-size: 0.85rem;">
-              {{ d.doctor.name[0] if d.doctor.name else 'D' }}
-            </div>
-            <div>
-              <div class="fw-bold text-slate-900 small">{{ d.doctor.name }}</div>
-              <div class="text-muted small" style="font-size: 0.72rem;">{{ d.specialization }} · {{ d.department }}</div>
-            </div>
+    <div style="max-height: 250px; overflow-y: auto;">
+      {% set waiting_shown = namespace(count=0) %}
+      {% for chk in waiting_queue %}
+      {% set waiting_shown.count = waiting_shown.count + 1 %}
+      {% set wait_min = ((now - chk.check_in_time).total_seconds() // 60)|int %}
+      <div class="wq-item">
+        <div class="d-flex align-items-center gap-2">
+          <span class="wq-token">{{ chk.token_no }}</span>
+          <div>
+            <div class="fw-bold" style="font-size:.87rem; color:#0F172A;">{{ chk.patient.full_name }}</div>
+            <div class="text-muted" style="font-size:.73rem;">Dr. {{ chk.doctor.name }} · {{ chk.department }}</div>
           </div>
-
-          <div class="d-flex align-items-center gap-2">
-            {% if d.is_on_duty %}
-              <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">
-                <span class="pulse-dot-green me-1"></span> On Duty
-              </span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <div class="text-end">
+            {% if chk.priority == 'Emergency' %}
+              <span class="sb sb-cancelled"><i class="bi bi-exclamation-triangle-fill"></i> Emergency</span>
             {% else %}
-              <span class="badge bg-light text-muted border rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">Off Duty</span>
+              <span class="wq-wait"><i class="bi bi-clock me-1"></i>{{ wait_min }} min</span>
             {% endif %}
-
-            <span class="badge bg-light text-dark border rounded-pill font-monospace" style="font-size: 0.72rem;" title="Patients Waiting">
-              <i class="bi bi-people me-1"></i>{{ d.queue_count }}
-            </span>
+          </div>
+          <div class="dropdown">
+            <button class="btn btn-sm btn-light border rounded-circle p-0" style="width:28px;height:28px;" type="button" data-bs-toggle="dropdown">
+              <i class="bi bi-three-dots-vertical" style="font-size:.75rem;"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3" style="font-size:.83rem;">
+              <li>
+                <form action="{{ url_for('reception.update_status', check_in_id=chk.id) }}" method="POST">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="status" value="IN_CONSULTATION">
+                  <button class="dropdown-item"><i class="bi bi-door-open me-2 text-info"></i>Call into Cabin</button>
+                </form>
+              </li>
+              <li>
+                <form action="{{ url_for('reception.update_status', check_in_id=chk.id) }}" method="POST">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="status" value="COMPLETED">
+                  <button class="dropdown-item"><i class="bi bi-check-circle-fill me-2 text-success"></i>Mark Completed</button>
+                </form>
+              </li>
+              <li>
+                <form action="{{ url_for('reception.update_status', check_in_id=chk.id) }}" method="POST">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="status" value="NO_SHOW">
+                  <button class="dropdown-item text-danger"><i class="bi bi-x-circle me-2"></i>No Show</button>
+                </form>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item" href="{{ url_for('reception.print_token', check_in_id=chk.id) }}" target="_blank">
+                  <i class="bi bi-printer me-2 text-primary"></i>Print Token
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
-        {% else %}
-        <div class="text-center text-muted py-4 small">No active doctors registered in the system.</div>
-        {% endfor %}
       </div>
+      {% endfor %}
+      {% if count_waiting == 0 %}
+      <div class="text-center text-muted py-5 px-3">
+        <i class="bi bi-check2-all fs-1 text-success d-block mb-1 opacity-50"></i>
+        <span style="font-size:.85rem;">Queue is clear — no patients waiting.</span>
+      </div>
+      {% endif %}
     </div>
   </div>
 </div>
 
-<!-- Fast Check-In Modal -->
-<div class="modal fade" id="quickCheckInModal" tabindex="-1" aria-labelledby="quickCheckInModalLabel" aria-hidden="true">
+{# ══════════════════════════════════════════════════════════════
+   ROW 3 — TODAY'S APPOINTMENT SCHEDULE (main table)
+══════════════════════════════════════════════════════════════ #}
+<div class="rec-card mb-4">
+  <div class="rec-card-hdr flex-wrap gap-2">
+    <div>
+      <h3 class="rec-card-title"><i class="bi bi-calendar2-check-fill text-primary"></i> Today's Appointment Schedule</h3>
+      <span class="text-muted" style="font-size:.77rem;">{{ today_apts|length }} appointment{{ 's' if today_apts|length != 1 }} scheduled for today</span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <div class="filter-tab-bar">
+        <button class="filter-tab active" onclick="filterApts('all',this)">All ({{ today_apts|length }})</button>
+        <button class="filter-tab" onclick="filterApts('BOOKED',this)">Scheduled ({{ today_apts|selectattr('status','equalto','BOOKED')|list|length }})</button>
+        <button class="filter-tab" onclick="filterApts('CHECKED_IN',this)">Checked-In ({{ today_apts|selectattr('status','equalto','CHECKED_IN')|list|length }})</button>
+        <button class="filter-tab" onclick="filterApts('COMPLETED',this)">Completed ({{ today_apts|selectattr('status','equalto','COMPLETED')|list|length }})</button>
+        <button class="filter-tab" onclick="filterApts('CANCELLED',this)">Cancelled ({{ today_apts|selectattr('status','equalto','CANCELLED')|list|length }})</button>
+      </div>
+      <a href="{{ url_for('appointments.list_appointments') }}" class="btn btn-sm btn-link fw-bold text-primary text-decoration-none p-0" style="font-size:.83rem; white-space:nowrap;">View All →</a>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="rec-tbl" id="aptsTable">
+      <thead>
+        <tr>
+          <th class="ps-4" style="width:90px;">Time</th>
+          <th>Patient</th>
+          <th>Doctor</th>
+          <th>Visit Type</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th class="text-end pe-4">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for apt in today_apts %}
+        <tr class="apt-row" data-status="{{ apt.status }}">
+          <td class="ps-4">
+            <div class="fw-800 font-monospace" style="font-weight:800; color:#0F172A;">{{ apt.slot_time.strftime('%I:%M %p') }}</div>
+            <div class="badge bg-light text-muted border" style="font-size:.65rem;">{{ apt.booking_type or 'Online' }}</div>
+          </td>
+          <td>
+            <div class="fw-bold" style="color:#0F172A;">{{ apt.patient.full_name }}</div>
+            <div class="font-monospace text-muted" style="font-size:.72rem;">{{ apt.patient.patient_code }} · {{ apt.patient.mobile }}</div>
+          </td>
+          <td>
+            <div class="fw-semibold" style="font-size:.87rem;">{{ apt.doctor.name }}</div>
+            <div class="text-muted" style="font-size:.72rem;">{{ apt.doctor.department or 'OPD' }}</div>
+          </td>
+          <td>
+            <span class="badge bg-light text-dark border" style="font-size:.75rem;">
+              {{ apt.booking_type or 'Consultation' }}
+            </span>
+          </td>
+          <td>
+            {% if apt.priority == 'Emergency' %}
+              <span class="sb sb-cancelled">🔴 Emergency</span>
+            {% elif apt.priority == 'Senior Citizen' %}
+              <span class="sb" style="background:#FFFBEB;color:#B45309;border-color:#FDE68A;">👴 Senior</span>
+            {% elif apt.priority == 'Pregnant Woman' %}
+              <span class="sb" style="background:#FDF4FF;color:#A21CAF;border-color:#F0ABFC;">🤰 Pregnant</span>
+            {% elif apt.priority == 'Child' %}
+              <span class="sb sb-consult">👶 Child</span>
+            {% else %}
+              <span class="sb sb-scheduled">Regular</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if apt.status == 'BOOKED' %}
+              <span class="sb sb-scheduled"><i class="bi bi-clock"></i> Scheduled</span>
+            {% elif apt.status == 'CHECKED_IN' %}
+              <span class="sb sb-checked-in"><i class="bi bi-check2-circle"></i> Checked In</span>
+            {% elif apt.status == 'WAITING' %}
+              <span class="sb sb-waiting"><i class="bi bi-hourglass-split"></i> Waiting</span>
+            {% elif apt.status == 'COMPLETED' %}
+              <span class="sb sb-completed"><i class="bi bi-check-all"></i> Completed</span>
+            {% elif apt.status == 'CANCELLED' %}
+              <span class="sb sb-cancelled"><i class="bi bi-x-circle"></i> Cancelled</span>
+            {% elif apt.status == 'NO_SHOW' %}
+              <span class="sb sb-noshow"><i class="bi bi-dash-circle"></i> No Show</span>
+            {% else %}
+              <span class="sb sb-scheduled">{{ apt.status }}</span>
+            {% endif %}
+          </td>
+          <td class="text-end pe-4">
+            {% if apt.status == 'BOOKED' %}
+              <form action="{{ url_for('reception.quick_checkin_apt', appointment_id=apt.id) }}" method="POST" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" style="background:#2563EB;border-color:#2563EB;font-size:.78rem;">
+                  <i class="bi bi-box-arrow-in-right me-1"></i>Check In
+                </button>
+              </form>
+            {% elif apt.status == 'CHECKED_IN' %}
+              <span class="sb sb-checked-in" style="font-size:.72rem;"><i class="bi bi-ticket-fill"></i> Token Issued</span>
+            {% elif apt.status == 'COMPLETED' %}
+              <span class="text-muted" style="font-size:.8rem;">Done</span>
+            {% else %}
+              <span class="text-muted" style="font-size:.8rem;">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-5">
+            <i class="bi bi-calendar-x fs-1 d-block opacity-40 mb-2"></i>
+            No appointments scheduled for today.<br>
+            <a href="{{ url_for('appointments.book_appointment') }}" class="btn btn-sm btn-primary rounded-pill px-4 mt-3 fw-bold" style="background:#2563EB;">
+              <i class="bi bi-calendar-plus me-1"></i> Book First Appointment
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# ══════════════════════════════════════════════════════════════
+   ROW 4 — UPCOMING (Next 2 Hours) + FRONT DESK ACTIVITY
+══════════════════════════════════════════════════════════════ #}
+<div class="rec-bottom-row">
+
+  {# — Upcoming Appointments — #}
+  <div class="rec-card">
+    <div class="rec-card-hdr">
+      <h3 class="rec-card-title"><i class="bi bi-alarm-fill text-primary"></i> Upcoming — Next 2 Hours</h3>
+      <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size:.72rem;">{{ upcoming_apts|length }} slot{{ 's' if upcoming_apts|length != 1 }}</span>
+    </div>
+    <div style="max-height: 260px; overflow-y: auto;">
+      {% for apt in upcoming_apts %}
+      <div class="upcoming-item">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center flex-shrink-0"
+               style="width:36px;height:36px;font-size:.85rem;">
+            {{ apt.patient.first_name[0] if apt.patient.first_name else '?' }}
+          </div>
+          <div>
+            <div class="fw-bold" style="font-size:.88rem; color:#0F172A;">{{ apt.patient.full_name }}</div>
+            <div class="text-muted" style="font-size:.73rem;">Dr. {{ apt.doctor.name }} · {{ apt.doctor.department or 'OPD' }}</div>
+          </div>
+        </div>
+        <div class="text-end">
+          <div class="fw-800 font-monospace" style="font-size:.9rem; font-weight:800; color:#0F172A;">{{ apt.slot_time.strftime('%I:%M %p') }}</div>
+          <form action="{{ url_for('reception.quick_checkin_apt', appointment_id=apt.id) }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-outline-primary rounded-pill px-2 fw-bold" style="font-size:.72rem;">
+              <i class="bi bi-box-arrow-in-right me-1"></i>Check In
+            </button>
+          </form>
+        </div>
+      </div>
+      {% else %}
+      <div class="text-center text-muted py-5" style="font-size:.85rem;">
+        <i class="bi bi-calendar2-check fs-2 d-block opacity-40 mb-1"></i>
+        No appointments in the next 2 hours.
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {# — Front Desk Activity Log — #}
+  <div class="rec-card">
+    <div class="rec-card-hdr">
+      <h3 class="rec-card-title"><i class="bi bi-activity text-danger"></i> Today's Front Desk Activity</h3>
+      <span class="text-muted" style="font-size:.77rem;">Live log</span>
+    </div>
+    <div style="max-height: 260px; overflow-y: auto;">
+      {% for act in activity_log %}
+      <div class="act-item">
+        <div class="act-dot" style="background: {{ act.color }}18;">
+          <i class="bi {{ act.icon }}" style="color: {{ act.color }};"></i>
+        </div>
+        <div class="flex-grow-1 min-width-0">
+          <div class="fw-semibold" style="font-size:.86rem; color:#0F172A; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ act.text }}</div>
+          <div class="text-muted" style="font-size:.73rem;">{{ act.sub }}</div>
+        </div>
+        <div class="text-muted flex-shrink-0 ms-2" style="font-size:.72rem;">{{ act.time.strftime('%I:%M %p') }}</div>
+      </div>
+      {% else %}
+      <div class="text-center text-muted py-5" style="font-size:.85rem;">
+        <i class="bi bi-clock-history fs-2 d-block opacity-40 mb-1"></i>
+        No front desk activity recorded yet today.
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+
+{# ══════════════════════════════════════════════════════════════
+   FAST CHECK-IN MODAL
+══════════════════════════════════════════════════════════════ #}
+<div class="modal fade" id="quickCheckInModal" tabindex="-1" aria-labelledby="qciLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content rounded-4 border-0 shadow-lg">
       <div class="modal-header border-bottom p-4">
         <div>
-          <h5 class="modal-title fw-bold text-slate-900" id="quickCheckInModalLabel">
-            <i class="bi bi-ticket-perforated-fill text-primary me-2"></i> Fast Patient OPD Check-In
+          <h5 class="modal-title fw-bold" id="qciLabel">
+            <i class="bi bi-ticket-perforated-fill text-primary me-2"></i> Fast Patient Check-In
           </h5>
-          <p class="text-muted small mb-0">Select doctor and issue token for a registered patient</p>
+          <p class="text-muted small mb-0">Look up a patient above first, then use this to issue an OPD token</p>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-
       <form method="POST" action="{{ url_for('reception.check_in') }}">
         <div class="modal-body p-4">
           {{ form.csrf_token }}
-
           <div class="mb-3">
-            <label class="form-label fw-semibold small text-muted text-uppercase">1. Patient ID or Code <span class="text-danger">*</span></label>
-            <input type="number" name="patient_id" class="form-control rounded-3" placeholder="Enter Patient Database ID (e.g. 1, 2, 3)" required>
-            <small class="text-muted d-block mt-1">Use the search bar above to look up ID if unknown.</small>
+            <label class="form-label fw-bold small text-muted text-uppercase">Patient Database ID <span class="text-danger">*</span></label>
+            <input type="number" name="patient_id" class="form-control rounded-3" placeholder="Enter patient ID (use search bar above to look up)" required>
           </div>
-
           <div class="mb-3">
-            <label class="form-label fw-semibold small text-muted text-uppercase">2. Assigned Doctor <span class="text-danger">*</span></label>
+            <label class="form-label fw-bold small text-muted text-uppercase">Consulting Doctor <span class="text-danger">*</span></label>
             {{ form.doctor_id(class="form-select rounded-3") }}
           </div>
-
           <div class="mb-3">
-            <label class="form-label fw-semibold small text-muted text-uppercase">3. Department <span class="text-danger">*</span></label>
+            <label class="form-label fw-bold small text-muted text-uppercase">Department <span class="text-danger">*</span></label>
             {{ form.department(class="form-select rounded-3") }}
           </div>
-
-          <div class="mb-3">
-            <label class="form-label fw-semibold small text-muted text-uppercase">4. Priority Level <span class="text-danger">*</span></label>
+          <div class="mb-1">
+            <label class="form-label fw-bold small text-muted text-uppercase">Priority Level <span class="text-danger">*</span></label>
             {{ form.priority(class="form-select rounded-3") }}
+            <small class="text-muted">Emergency → Senior Citizen → Pregnant → Child → Regular</small>
           </div>
         </div>
-
-        <div class="modal-footer border-top p-3 bg-light rounded-bottom-4">
+        <div class="modal-footer border-top p-3">
           <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" style="background-color: #2563EB;">
+          <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" style="background:#2563EB;">
             <i class="bi bi-printer me-1"></i> Issue Token
           </button>
         </div>
@@ -752,25 +643,17 @@
     </div>
   </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-  function filterApts(status, btn) {
-    // Update active tab button
-    document.querySelectorAll('.rec-filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    // Filter table rows
-    const rows = document.querySelectorAll('.apt-row');
-    rows.forEach(row => {
-      const rowStatus = row.getAttribute('data-status');
-      if (status === 'all' || rowStatus === status) {
-        row.style.display = '';
-      } else {
-        row.style.display = 'none';
-      }
-    });
-  }
+function filterApts(status, btn) {
+  document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.apt-row').forEach(row => {
+    row.style.display = (status === 'all' || row.dataset.status === status) ? '' : 'none';
+  });
+}
 </script>
 {% endblock %}

@@ -1,4 +1,4 @@
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from app.extensions import db
@@ -18,81 +18,131 @@ reception_bp = Blueprint('reception', __name__, template_folder='templates', url
 def dashboard():
     today = date.today()
     today_start = datetime.combine(today, datetime.min.time())
-    today_end = datetime.combine(today, datetime.max.time())
-    
-    # 1. Query today's scheduled appointments
+
+    # 1. Today's scheduled appointments (ordered by slot time)
     today_apts = Appointment.query.filter(
         Appointment.appointment_date == today
     ).order_by(Appointment.slot_time.asc()).all()
 
-    # 2. Query today's check-ins & queue
+    # 2. Today's check-ins / queue
     today_check_ins = CheckIn.query.filter(
         CheckIn.check_in_time >= today_start
-    ).order_by(CheckIn.id.desc()).all()
-    
-    # 3. Operational Counters
-    count_today_apts = len(today_apts)
-    count_checked_in = len(today_check_ins)
-    count_waiting = sum(1 for c in today_check_ins if c.status == 'WAITING')
-    count_consulting = sum(1 for c in today_check_ins if c.status == 'IN_CONSULTATION')
-    count_completed = sum(1 for c in today_check_ins if c.status == 'COMPLETED')
-    count_new_patients_today = Patient.query.filter(Patient.created_at >= today_start).count()
-    count_emergency_today = (
-        sum(1 for a in today_apts if a.priority == 'Emergency' or a.booking_type == 'Emergency') +
-        sum(1 for c in today_check_ins if c.priority == 'Emergency')
-    )
+    ).order_by(CheckIn.check_in_time.desc()).all()
 
-    # 4. Patient Search Query for fast lookup & check-in
+    # 3. KPI counters
+    count_today_apts   = len(today_apts)
+    count_checked_in   = len(today_check_ins)
+    count_waiting      = sum(1 for c in today_check_ins if c.status == 'WAITING')
+    count_consulting   = sum(1 for c in today_check_ins if c.status == 'IN_CONSULTATION')
+    count_completed    = sum(1 for c in today_check_ins if c.status == 'COMPLETED')
+    count_new_patients_today = Patient.query.filter(
+        Patient.created_at >= today_start
+    ).count()
+
+    # 4. Patient search
     search_q = request.args.get('q', '').strip()
     searched_patients = []
     if search_q:
-        filter_str = f"%{search_q}%"
+        f = f"%{search_q}%"
         searched_patients = Patient.query.filter(
-            (Patient.patient_code.ilike(filter_str)) |
-            (Patient.full_name.ilike(filter_str)) |
-            (Patient.mobile.ilike(filter_str)) |
-            (Patient.aadhaar_masked.ilike(filter_str))
+            (Patient.patient_code.ilike(f)) |
+            (Patient.full_name.ilike(f)) |
+            (Patient.mobile.ilike(f)) |
+            (Patient.aadhaar_masked.ilike(f))
         ).limit(10).all()
 
-    # 5. OPD Doctors on Duty Today
+    # 5. Doctors on duty today (for sidebar + check-in form)
     doctor_role = Role.query.filter_by(name='Doctor').first()
     all_doctors = User.query.filter_by(role_id=doctor_role.id, is_active=True).all() if doctor_role else []
-    
+
     today_weekday = today.weekday()
-    availabilities = DoctorAvailability.query.filter_by(day_of_week=today_weekday, is_active=True).all()
-    avail_doc_ids = {a.doctor_id for a in availabilities}
-    
+    avail_doc_ids = {
+        a.doctor_id for a in DoctorAvailability.query.filter_by(day_of_week=today_weekday, is_active=True).all()
+    }
+
     doctors_today = []
     for doc in all_doctors:
-        is_on_duty = (doc.id in avail_doc_ids) or (len(availabilities) == 0)
         q_count = sum(1 for c in today_check_ins if c.doctor_id == doc.id and c.status == 'WAITING')
         doctors_today.append({
             'doctor': doc,
-            'is_on_duty': is_on_duty,
-            'specialization': doc.specialization or 'Specialist',
-            'department': doc.department or 'OPD',
-            'queue_count': q_count
+            'is_on_duty': (doc.id in avail_doc_ids) or (len(avail_doc_ids) == 0),
+            'queue_count': q_count,
         })
 
-    # 6. Check-in Form instance for quick modal check-in
+    # 6. Upcoming appointments — next 2 hours
+    now = datetime.now()
+    two_hours_later = now + timedelta(hours=2)
+    upcoming_apts = [
+        a for a in today_apts
+        if a.status in ('BOOKED',) and
+           datetime.combine(today, a.slot_time) >= now and
+           datetime.combine(today, a.slot_time) <= two_hours_later
+    ]
+
+    # 7. Live waiting queue (sorted by priority then check-in time)
+    priority_order = {'Emergency': 0, 'Senior Citizen': 1, 'Pregnant Woman': 2, 'Child': 3, 'Regular': 4}
+    waiting_queue = [c for c in today_check_ins if c.status == 'WAITING']
+    waiting_queue.sort(key=lambda c: (priority_order.get(c.priority, 5), c.id))
+
+    # 8. Recent front-desk activity feed (last 15 events)
+    recent_check_ins = CheckIn.query.filter(
+        CheckIn.check_in_time >= today_start
+    ).order_by(CheckIn.check_in_time.desc()).limit(10).all()
+
+    recent_apts = Appointment.query.filter(
+        Appointment.appointment_date == today,
+        Appointment.created_at >= today_start
+    ).order_by(Appointment.created_at.desc()).limit(5).all()
+
+    # Build unified activity log
+    activity_log = []
+    for chk in recent_check_ins:
+        icon = 'bi-person-check-fill'
+        color = '#059669'
+        if chk.status == 'COMPLETED':
+            icon, color = 'bi-check2-all', '#2563EB'
+        elif chk.status in ('NO_SHOW', 'CANCELLED'):
+            icon, color = 'bi-x-circle-fill', '#DC2626'
+        activity_log.append({
+            'icon': icon,
+            'color': color,
+            'text': f'{"Checked in" if chk.status not in ("COMPLETED","NO_SHOW","CANCELLED") else chk.status.replace("_"," ").title()}: {chk.patient.full_name}',
+            'sub': f'Token {chk.token_no} · Dr. {chk.doctor.name}',
+            'time': chk.check_in_time,
+        })
+    for apt in recent_apts:
+        activity_log.append({
+            'icon': 'bi-calendar-plus-fill',
+            'color': '#7C3AED',
+            'text': f'Appointment booked: {apt.patient.full_name}',
+            'sub': f'{apt.appointment_code} · Dr. {apt.doctor.name}',
+            'time': apt.created_at,
+        })
+    activity_log.sort(key=lambda x: x['time'], reverse=True)
+    activity_log = activity_log[:12]
+
+    # 9. Check-in form for modal
     form = CheckInForm()
-    form.doctor_id.choices = [(d.id, f"{d.name} ({d.user_code})") for d in all_doctors]
+    form.doctor_id.choices = [(d.id, f"{d.name} — {d.department or 'OPD'}") for d in all_doctors]
 
     return render_template('reception/dashboard.html',
-                           today_apts=today_apts,
-                           today_check_ins=today_check_ins,
-                           count_today_apts=count_today_apts,
-                           count_checked_in=count_checked_in,
-                           count_waiting=count_waiting,
-                           count_consulting=count_consulting,
-                           count_completed=count_completed,
-                           count_new_patients_today=count_new_patients_today,
-                           count_emergency_today=count_emergency_today,
-                           doctors_today=doctors_today,
-                           search_q=search_q,
-                           searched_patients=searched_patients,
-                           form=form,
-                           now=datetime.now())
+        today_apts=today_apts,
+        today_check_ins=today_check_ins,
+        waiting_queue=waiting_queue,
+        upcoming_apts=upcoming_apts,
+        activity_log=activity_log,
+        doctors_today=doctors_today,
+        count_today_apts=count_today_apts,
+        count_checked_in=count_checked_in,
+        count_waiting=count_waiting,
+        count_consulting=count_consulting,
+        count_completed=count_completed,
+        count_new_patients_today=count_new_patients_today,
+        search_q=search_q,
+        searched_patients=searched_patients,
+        form=form,
+        now=now,
+    )
 
 
 @reception_bp.route('/check-in', methods=['GET', 'POST'])
