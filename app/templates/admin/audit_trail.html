@@ -1,65 +1,460 @@
 {% extends 'admin/base_admin.html' %}
 
-{% block title %}System Audit Logs & Traceability — MediCore+ Admin{% endblock %}
-{% block header_title %}System Audit Logs & Traceability{% endblock %}
-{% block header_subtitle %}Security event logging, compliance records, and administrative action timestamps{% endblock %}
+{% block title %}System Audit Logs & Security Access — MediCore+ Admin{% endblock %}
+{% block header_title %}Audit Logs & Security Access Control{% endblock %}
+{% block header_subtitle %}Real-time security auditing, login monitoring, and administrative compliance trail{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Summary Cards Grid */
+  .audit-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 1200px) {
+    .audit-summary-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .audit-summary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .audit-summary-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+
+  .audit-summary-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    border-color: #CBD5E1;
+  }
+
+  .audit-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+  }
+
+  .audit-icon-blue    { background: #EFF6FF; color: #2563EB; }
+  .audit-icon-emerald { background: #ECFDF5; color: #059669; }
+  .audit-icon-rose    { background: #FEF2F2; color: #DC2626; }
+  .audit-icon-purple  { background: #FAF5FF; color: #7C3AED; }
+
+  .audit-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+
+  .audit-num {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: #0F172A;
+    line-height: 1.1;
+  }
+
+  /* Clean Category Navigation Tabs */
+  .audit-cat-wrapper {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  }
+
+  .audit-tab-btn {
+    border: none;
+    background: transparent;
+    padding: 8px 18px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #64748B;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.18s ease;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .audit-tab-btn:hover {
+    color: #0F172A;
+    background: #F1F5F9;
+  }
+
+  .audit-tab-btn.active {
+    background: #0F172A;
+    color: #FFFFFF !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+  }
+
+  .audit-tab-badge {
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 700;
+  }
+
+  .audit-tab-btn .audit-tab-badge {
+    background: #F1F5F9;
+    color: #475569;
+  }
+
+  .audit-tab-btn.active .audit-tab-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: #FFFFFF;
+  }
+
+  /* Table Card & Search Box */
+  .audit-table-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+  }
+
+  .audit-search-box {
+    position: relative;
+  }
+
+  .audit-search-box i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94A3B8;
+    font-size: 0.95rem;
+  }
+
+  .audit-search-box input {
+    width: 260px;
+    padding: 9px 14px 9px 38px;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    color: #0F172A;
+    background: #FFFFFF;
+    transition: all 0.2s ease;
+  }
+
+  .audit-search-box input:focus {
+    outline: none;
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+
+  .audit-custom-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .audit-custom-table th {
+    background: #F8FAFC;
+    color: #64748B;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 20px;
+    border-bottom: 1px solid #E2E8F0;
+  }
+
+  .audit-custom-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #F1F5F9;
+    font-size: 0.88rem;
+    color: #1E293B;
+    vertical-align: middle;
+    background: #FFFFFF;
+    transition: background 0.15s ease;
+  }
+
+  .audit-custom-table tr:hover td {
+    background: #F8FAFC;
+  }
+
+  .audit-custom-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .user-avatar-initial {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #EFF6FF;
+    color: #1D4ED8;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(29, 78, 216, 0.15);
+  }
+</style>
+{% endblock %}
 
 {% block admin_content %}
-<div class="row g-4">
-  <div class="col-12">
-    <div class="admin-card">
-      <div class="admin-card-header flex-wrap gap-3">
-        <div class="d-flex align-items-center gap-3">
-          <div class="kpi-icon-wrapper kpi-icon-emerald" style="width: 44px; height: 44px; font-size: 1.25rem;">
-            <i class="bi bi-shield-check"></i>
-          </div>
-          <div>
-            <h3 class="admin-card-title mb-0">System Activity Logs</h3>
-            <p class="text-muted small mb-0">{{ audit_logs|length }} event records retrieved from immutable log store</p>
-          </div>
-        </div>
-
-        <form method="GET" action="{{ url_for('admin.audit_trail') }}" class="d-flex align-items-center gap-2">
-          <select name="action" class="admin-card-select" onchange="this.form.submit()">
-            <option value="">All Actions</option>
-            {% for a in actions %}
-              <option value="{{ a }}" {% if action_filter == a %}selected{% endif %}>{{ a }}</option>
-            {% endfor %}
-          </select>
-          <input type="text" name="q" value="{{ q }}" placeholder="Search details..." class="form-control form-control-sm rounded-pill px-3" style="width: 200px;">
-          <button type="submit" class="btn btn-sm btn-light rounded-pill px-3 border"><i class="bi bi-search"></i></button>
-        </form>
-      </div>
-
-      <div class="table-responsive mt-3">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th class="ps-3">Timestamp</th>
-              <th>Action Type</th>
-              <th>Operator / User</th>
-              <th>Entity</th>
-              <th>Details & Metadata</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for log in audit_logs %}
-            <tr>
-              <td class="ps-3 text-muted small font-monospace">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp else '—' }}</td>
-              <td><span class="badge bg-light text-dark border font-monospace">{{ log.action }}</span></td>
-              <td class="fw-semibold text-slate-900">{{ log.user.name if log.user else 'System' }}</td>
-              <td><span class="badge bg-secondary-subtle text-secondary small">{{ log.entity_type or '—' }}</span></td>
-              <td><span class="text-muted small">{{ log.details }}</span></td>
-            </tr>
-            {% else %}
-            <tr>
-              <td colspan="5" class="text-center text-muted py-4">No audit log records found.</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+<!-- 1. Top Summary Metric Cards -->
+<div class="audit-summary-grid mb-4">
+  <!-- Total Audit Events -->
+  <div class="audit-summary-card">
+    <div class="audit-icon-box audit-icon-blue">
+      <i class="bi bi-shield-check"></i>
     </div>
+    <div>
+      <div class="audit-label">Total Audit Events</div>
+      <div class="audit-num">{{ total_audit_events }}</div>
+    </div>
+  </div>
+
+  <!-- Successful Logins Today -->
+  <div class="audit-summary-card">
+    <div class="audit-icon-box audit-icon-emerald">
+      <i class="bi bi-person-check-fill"></i>
+    </div>
+    <div>
+      <div class="audit-label">Logins Today</div>
+      <div class="audit-num">{{ successful_logins_today }}</div>
+    </div>
+  </div>
+
+  <!-- Failed / Security Events -->
+  <div class="audit-summary-card">
+    <div class="audit-icon-box audit-icon-rose">
+      <i class="bi bi-shield-exclamation"></i>
+    </div>
+    <div>
+      <div class="audit-label">Failed Attempts</div>
+      <div class="audit-num">{{ failed_logins_today }}</div>
+    </div>
+  </div>
+
+  <!-- Total Authentication Attempts -->
+  <div class="audit-summary-card">
+    <div class="audit-icon-box audit-icon-purple">
+      <i class="bi bi-fingerprint"></i>
+    </div>
+    <div>
+      <div class="audit-label">Total Login Logs</div>
+      <div class="audit-num">{{ total_login_attempts }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Category Tabs & Action Filter -->
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+  <div class="audit-cat-wrapper">
+    <a href="{{ url_for('admin.audit_trail', tab='all', q=q) }}" class="audit-tab-btn {% if current_tab == 'all' or not current_tab %}active{% endif %}">
+      <i class="bi bi-list-stars"></i>
+      <span>All Audit Activity</span>
+      <span class="audit-tab-badge">{{ audit_logs|length }}</span>
+    </a>
+    <a href="{{ url_for('admin.audit_trail', tab='logins', q=q) }}" class="audit-tab-btn {% if current_tab == 'logins' %}active{% endif %}">
+      <i class="bi bi-person-badge-fill text-primary"></i>
+      <span>Login & Security Logs</span>
+      <span class="audit-tab-badge">{{ login_logs|length }}</span>
+    </a>
+    <a href="{{ url_for('admin.audit_trail', tab='system', q=q) }}" class="audit-tab-btn {% if current_tab == 'system' %}active{% endif %}">
+      <i class="bi bi-gear-wide-connected text-teal"></i>
+      <span>Admin System Actions</span>
+      <span class="audit-tab-badge">{{ audit_logs|rejectattr('action', 'in', ['LOGIN_SUCCESS', 'LOGIN_FAILED', 'USER_LOGOUT', 'ACCOUNT_LOCKED'])|list|length }}</span>
+    </a>
+  </div>
+
+  <!-- Search and Filter Form -->
+  <form method="GET" action="{{ url_for('admin.audit_trail') }}" class="d-flex align-items-center gap-2">
+    <input type="hidden" name="tab" value="{{ current_tab }}">
+    <div class="audit-search-box">
+      <i class="bi bi-search"></i>
+      <input type="text" name="q" value="{{ q }}" placeholder="Search IP, user, email...">
+    </div>
+    {% if q or status_filter %}
+      <a href="{{ url_for('admin.audit_trail', tab=current_tab) }}" class="btn btn-sm btn-light rounded-pill px-3 border" title="Clear Filters">
+        <i class="bi bi-x-circle me-1"></i> Clear
+      </a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- 3. Audit Records Card & Table -->
+<div class="audit-table-card">
+  <div class="table-responsive">
+    {% if current_tab == 'logins' %}
+      <!-- Detailed Login Logs Table -->
+      <table class="audit-custom-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th class="ps-4">Timestamp</th>
+            <th>Account / Email</th>
+            <th>Status</th>
+            <th>Source IP</th>
+            <th>Device / User Agent</th>
+            <th>Notes & Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in login_logs %}
+          <tr>
+            <td class="ps-4">
+              <div class="fw-bold text-slate-900 small">{{ log.timestamp.strftime('%d %b %Y') if log.timestamp else '—' }}</div>
+              <div class="text-muted font-monospace small" style="font-size: 0.75rem;">{{ log.timestamp.strftime('%H:%M:%S UTC') if log.timestamp else '' }}</div>
+            </td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="user-avatar-initial" style="width: 34px; height: 34px; font-size: 0.85rem;">
+                  {{ log.email_attempted[0]|upper if log.email_attempted else 'U' }}
+                </div>
+                <div>
+                  <div class="fw-bold text-slate-900 small">{{ log.user.name if log.user else log.email_attempted }}</div>
+                  <div class="text-muted small" style="font-size: 0.75rem;">{{ log.email_attempted }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              {% if log.status == 'SUCCESS' %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold">
+                  <i class="bi bi-check-circle-fill me-1"></i> SUCCESS
+                </span>
+              {% elif log.status == 'LOCKED' %}
+                <span class="badge bg-danger text-white rounded-pill px-3 py-1 fw-bold shadow-sm">
+                  <i class="bi bi-lock-fill me-1"></i> LOCKED
+                </span>
+              {% else %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 fw-bold">
+                  <i class="bi bi-x-circle-fill me-1"></i> FAILED
+                </span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border font-monospace">{{ log.ip_address or '127.0.0.1' }}</span>
+            </td>
+            <td>
+              <span class="text-muted small text-truncate d-inline-block" style="max-width: 250px;" title="{{ log.user_agent }}">
+                {{ log.user_agent or 'Mozilla/5.0' }}
+              </span>
+            </td>
+            <td>
+              <span class="text-muted small">{{ log.failure_reason or 'Authentication successful' }}</span>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="text-center text-muted py-5">
+              <i class="bi bi-shield-check fs-1 d-block text-muted mb-2 opacity-50"></i>
+              No login logs recorded matching your search query.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <!-- General & System Audit Trail Table -->
+      <table class="audit-custom-table align-middle mb-0">
+        <thead>
+          <tr>
+            <th class="ps-4">Timestamp</th>
+            <th>Action Type</th>
+            <th>Operator / Account</th>
+            <th>Entity</th>
+            <th>Source IP</th>
+            <th>Event Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in audit_logs %}
+          {% if current_tab != 'system' or log.action not in ['LOGIN_SUCCESS', 'LOGIN_FAILED', 'USER_LOGOUT', 'ACCOUNT_LOCKED'] %}
+          <tr>
+            <td class="ps-4">
+              <div class="fw-bold text-slate-900 small">{{ log.timestamp.strftime('%d %b %Y') if log.timestamp else '—' }}</div>
+              <div class="text-muted font-monospace small" style="font-size: 0.75rem;">{{ log.timestamp.strftime('%H:%M:%S UTC') if log.timestamp else '' }}</div>
+            </td>
+            <td>
+              {% if log.action in ['LOGIN_SUCCESS', 'AUTH_SUCCESS'] %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle font-monospace">
+                  <i class="bi bi-box-arrow-in-right me-1"></i> {{ log.action }}
+                </span>
+              {% elif log.action in ['LOGIN_FAILED', 'AUTH_FAILED', 'ACCOUNT_LOCKED'] %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle font-monospace">
+                  <i class="bi bi-shield-x me-1"></i> {{ log.action }}
+                </span>
+              {% elif log.action == 'USER_LOGOUT' %}
+                <span class="badge bg-purple-subtle text-purple border border-purple-subtle font-monospace" style="color: #7C3AED;">
+                  <i class="bi bi-box-arrow-right me-1"></i> {{ log.action }}
+                </span>
+              {% elif 'CREATE' in log.action or 'REGISTER' in log.action %}
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace">
+                  <i class="bi bi-plus-circle me-1"></i> {{ log.action }}
+                </span>
+              {% elif 'UPDATE' in log.action or 'EDIT' in log.action %}
+                <span class="badge bg-info-subtle text-info border border-info-subtle font-monospace">
+                  <i class="bi bi-pencil me-1"></i> {{ log.action }}
+                </span>
+              {% elif 'DELETE' in log.action or 'TOGGLE' in log.action %}
+                <span class="badge bg-warning-subtle text-warning border border-warning-subtle font-monospace">
+                  <i class="bi bi-toggle2-on me-1"></i> {{ log.action }}
+                </span>
+              {% else %}
+                <span class="badge bg-light text-dark border font-monospace">{{ log.action }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="fw-semibold text-slate-900 small">{{ log.user.name if log.user else 'System Agent' }}</div>
+              {% if log.user and log.user.user_code %}
+                <div class="text-muted small font-monospace" style="font-size: 0.75rem;">{{ log.user.user_code }}</div>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge bg-light text-secondary border small">{{ log.entity_type or 'General' }}</span>
+            </td>
+            <td>
+              <span class="badge bg-light text-dark border font-monospace">{{ log.ip_address or '127.0.0.1' }}</span>
+            </td>
+            <td>
+              <span class="text-muted small">{{ log.details }}</span>
+            </td>
+          </tr>
+          {% endif %}
+          {% else %}
+          <tr>
+            <td colspan="6" class="text-center text-muted py-5">
+              <i class="bi bi-shield-check fs-1 d-block text-muted mb-2 opacity-50"></i>
+              No audit records found matching your filter criteria.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

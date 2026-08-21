@@ -28,7 +28,7 @@ def role_required(*roles):
 
 def log_login_activity(email_attempted, status, user=None, failure_reason=None):
     """
-    Log every authentication attempt with IP address and User Agent.
+    Log every authentication attempt with IP address and User Agent to both LoginLog and AuditLog.
     """
     ip_addr = request.remote_addr or request.headers.get('X-Forwarded-For', 'Unknown')
     user_agent = request.user_agent.string[:250] if request.user_agent else 'Unknown'
@@ -42,6 +42,31 @@ def log_login_activity(email_attempted, status, user=None, failure_reason=None):
         failure_reason=failure_reason
     )
     db.session.add(log)
+
+    try:
+        from app.admin.models import AuditLog
+        action_map = {
+            'SUCCESS': 'USER_LOGOUT' if failure_reason and 'logged out' in failure_reason.lower() else 'LOGIN_SUCCESS',
+            'FAILED': 'LOGIN_FAILED',
+            'LOCKED': 'ACCOUNT_LOCKED'
+        }
+        action_name = action_map.get(status, f'AUTH_{status}')
+        details_text = f"Authentication event for {email_attempted} from {ip_addr}"
+        if failure_reason:
+            details_text += f" [{failure_reason}]"
+
+        audit = AuditLog(
+            user_id=user.id if user else None,
+            action=action_name,
+            entity_type='User',
+            entity_id=user.id if user else None,
+            details=details_text,
+            ip_address=ip_addr
+        )
+        db.session.add(audit)
+    except Exception:
+        pass
+
     db.session.commit()
 
 

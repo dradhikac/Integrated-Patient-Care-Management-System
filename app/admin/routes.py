@@ -514,6 +514,7 @@ def master_medicines():
     return render_template('admin/medicines.html', form=form, medicines=medicines)
 
 
+@admin_bp.route('/lab-tests', methods=['GET', 'POST'])
 @admin_bp.route('/master-data/lab-tests', methods=['GET', 'POST'])
 @login_required
 @role_required('Admin')
@@ -547,6 +548,7 @@ def master_lab_tests():
     return render_template('admin/lab_tests.html', form=form, lab_tests=lab_tests)
 
 
+@admin_bp.route('/settings', methods=['GET', 'POST'])
 @admin_bp.route('/master-data/settings', methods=['GET', 'POST'])
 @login_required
 @role_required('Admin')
@@ -588,25 +590,77 @@ def settings():
 @login_required
 @role_required('Admin')
 def audit_trail():
+    from app.auth.models import LoginLog
+    tab = request.args.get('tab', 'all').strip().lower()
     q = request.args.get('q', '').strip()
-    action_filter = request.args.get('action', '').strip()
+    status_filter = request.args.get('status', '').strip()
 
-    query = AuditLog.query
+    today_start = datetime.combine(date.today(), datetime.min.time())
 
-    if action_filter:
-        query = query.filter_by(action=action_filter)
+    # Ensure past login logs are synced to AuditLog if missing
+    if AuditLog.query.count() == 0 and LoginLog.query.count() > 0:
+        for ll in LoginLog.query.all():
+            action_name = 'USER_LOGOUT' if ll.failure_reason and 'logged out' in ll.failure_reason.lower() else ('LOGIN_SUCCESS' if ll.status == 'SUCCESS' else 'LOGIN_FAILED')
+            details_text = f"Authentication event for {ll.email_attempted} from {ll.ip_address or '127.0.0.1'}"
+            if ll.failure_reason:
+                details_text += f" [{ll.failure_reason}]"
+            audit = AuditLog(
+                user_id=ll.user_id,
+                action=action_name,
+                entity_type='User',
+                entity_id=ll.user_id,
+                details=details_text,
+                ip_address=ll.ip_address or '127.0.0.1',
+                timestamp=ll.timestamp
+            )
+            db.session.add(audit)
+        db.session.commit()
+
+    # Query audit logs
+    audit_q = AuditLog.query
     if q:
-        query = query.filter(AuditLog.details.ilike(f"%{q}%"))
+        audit_q = audit_q.filter(
+            (AuditLog.details.ilike(f"%{q}%")) |
+            (AuditLog.action.ilike(f"%{q}%")) |
+            (AuditLog.ip_address.ilike(f"%{q}%"))
+        )
+    if status_filter:
+        audit_q = audit_q.filter(AuditLog.action == status_filter)
 
-    audit_logs = query.order_by(AuditLog.timestamp.desc()).limit(200).all()
-    actions = db.session.query(AuditLog.action).distinct().all()
-    action_list = [a[0] for a in actions]
+    audit_logs = audit_q.order_by(AuditLog.timestamp.desc()).limit(200).all()
+
+    # Query login logs
+    login_q = LoginLog.query
+    if q:
+        login_q = login_q.filter(
+            (LoginLog.email_attempted.ilike(f"%{q}%")) |
+            (LoginLog.ip_address.ilike(f"%{q}%")) |
+            (LoginLog.user_agent.ilike(f"%{q}%"))
+        )
+    if status_filter and status_filter in ['SUCCESS', 'FAILED', 'LOCKED']:
+        login_q = login_q.filter_by(status=status_filter)
+
+    login_logs = login_q.order_by(LoginLog.timestamp.desc()).limit(200).all()
+
+    # Summary Metrics
+    total_audit_events = AuditLog.query.count()
+    successful_logins_today = LoginLog.query.filter(LoginLog.status == 'SUCCESS', LoginLog.timestamp >= today_start).count()
+    failed_logins_today = LoginLog.query.filter(LoginLog.status != 'SUCCESS', LoginLog.timestamp >= today_start).count()
+    total_login_attempts = LoginLog.query.count()
+
+    actions = [a[0] for a in db.session.query(AuditLog.action).distinct().all()]
 
     return render_template('admin/audit_trail.html',
                            audit_logs=audit_logs,
-                           actions=action_list,
+                           login_logs=login_logs,
+                           actions=actions,
+                           current_tab=tab,
                            q=q,
-                           action_filter=action_filter)
+                           status_filter=status_filter,
+                           total_audit_events=total_audit_events,
+                           successful_logins_today=successful_logins_today,
+                           failed_logins_today=failed_logins_today,
+                           total_login_attempts=total_login_attempts)
 
 
 @admin_bp.route('/backup', methods=['GET', 'POST'])

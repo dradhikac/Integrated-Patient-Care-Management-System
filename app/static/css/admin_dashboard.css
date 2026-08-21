@@ -717,6 +717,213 @@ body.admin-dashboard-page {
   gap: 16px;
 }
 
+/* ==========================================================================
+   Shared Modern Card, Tab, and Table Design System
+   ========================================================================== */
+.user-summary-grid, .summary-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.user-summary-card, .summary-kpi-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  text-decoration: none;
+  color: inherit;
+}
+
+.user-summary-card:hover, .summary-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  border-color: #CBD5E1;
+  color: inherit;
+}
+
+.summary-icon-box {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.summary-icon-blue    { background: #EFF6FF; color: #2563EB; }
+.summary-icon-red, .summary-icon-rose { background: #FEF2F2; color: #DC2626; }
+.summary-icon-purple  { background: #FAF5FF; color: #7C3AED; }
+.summary-icon-teal    { background: #F0FDFA; color: #0D9488; }
+.summary-icon-amber   { background: #FFFBEB; color: #D97706; }
+.summary-icon-emerald { background: #ECFDF5; color: #059669; }
+
+.summary-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.summary-num {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.1;
+}
+
+/* Category Navigation Tabs */
+.category-nav-wrapper {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.cat-tab-btn {
+  border: none;
+  background: transparent;
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #64748B;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.18s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.cat-tab-btn:hover {
+  color: #0F172A;
+  background: #F1F5F9;
+}
+
+.cat-tab-btn.active {
+  background: #0F172A;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+}
+
+.cat-tab-badge {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 700;
+}
+
+.cat-tab-btn .cat-tab-badge {
+  background: #F1F5F9;
+  color: #475569;
+}
+
+.cat-tab-btn.active .cat-tab-badge {
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+}
+
+/* Table Search Box & Cards */
+.user-table-card, .admin-table-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+}
+
+.table-search-input-box {
+  position: relative;
+  flex-grow: 1;
+}
+
+.table-search-input-box i {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94A3B8;
+  font-size: 0.95rem;
+}
+
+.table-search-input-box input {
+  width: 100%;
+  padding: 9px 14px 9px 38px;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  color: #0F172A;
+  background: #FFFFFF;
+  transition: all 0.2s ease;
+}
+
+.table-search-input-box input:focus {
+  outline: none;
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.user-custom-table, .clean-user-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.user-custom-table th, .clean-user-table th {
+  background: #F8FAFC;
+  color: #64748B;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.user-custom-table td, .clean-user-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: 0.88rem;
+  color: #1E293B;
+  vertical-align: middle;
+  background: #FFFFFF;
+  transition: background 0.15s ease;
+}
+
+.user-custom-table tr:hover td, .clean-user-table tr:hover td {
+  background: #F8FAFC;
+}
+
+.user-avatar-initial {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #EFF6FF;
+  color: #1D4ED8;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(29, 78, 216, 0.15);
+}
+
 /* Mobile Adjustments */
 @media (max-width: 1024px) {
   .kpi-cards-grid {
