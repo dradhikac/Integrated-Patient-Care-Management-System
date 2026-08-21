@@ -40,10 +40,16 @@ class Patient(db.Model):
     registered_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # Patient Portal Access
+    portal_status = db.Column(db.String(20), default='NOT_ACTIVATED', nullable=False)
+    # Possible values: 'NOT_ACTIVATED', 'PENDING', 'ACTIVE', 'LOCKED'
+    portal_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+
     # Relationships
     medical_histories = db.relationship('PatientMedicalHistory', backref='patient', cascade='all, delete-orphan', lazy=True)
     allergies = db.relationship('PatientAllergy', backref='patient', cascade='all, delete-orphan', lazy=True)
     registered_by = db.relationship('User', backref='registered_patients', foreign_keys=[registered_by_id])
+    portal_user = db.relationship('User', backref='patient_profile', foreign_keys=[portal_user_id], uselist=False)
 
     def calculate_bmi(self):
         """Calculates BMI = weight_kg / ((height_cm / 100) ** 2)"""

@@ -1,0 +1,172 @@
+{% extends 'reception/base_reception.html' %}
+
+{% block title %}Appointments — MediCore+{% endblock %}
+{% block header_title %}Appointments{% endblock %}
+{% block header_subtitle %}All scheduled appointments — search, filter, and manage{% endblock %}
+
+{% block extra_css %}
+<style>
+.apt-tbl th { padding:10px 14px;font-size:.72rem;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px;background:#F8FAFC;border-bottom:1px solid #E2E8F0; }
+.apt-tbl td { padding:12px 14px;font-size:.87rem;vertical-align:middle;border-bottom:1px solid #F1F5F9; }
+.apt-tbl tr:hover td { background:#F8FAFC; }
+.sb { display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.73rem;font-weight:700;border:1px solid; }
+.sb-booked    { background:#F8FAFC; color:#475569; border-color:#CBD5E1; }
+.sb-checkedin { background:#ECFDF5; color:#047857; border-color:#A7F3D0; }
+.sb-completed { background:#EFF6FF; color:#2563EB; border-color:#BFDBFE; }
+.sb-cancelled { background:#FEF2F2; color:#B91C1C; border-color:#FECACA; }
+.sb-noshow    { background:#F1F5F9; color:#64748B; border-color:#CBD5E1; }
+.today-pill   { background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:12px;padding:2px 8px;font-size:.7rem;font-weight:700; }
+</style>
+{% endblock %}
+
+{% block reception_content %}
+
+{# ── Filter / Search bar ─────────────────────────────────────── #}
+<form method="GET" action="{{ url_for('reception.appointments_rec') }}">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div class="d-flex gap-2 flex-wrap align-items-center">
+      <a href="{{ url_for('reception.appointments_rec') }}"
+         class="btn btn-sm rounded-pill border fw-bold {% if not status_filter %}btn-dark{% else %}btn-light{% endif %}">All</a>
+      {% for s, label in [('BOOKED','Scheduled'),('CHECKED_IN','Checked-In'),('COMPLETED','Completed'),('CANCELLED','Cancelled'),('NO_SHOW','No Show')] %}
+      <a href="{{ url_for('reception.appointments_rec', status=s, q=q) }}"
+         class="btn btn-sm rounded-pill border fw-bold {% if status_filter == s %}btn-dark{% else %}btn-light{% endif %}">{{ label }}</a>
+      {% endfor %}
+    </div>
+    <div class="d-flex gap-2">
+      <div style="position:relative;">
+        <i class="bi bi-search" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:.85rem;"></i>
+        <input type="text" name="q" value="{{ q }}" placeholder="Search patient, ID…"
+               class="form-control rounded-pill ps-4" style="width:220px;font-size:.85rem;" oninput="this.form.submit()">
+        <input type="hidden" name="status" value="{{ status_filter }}">
+      </div>
+      <a href="{{ url_for('appointments.book_appointment') }}" class="btn btn-primary rounded-pill px-3 fw-bold" style="background:#2563EB;white-space:nowrap;">
+        <i class="bi bi-calendar-plus me-1"></i> Book New
+      </a>
+    </div>
+  </div>
+</form>
+
+{# ── Appointments Table ──────────────────────────────────────── #}
+<div style="background:#fff;border:1px solid #E2E8F0;border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.03);">
+  <div class="table-responsive">
+    <table class="w-100 apt-tbl" style="border-collapse:separate;border-spacing:0;">
+      <thead>
+        <tr>
+          <th class="ps-4">Date / Time</th>
+          <th>Patient</th>
+          <th>Doctor</th>
+          <th>Type</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th class="text-end pe-4">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for apt in appointments %}
+        <tr>
+          <td class="ps-4">
+            <div class="fw-bold font-monospace" style="font-size:.88rem;">{{ apt.slot_time.strftime('%I:%M %p') }}</div>
+            <div style="font-size:.73rem;color:#64748B;">
+              {{ apt.appointment_date.strftime('%d %b %Y') }}
+              {% if apt.appointment_date == today %}
+              <span class="today-pill ms-1">Today</span>
+              {% endif %}
+            </div>
+          </td>
+          <td>
+            <div class="fw-bold" style="color:#0F172A;">{{ apt.patient.full_name }}</div>
+            <div class="font-monospace text-muted" style="font-size:.73rem;">{{ apt.patient.patient_code }}</div>
+          </td>
+          <td>
+            <div style="font-size:.87rem;font-weight:600;">{{ apt.doctor.name }}</div>
+            <div class="text-muted" style="font-size:.72rem;">{{ apt.doctor.department or 'OPD' }}</div>
+          </td>
+          <td><span class="badge bg-light text-dark border rounded-pill" style="font-size:.73rem;">{{ apt.booking_type or 'Consultation' }}</span></td>
+          <td>
+            {% if apt.priority == 'Emergency' %}
+              <span style="font-size:.75rem;font-weight:700;color:#B91C1C;">🔴 Emergency</span>
+            {% elif apt.priority == 'Senior Citizen' %}
+              <span style="font-size:.75rem;font-weight:700;color:#B45309;">👴 Senior</span>
+            {% else %}
+              <span style="font-size:.75rem;color:#64748B;">Regular</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if apt.status == 'BOOKED' %}
+              <span class="sb sb-booked"><i class="bi bi-clock"></i> Scheduled</span>
+            {% elif apt.status in ('CHECKED_IN','WAITING') %}
+              <span class="sb sb-checkedin"><i class="bi bi-check2-circle"></i> Checked In</span>
+            {% elif apt.status == 'COMPLETED' %}
+              <span class="sb sb-completed"><i class="bi bi-check-all"></i> Completed</span>
+            {% elif apt.status == 'CANCELLED' %}
+              <span class="sb sb-cancelled"><i class="bi bi-x-circle"></i> Cancelled</span>
+            {% elif apt.status == 'NO_SHOW' %}
+              <span class="sb sb-noshow"><i class="bi bi-dash-circle"></i> No Show</span>
+            {% else %}
+              <span class="sb sb-booked">{{ apt.status }}</span>
+            {% endif %}
+          </td>
+          <td class="pe-4 text-end">
+            {% if apt.status == 'BOOKED' and apt.appointment_date == today %}
+            <form action="{{ url_for('reception.quick_checkin_apt', appointment_id=apt.id) }}" method="POST" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" style="background:#2563EB;font-size:.78rem;">
+                <i class="bi bi-box-arrow-in-right me-1"></i>Check In
+              </button>
+            </form>
+            {% endif %}
+            <a href="{{ url_for('reception.patient_profile_rec', patient_id=apt.patient_id) }}"
+               class="btn btn-sm btn-light border rounded-pill px-2 ms-1" title="View Patient Profile">
+              <i class="bi bi-person" style="font-size:.8rem;"></i>
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-5">
+            <i class="bi bi-calendar-x fs-1 d-block opacity-30 mb-2"></i>
+            No appointments found.
+            <br>
+            <a href="{{ url_for('appointments.book_appointment') }}" class="btn btn-primary rounded-pill px-4 mt-3 fw-bold" style="background:#2563EB;">
+              <i class="bi bi-calendar-plus me-1"></i> Book Appointment
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pagination.pages > 1 %}
+  <div class="d-flex align-items-center justify-content-between px-4 py-3" style="border-top:1px solid #F1F5F9;">
+    <span class="text-muted" style="font-size:.82rem;">
+      Showing {{ ((pagination.page-1)*pagination.per_page)+1 }}–{{ [pagination.page*pagination.per_page, pagination.total]|min }} of {{ pagination.total }}
+    </span>
+    <nav>
+      <ul class="pagination pagination-sm mb-0 gap-1">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+          <a class="page-link rounded-pill border" href="{{ url_for('reception.appointments_rec', page=pagination.prev_num, q=q, status=status_filter) }}">‹</a>
+        </li>
+        {% endif %}
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+          {% if p %}
+          <li class="page-item {% if p == pagination.page %}active{% endif %}">
+            <a class="page-link rounded-pill border" href="{{ url_for('reception.appointments_rec', page=p, q=q, status=status_filter) }}">{{ p }}</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link border-0">…</span></li>
+          {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li class="page-item">
+          <a class="page-link rounded-pill border" href="{{ url_for('reception.appointments_rec', page=pagination.next_num, q=q, status=status_filter) }}">›</a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

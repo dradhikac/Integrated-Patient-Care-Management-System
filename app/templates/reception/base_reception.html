@@ -60,13 +60,13 @@
 
           <!-- PATIENT SERVICES -->
           <div class="sidebar-section-title">Patient Services</div>
-          <a href="{{ url_for('patients.list_patients') }}" class="admin-nav-item {% if request.endpoint in ['patients.list_patients','patients.view_patient'] %}active{% endif %}">
+          <a href="{{ url_for('reception.patients_directory') }}" class="admin-nav-item {% if request.endpoint in ['reception.patients_directory','reception.patient_profile_rec'] %}active{% endif %}">
             <i class="bi bi-people-fill"></i> Patients Directory
           </a>
-          <a href="{{ url_for('patients.register_patient') }}" class="admin-nav-item {% if request.endpoint == 'patients.register_patient' %}active{% endif %}">
+          <a href="{{ url_for('reception.register_patient_rec') }}" class="admin-nav-item {% if request.endpoint == 'reception.register_patient_rec' %}active{% endif %}">
             <i class="bi bi-person-plus-fill"></i> Register Patient
           </a>
-          <a href="{{ url_for('appointments.list_appointments') }}" class="admin-nav-item {% if 'appointments' in request.endpoint %}active{% endif %}">
+          <a href="{{ url_for('reception.appointments_rec') }}" class="admin-nav-item {% if request.endpoint == 'reception.appointments_rec' %}active{% endif %}">
             <i class="bi bi-calendar-check-fill"></i> Appointments
           </a>
           <a href="{{ url_for('reception.dashboard') }}#checkInDesk" class="admin-nav-item">

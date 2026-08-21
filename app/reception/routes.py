@@ -299,3 +299,326 @@ def emergency_desk():
                            emergency_checkins=emergency_checkins,
                            doctors=doctors)
 
+
+# ───────────────────────────────────────────────────────────────────────────────
+#  PATIENT MANAGEMENT — Receptionist Shell
+# ───────────────────────────────────────────────────────────────────────────────
+
+@reception_bp.route('/patients')
+@login_required
+@role_required('Admin', 'Receptionist')
+def patients_directory():
+    """Patient Directory wrapped in the Receptionist shell."""
+    query = request.args.get('q', '').strip()
+    portal_filter = request.args.get('portal', '').strip()
+    page = request.args.get('page', 1, type=int)
+
+    patient_query = Patient.query
+    if query:
+        sf = f"%{query}%"
+        patient_query = patient_query.filter(
+            (Patient.patient_code.ilike(sf)) |
+            (Patient.full_name.ilike(sf)) |
+            (Patient.mobile.ilike(sf)) |
+            (Patient.aadhaar_masked.ilike(sf))
+        )
+    if portal_filter in ('NOT_ACTIVATED', 'PENDING', 'ACTIVE', 'LOCKED'):
+        patient_query = patient_query.filter(Patient.portal_status == portal_filter)
+
+    pagination = patient_query.order_by(Patient.id.desc()).paginate(page=page, per_page=20, error_out=False)
+    patients = pagination.items
+
+    # Portal status counts for filter pills
+    from sqlalchemy import func
+    portal_counts = {
+        row[0]: row[1]
+        for row in db.session.query(Patient.portal_status, func.count(Patient.id)).group_by(Patient.portal_status).all()
+    }
+
+    return render_template('reception/patients_directory.html',
+                           patients=patients,
+                           pagination=pagination,
+                           query=query,
+                           portal_filter=portal_filter,
+                           portal_counts=portal_counts,
+                           now=datetime.now())
+
+
+@reception_bp.route('/patients/register', methods=['GET', 'POST'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def register_patient_rec():
+    """Register a new patient — rendered inside the Receptionist shell."""
+    from app.patients.forms import PatientRegistrationForm
+    from app.patients.models import Patient, PatientMedicalHistory, PatientAllergy
+    from app.patients.duplicate_check import check_for_duplicates
+
+    form = PatientRegistrationForm()
+    force_create = request.args.get('force_create', '0') == '1'
+
+    if form.validate_on_submit():
+        first_name = form.first_name.data.strip()
+        last_name = form.last_name.data.strip()
+        dob = form.dob.data
+        mobile = form.mobile.data.strip()
+        aadhaar_raw = form.aadhaar_number.data.strip() if form.aadhaar_number.data else None
+
+        # Duplicate detection (unless force_create)
+        if not force_create:
+            is_dup, dup_matches = check_for_duplicates(first_name, last_name, dob, mobile, aadhaar_raw)
+            if is_dup:
+                return render_template('reception/duplicate_alert_rec.html',
+                                       form_data=request.form,
+                                       form=form,
+                                       dup_matches=dup_matches)
+
+        # Create Patient Record
+        patient = Patient(
+            patient_code=Patient.generate_patient_code(),
+            first_name=first_name,
+            last_name=last_name,
+            full_name=f"{first_name} {last_name}",
+            dob=dob,
+            gender=form.gender.data,
+            mobile=mobile,
+            email=form.email.data.strip() if form.email.data else None,
+            address=form.address.data.strip() if form.address.data else None,
+            blood_group=form.blood_group.data if form.blood_group.data else None,
+            emergency_contact_name=form.emergency_contact_name.data.strip() if form.emergency_contact_name.data else None,
+            emergency_contact_mobile=form.emergency_contact_mobile.data.strip() if form.emergency_contact_mobile.data else None,
+            insurance_provider=form.insurance_provider.data.strip() if form.insurance_provider.data else None,
+            insurance_policy_no=form.insurance_policy_no.data.strip() if form.insurance_policy_no.data else None,
+            height_cm=form.height_cm.data,
+            weight_kg=form.weight_kg.data,
+            vaccination_records=form.vaccination_records.data.strip() if form.vaccination_records.data else None,
+            preferred_language=form.preferred_language.data,
+            registered_by_id=current_user.id,
+            portal_status='NOT_ACTIVATED',
+        )
+        patient.set_aadhaar(aadhaar_raw)
+        patient.calculate_bmi()
+        db.session.add(patient)
+        db.session.flush()
+
+        # Allergies
+        if form.allergies.data:
+            for item in [a.strip() for a in form.allergies.data.split(',') if a.strip()]:
+                db.session.add(PatientAllergy(patient_id=patient.id, allergen=item, severity='Moderate'))
+
+        # Medical history
+        if form.chronic_diseases.data:
+            db.session.add(PatientMedicalHistory(
+                patient_id=patient.id,
+                condition_type='Chronic Disease',
+                description=form.chronic_diseases.data.strip()
+            ))
+
+        db.session.commit()
+
+        return redirect(url_for('reception.registration_success', patient_id=patient.id))
+
+    return render_template('reception/register_patient.html', form=form)
+
+
+@reception_bp.route('/patients/<int:patient_id>/success')
+@login_required
+@role_required('Admin', 'Receptionist')
+def registration_success(patient_id):
+    """Success screen shown after registering a patient."""
+    patient = Patient.query.get_or_404(patient_id)
+    return render_template('reception/registration_success.html', patient=patient)
+
+
+@reception_bp.route('/patients/<int:patient_id>')
+@login_required
+@role_required('Admin', 'Receptionist', 'Doctor')
+def patient_profile_rec(patient_id):
+    """Patient profile view wrapped in the Receptionist shell."""
+    patient = Patient.query.get_or_404(patient_id)
+    return render_template('reception/patient_profile.html', patient=patient)
+
+
+@reception_bp.route('/patients/<int:patient_id>/send-activation', methods=['POST'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def send_activation(patient_id):
+    """Generate a portal activation token and email/display it to the patient."""
+    from app.auth.utils import generate_otp, generate_reset_token
+    from app.auth.models import PasswordResetToken
+
+    patient = Patient.query.get_or_404(patient_id)
+
+    # Don't re-send if already active
+    if patient.portal_status == 'ACTIVE':
+        flash(f'Portal for {patient.full_name} is already active.', 'info')
+        return redirect(url_for('reception.patient_profile_rec', patient_id=patient.id))
+
+    if not patient.email and not patient.mobile:
+        flash('Patient must have an email address or mobile number to receive an activation link.', 'danger')
+        return redirect(url_for('reception.patient_profile_rec', patient_id=patient.id))
+
+    # Invalidate any previous PORTAL_ACTIVATION tokens for this patient
+    PasswordResetToken.query.filter_by(patient_id=patient.id, purpose='PORTAL_ACTIVATION', is_used=False).update({'is_used': True})
+    db.session.flush()
+
+    # Generate new token
+    token_str = generate_reset_token()
+    otp = generate_otp()
+    expiry = datetime.utcnow() + timedelta(hours=24)
+
+    activation = PasswordResetToken(
+        user_id=None,
+        patient_id=patient.id,
+        token=token_str,
+        otp_code=otp,
+        expires_at=expiry,
+        purpose='PORTAL_ACTIVATION',
+        is_used=False,
+    )
+    db.session.add(activation)
+    patient.portal_status = 'PENDING'
+    db.session.commit()
+
+    # Build activation URL (patient clicks this to set their password)
+    activation_url = url_for('reception.activate_portal', token=token_str, _external=True)
+
+    # Email if configured
+    sent_via = 'console'
+    try:
+        from app.extensions import mail
+        from flask_mail import Message
+        import flask
+        if flask.current_app.config.get('MAIL_USERNAME'):
+            msg = Message(
+                subject='MediCore+ Portal Activation',
+                sender=flask.current_app.config['MAIL_DEFAULT_SENDER'],
+                recipients=[patient.email],
+                body=(
+                    f"Dear {patient.full_name},\n\n"
+                    f"Your MediCore+ Patient Portal account has been created.\n"
+                    f"Click the link below to set your password and activate your account:\n\n"
+                    f"{activation_url}\n\n"
+                    f"Or use OTP code: {otp}  (valid 24 hours)\n\n"
+                    f"If you did not request this, please ignore this email.\n\n"
+                    f"— MediCore+ Team"
+                )
+            )
+            mail.send(msg)
+            sent_via = f'email ({patient.email})'
+    except Exception:
+        pass  # Fall through to console/flash
+
+    # Always show activation link in flash for dev/demo environments
+    flash(
+        f'Activation link generated for {patient.full_name}. '
+        f'Status → PENDING. '
+        f'Sent via: {sent_via}. '
+        f'Dev link: {activation_url}',
+        'success'
+    )
+    return redirect(url_for('reception.patient_profile_rec', patient_id=patient.id))
+
+
+@reception_bp.route('/activate/<token>', methods=['GET', 'POST'])
+def activate_portal(token):
+    """
+    Public route — patient clicks activation link, sets their own password.
+    No login required (the token IS the authentication).
+    """
+    from app.auth.models import PasswordResetToken, Role
+    from app.auth.utils import generate_reset_token
+
+    record = PasswordResetToken.query.filter_by(
+        token=token, purpose='PORTAL_ACTIVATION', is_used=False
+    ).first_or_404()
+
+    if datetime.utcnow() > record.expires_at:
+        flash('This activation link has expired. Please ask the receptionist to resend it.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    patient = Patient.query.get_or_404(record.patient_id)
+
+    if patient.portal_status == 'ACTIVE':
+        flash('This portal account is already active. Please log in.', 'info')
+        return redirect(url_for('auth.login'))
+
+    error = None
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        confirm = request.form.get('confirm_password', '')
+
+        if len(password) < 8:
+            error = 'Password must be at least 8 characters long.'
+        elif password != confirm:
+            error = 'Passwords do not match.'
+        else:
+            # Check if a user account already exists for this email
+            existing_user = User.query.filter_by(email=patient.email).first() if patient.email else None
+
+            if existing_user:
+                # Update existing user password and link
+                existing_user.set_password(password)
+                existing_user.is_active = True
+                patient.portal_user_id = existing_user.id
+            else:
+                # Create new User account
+                patient_role = Role.query.filter_by(name='Patient').first()
+                if not patient_role:
+                    patient_role = Role(name='Patient', description='Patient Portal User')
+                    db.session.add(patient_role)
+                    db.session.flush()
+
+                user_code = f"PAT-{int(datetime.utcnow().timestamp()) % 1000000:06d}"
+                new_user = User(
+                    user_code=user_code,
+                    name=patient.full_name,
+                    email=patient.email or f"patient_{patient.id}@medicore.local",
+                    mobile=patient.mobile,
+                    role_id=patient_role.id,
+                    is_active=True,
+                )
+                new_user.set_password(password)
+                db.session.add(new_user)
+                db.session.flush()
+                patient.portal_user_id = new_user.id
+
+            patient.portal_status = 'ACTIVE'
+            record.is_used = True
+            db.session.commit()
+
+            flash(f'Welcome, {patient.full_name}! Your MediCore+ Patient Portal is now active.', 'success')
+            return redirect(url_for('auth.login'))
+
+    return render_template('reception/activate_portal.html', patient=patient, token=token, error=error)
+
+
+@reception_bp.route('/appointments-view')
+@login_required
+@role_required('Admin', 'Receptionist')
+def appointments_rec():
+    """Today's appointments page wrapped in the Receptionist shell."""
+    from app.appointments.models import Appointment
+    today = date.today()
+    q = request.args.get('q', '').strip()
+    status_filter = request.args.get('status', '').strip()
+    page = request.args.get('page', 1, type=int)
+
+    apt_query = Appointment.query
+    if q:
+        sf = f"%{q}%"
+        apt_query = apt_query.join(Appointment.patient).filter(
+            (Patient.full_name.ilike(sf)) |
+            (Patient.patient_code.ilike(sf)) |
+            (Appointment.appointment_code.ilike(sf))
+        )
+    if status_filter:
+        apt_query = apt_query.filter(Appointment.status == status_filter)
+
+    pagination = apt_query.order_by(Appointment.appointment_date.desc(), Appointment.slot_time.asc()).paginate(page=page, per_page=25, error_out=False)
+
+    return render_template('reception/appointments_rec.html',
+                           appointments=pagination.items,
+                           pagination=pagination,
+                           q=q,
+                           status_filter=status_filter,
+                           today=today)

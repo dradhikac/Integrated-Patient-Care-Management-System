@@ -1,0 +1,214 @@
+{% extends 'reception/base_reception.html' %}
+
+{% block title %}Patients Directory — MediCore+{% endblock %}
+{% block header_title %}Patients Directory{% endblock %}
+{% block header_subtitle %}Search, filter, and manage all registered patients and portal access{% endblock %}
+
+{% block extra_css %}
+<style>
+.portal-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: .72rem; font-weight: 700; border: 1px solid; white-space: nowrap;
+}
+.pb-active    { background:#ECFDF5; color:#047857; border-color:#A7F3D0; }
+.pb-pending   { background:#FFFBEB; color:#B45309; border-color:#FDE68A; }
+.pb-not-act   { background:#F1F5F9; color:#64748B; border-color:#CBD5E1; }
+.pb-locked    { background:#FEF2F2; color:#B91C1C; border-color:#FECACA; }
+
+.filter-pill {
+  padding: 5px 14px; border-radius: 20px; font-size:.78rem;
+  font-weight:700; border:1.5px solid #E2E8F0; background:#fff; color:#475569;
+  cursor:pointer; text-decoration:none; transition:all .13s;
+}
+.filter-pill:hover, .filter-pill.active {
+  background:#0F172A; color:#fff; border-color:#0F172A;
+}
+.filter-pill.fp-green.active  { background:#059669; border-color:#059669; }
+.filter-pill.fp-amber.active  { background:#D97706; border-color:#D97706; }
+.filter-pill.fp-red.active    { background:#DC2626; border-color:#DC2626; }
+
+.patient-row td { padding: 13px 14px; font-size:.87rem; vertical-align:middle; border-bottom:1px solid #F1F5F9; }
+.patient-row:hover td { background: #F8FAFC; }
+.patient-avatar {
+  width:36px; height:36px; border-radius:50%;
+  background: linear-gradient(135deg,#2563EB,#7C3AED);
+  color:#fff; font-weight:800; font-size:.9rem;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.actions-cell { white-space: nowrap; }
+</style>
+{% endblock %}
+
+{% block reception_content %}
+
+{# ── Search + Filter Bar ─────────────────────────────────────── #}
+<form method="GET" action="{{ url_for('reception.patients_directory') }}" id="directoryForm">
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+  <div class="d-flex align-items-center gap-2 flex-wrap">
+    {# Portal status filter pills #}
+    <a href="{{ url_for('reception.patients_directory', q=query) }}"
+       class="filter-pill {% if not portal_filter %}active{% endif %}">
+      All ({{ portal_counts.values()|sum }})
+    </a>
+    <a href="{{ url_for('reception.patients_directory', q=query, portal='ACTIVE') }}"
+       class="filter-pill fp-green {% if portal_filter == 'ACTIVE' %}active{% endif %}">
+      <i class="bi bi-check-circle-fill me-1"></i>Active ({{ portal_counts.get('ACTIVE', 0) }})
+    </a>
+    <a href="{{ url_for('reception.patients_directory', q=query, portal='PENDING') }}"
+       class="filter-pill fp-amber {% if portal_filter == 'PENDING' %}active{% endif %}">
+      <i class="bi bi-hourglass-split me-1"></i>Pending ({{ portal_counts.get('PENDING', 0) }})
+    </a>
+    <a href="{{ url_for('reception.patients_directory', q=query, portal='NOT_ACTIVATED') }}"
+       class="filter-pill {% if portal_filter == 'NOT_ACTIVATED' %}active{% endif %}">
+      <i class="bi bi-dash-circle me-1"></i>Not Activated ({{ portal_counts.get('NOT_ACTIVATED', 0) }})
+    </a>
+    <a href="{{ url_for('reception.patients_directory', q=query, portal='LOCKED') }}"
+       class="filter-pill fp-red {% if portal_filter == 'LOCKED' %}active{% endif %}">
+      <i class="bi bi-lock-fill me-1"></i>Locked ({{ portal_counts.get('LOCKED', 0) }})
+    </a>
+  </div>
+  <div class="d-flex gap-2">
+    <div style="position:relative;">
+      <i class="bi bi-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94A3B8;"></i>
+      <input type="text" name="q" value="{{ query }}" placeholder="Search by name, ID, mobile…"
+             class="form-control rounded-pill ps-4 pe-3" style="width:280px;font-size:.87rem;"
+             oninput="this.form.submit()">
+    </div>
+    <a href="{{ url_for('reception.register_patient_rec') }}"
+       class="btn btn-primary rounded-pill px-4 fw-bold" style="background:#2563EB;border-color:#2563EB;white-space:nowrap;">
+      <i class="bi bi-person-plus-fill me-1"></i> Register New
+    </a>
+  </div>
+</div>
+<input type="hidden" name="portal" value="{{ portal_filter }}">
+</form>
+
+{# ── Patients Table ─────────────────────────────────────────── #}
+<div style="background:#fff;border:1px solid #E2E8F0;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.03);overflow:hidden;">
+  <div class="table-responsive">
+    <table class="w-100" style="border-collapse:separate;border-spacing:0;">
+      <thead>
+        <tr style="background:#F8FAFC;">
+          <th style="padding:11px 16px;font-size:.72rem;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #E2E8F0;" class="ps-4">Patient</th>
+          <th style="padding:11px 16px;font-size:.72rem;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #E2E8F0;">Contact</th>
+          <th style="padding:11px 16px;font-size:.72rem;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #E2E8F0;">Age / Gender</th>
+          <th style="padding:11px 16px;font-size:.72rem;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #E2E8F0;">Portal Status</th>
+          <th style="padding:11px 16px;font-size:.72rem;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #E2E8F0;">Registered</th>
+          <th style="padding:11px 16px;font-size:.72rem;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid #E2E8F0;text-align:right;" class="pe-4">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for patient in patients %}
+        <tr class="patient-row">
+          <td class="ps-4">
+            <div class="d-flex align-items-center gap-2">
+              <div class="patient-avatar">{{ patient.first_name[0] | upper }}</div>
+              <div>
+                <div class="fw-bold" style="color:#0F172A;">{{ patient.full_name }}</div>
+                <div class="font-monospace" style="font-size:.73rem;color:#64748B;">{{ patient.patient_code }}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div style="font-size:.85rem;color:#0F172A;">{{ patient.mobile }}</div>
+            <div style="font-size:.72rem;color:#94A3B8;">{{ patient.email or '—' }}</div>
+          </td>
+          <td>
+            {% set age = ((now.date() - patient.dob).days // 365) if patient.dob else '?' %}
+            <div style="font-size:.85rem;">{{ age }} yrs · {{ patient.gender }}</div>
+            {% if patient.blood_group %}
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill" style="font-size:.68rem;">{{ patient.blood_group }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if patient.portal_status == 'ACTIVE' %}
+              <span class="portal-badge pb-active"><i class="bi bi-check-circle-fill"></i> Active</span>
+            {% elif patient.portal_status == 'PENDING' %}
+              <span class="portal-badge pb-pending"><i class="bi bi-hourglass-split"></i> Pending</span>
+            {% elif patient.portal_status == 'LOCKED' %}
+              <span class="portal-badge pb-locked"><i class="bi bi-lock-fill"></i> Locked</span>
+            {% else %}
+              <span class="portal-badge pb-not-act"><i class="bi bi-dash-circle"></i> Not Activated</span>
+            {% endif %}
+          </td>
+          <td style="font-size:.82rem;color:#64748B;">
+            {{ patient.created_at.strftime('%d %b %Y') }}
+          </td>
+          <td class="pe-4 actions-cell" style="text-align:right;">
+            <a href="{{ url_for('reception.patient_profile_rec', patient_id=patient.id) }}"
+               class="btn btn-sm btn-light border rounded-pill px-3 fw-semibold me-1" style="font-size:.78rem;">
+              <i class="bi bi-eye me-1"></i>View
+            </a>
+            {% if patient.portal_status in ('NOT_ACTIVATED', 'PENDING') %}
+            <form action="{{ url_for('reception.send_activation', patient_id=patient.id) }}" method="POST" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit"
+                class="btn btn-sm rounded-pill px-3 fw-bold"
+                style="font-size:.78rem;{% if patient.portal_status == 'PENDING' %}background:#FEF3C7;color:#B45309;border:1px solid #FDE68A;{% else %}background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;{% endif %}"
+                title="{% if patient.portal_status == 'PENDING' %}Resend{% else %}Send{% endif %} Activation Link">
+                <i class="bi bi-send-fill me-1"></i>
+                {% if patient.portal_status == 'PENDING' %}Resend{% else %}Activate{% endif %}
+              </button>
+            </form>
+            {% endif %}
+            <a href="{{ url_for('reception.check_in', patient_id=patient.id) }}"
+               class="btn btn-sm btn-primary rounded-pill px-3 fw-bold ms-1" style="font-size:.78rem;background:#2563EB;">
+              <i class="bi bi-box-arrow-in-right me-1"></i>Check In
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" class="text-center text-muted py-5">
+            <i class="bi bi-people fs-1 d-block opacity-30 mb-2"></i>
+            {% if query %}
+              No patients found for "<strong>{{ query }}</strong>".
+            {% else %}
+              No patients registered yet.
+            {% endif %}
+            <br>
+            <a href="{{ url_for('reception.register_patient_rec') }}" class="btn btn-primary rounded-pill px-4 mt-3 fw-bold" style="background:#2563EB;">
+              <i class="bi bi-person-plus-fill me-1"></i> Register First Patient
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# Pagination #}
+  {% if pagination.pages > 1 %}
+  <div class="d-flex align-items-center justify-content-between px-4 py-3" style="border-top:1px solid #F1F5F9;">
+    <span class="text-muted" style="font-size:.82rem;">
+      Showing {{ ((pagination.page-1)*pagination.per_page)+1 }}–{{ [pagination.page*pagination.per_page, pagination.total]|min }} of {{ pagination.total }} patients
+    </span>
+    <nav>
+      <ul class="pagination pagination-sm mb-0 gap-1">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+          <a class="page-link rounded-pill border fw-semibold" href="{{ url_for('reception.patients_directory', page=pagination.prev_num, q=query, portal=portal_filter) }}">‹ Prev</a>
+        </li>
+        {% endif %}
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+          {% if p %}
+          <li class="page-item {% if p == pagination.page %}active{% endif %}">
+            <a class="page-link rounded-pill border fw-semibold" href="{{ url_for('reception.patients_directory', page=p, q=query, portal=portal_filter) }}">{{ p }}</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link border-0">…</span></li>
+          {% endif %}
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li class="page-item">
+          <a class="page-link rounded-pill border fw-semibold" href="{{ url_for('reception.patients_directory', page=pagination.next_num, q=query, portal=portal_filter) }}">Next ›</a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

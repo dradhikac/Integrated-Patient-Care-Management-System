@@ -1,0 +1,125 @@
+{% extends 'reception/base_reception.html' %}
+
+{% block title %}Patient Registered — MediCore+{% endblock %}
+{% block header_title %}Patient Registered Successfully{% endblock %}
+{% block header_subtitle %}Review the patient record and configure portal access{% endblock %}
+
+{% block reception_content %}
+
+{# ── Success Card ───────────────────────────────────────────── #}
+<div style="max-width:780px;margin:0 auto;">
+
+  <div style="background:#ECFDF5;border:1.5px solid #A7F3D0;border-radius:16px;padding:24px 28px;margin-bottom:20px;display:flex;align-items:center;gap:18px;">
+    <div style="width:52px;height:52px;background:#059669;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="bi bi-check2 text-white" style="font-size:1.6rem;"></i>
+    </div>
+    <div>
+      <div class="fw-bold" style="font-size:1.15rem;color:#064E3B;">Patient record created successfully!</div>
+      <div style="color:#047857;font-size:.88rem;">{{ patient.full_name }} has been registered in the hospital system.</div>
+    </div>
+  </div>
+
+  {# ── Patient Summary Card ─────────────────────────────────── #}
+  <div style="background:#fff;border:1px solid #E2E8F0;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.03);margin-bottom:18px;overflow:hidden;">
+    <div style="padding:14px 22px;border-bottom:1px solid #F1F5F9;background:#F8FAFC;display:flex;align-items:center;gap:8px;">
+      <i class="bi bi-person-badge-fill text-primary"></i>
+      <span class="fw-bold" style="font-size:.95rem;color:#0F172A;">Patient Summary</span>
+    </div>
+    <div style="padding:20px 22px;">
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#2563EB,#7C3AED);color:#fff;font-weight:800;font-size:1.4rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              {{ patient.first_name[0] | upper }}
+            </div>
+            <div>
+              <div class="fw-bold" style="font-size:1.1rem;color:#0F172A;">{{ patient.full_name }}</div>
+              <div class="font-monospace" style="font-size:.8rem;color:#64748B;">{{ patient.patient_code }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="row g-2">
+            <div class="col-6">
+              <div class="text-muted" style="font-size:.72rem;font-weight:700;text-transform:uppercase;">Gender</div>
+              <div class="fw-semibold" style="font-size:.88rem;">{{ patient.gender }}</div>
+            </div>
+            <div class="col-6">
+              <div class="text-muted" style="font-size:.72rem;font-weight:700;text-transform:uppercase;">Date of Birth</div>
+              <div class="fw-semibold" style="font-size:.88rem;">{{ patient.dob.strftime('%d %b %Y') if patient.dob else '—' }}</div>
+            </div>
+            <div class="col-6">
+              <div class="text-muted" style="font-size:.72rem;font-weight:700;text-transform:uppercase;">Mobile</div>
+              <div class="fw-semibold" style="font-size:.88rem;">{{ patient.mobile }}</div>
+            </div>
+            <div class="col-6">
+              <div class="text-muted" style="font-size:.72rem;font-weight:700;text-transform:uppercase;">Blood Group</div>
+              <div class="fw-semibold" style="font-size:.88rem;">{{ patient.blood_group or '—' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Portal Access Card ───────────────────────────────────── #}
+  <div style="background:#fff;border:1px solid #E2E8F0;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.03);margin-bottom:24px;overflow:hidden;">
+    <div style="padding:14px 22px;border-bottom:1px solid #F1F5F9;background:#F8FAFC;display:flex;align-items:center;gap:8px;">
+      <i class="bi bi-shield-lock-fill text-primary"></i>
+      <span class="fw-bold" style="font-size:.95rem;color:#0F172A;">Patient Portal Access</span>
+    </div>
+    <div style="padding:20px 22px;">
+      <div class="d-flex align-items-start gap-4 flex-wrap">
+        <div>
+          <div class="text-muted mb-1" style="font-size:.75rem;font-weight:700;text-transform:uppercase;">Current Status</div>
+          <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:.8rem;font-weight:700;background:#F1F5F9;color:#64748B;border:1px solid #CBD5E1;">
+            <i class="bi bi-dash-circle"></i> Not Activated
+          </span>
+        </div>
+        <div class="flex-grow-1">
+          <p class="text-muted mb-3" style="font-size:.85rem;">
+            The patient does not yet have a portal account. To give them online access (view records, book appointments),
+            send them a secure activation link — they will set their own password.
+            <strong>You will not see or set their password.</strong>
+          </p>
+          {% if patient.email or patient.mobile %}
+          <form action="{{ url_for('reception.send_activation', patient_id=patient.id) }}" method="POST" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold me-2" style="background:#2563EB;">
+              <i class="bi bi-send-fill me-1"></i> Send Activation Link
+            </button>
+          </form>
+          <small class="text-muted" style="font-size:.75rem;">
+            Will be sent to: {{ patient.email if patient.email else patient.mobile }}
+          </small>
+          {% else %}
+          <div class="alert alert-warning border-0 rounded-3 d-flex align-items-center gap-2" style="background:#FFFBEB;color:#92400E;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            No email or mobile on file. Edit the patient record to add contact details before enabling portal access.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Next Step Actions ────────────────────────────────────── #}
+  <div class="d-flex flex-wrap gap-3 align-items-center">
+    <a href="{{ url_for('reception.patient_profile_rec', patient_id=patient.id) }}"
+       class="btn btn-primary rounded-pill px-4 fw-bold" style="background:#2563EB;">
+      <i class="bi bi-person-lines-fill me-1"></i> View Patient Profile
+    </a>
+    <a href="{{ url_for('reception.check_in', patient_id=patient.id) }}"
+       class="btn btn-success rounded-pill px-4 fw-bold">
+      <i class="bi bi-box-arrow-in-right me-1"></i> Check-In Now
+    </a>
+    <a href="{{ url_for('appointments.book_appointment') }}" class="btn btn-light border rounded-pill px-4 fw-semibold">
+      <i class="bi bi-calendar-plus me-1"></i> Book Appointment
+    </a>
+    <a href="{{ url_for('reception.register_patient_rec') }}" class="btn btn-light border rounded-pill px-4 fw-semibold">
+      <i class="bi bi-person-plus me-1"></i> Register Another
+    </a>
+  </div>
+</div>
+
+{% endblock %}

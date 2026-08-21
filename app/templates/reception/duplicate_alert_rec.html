@@ -1,0 +1,92 @@
+{% extends 'reception/base_reception.html' %}
+
+{% block title %}Duplicate Patient Detected — MediCore+{% endblock %}
+{% block header_title %}Duplicate Patient Detected{% endblock %}
+{% block header_subtitle %}Possible matching records found — review before creating a new record{% endblock %}
+
+{% block reception_content %}
+
+<div class="alert d-flex align-items-start gap-3 border-0 rounded-4 mb-4"
+     style="background:#FEF3C7;color:#92400E;border:1px solid #FDE68A!important;">
+  <i class="bi bi-exclamation-triangle-fill fs-3 mt-1 flex-shrink-0" style="color:#D97706;"></i>
+  <div>
+    <div class="fw-bold fs-6 mb-1">Potential duplicate records found</div>
+    <p class="mb-0">The system found {{ dup_matches|length }} existing patient record(s) that closely match the data you entered.
+    Review the records below. If none match, you may proceed to create a new record.</p>
+  </div>
+</div>
+
+{# Duplicate matches #}
+{% for match in dup_matches %}
+<div style="background:#fff;border:1.5px solid #FDE68A;border-radius:14px;box-shadow:0 1px 6px rgba(0,0,0,.05);margin-bottom:14px;overflow:hidden;">
+  <div class="d-flex align-items-center justify-content-between px-4 py-3"
+       style="background:#FFFBEB;border-bottom:1px solid #FDE68A;">
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge rounded-pill fw-bold px-3 py-2"
+            style="{% if match.similarity_score >= 80 %}background:#DC2626;{% elif match.similarity_score >= 60 %}background:#D97706;{% else %}background:#64748B;{% endif %}color:#fff;font-size:.8rem;">
+        {{ match.similarity_score|round(0)|int }}% Match
+      </span>
+      <span class="fw-bold fs-6" style="color:#0F172A;">{{ match.patient.full_name }}</span>
+      <span class="badge bg-dark font-monospace">{{ match.patient.patient_code }}</span>
+    </div>
+    <a href="{{ url_for('reception.patient_profile_rec', patient_id=match.patient.id) }}" target="_blank"
+       class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+      <i class="bi bi-box-arrow-up-right me-1"></i> View Profile
+    </a>
+  </div>
+  <div class="px-4 py-3">
+    <div class="row g-3 mb-2">
+      <div class="col-md-3">
+        <div class="text-muted" style="font-size:.72rem;font-weight:700;text-transform:uppercase;">Date of Birth</div>
+        <div class="fw-semibold">{{ match.patient.dob.strftime('%d %b %Y') if match.patient.dob else '—' }}</div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-muted" style="font-size:.72rem;font-weight:700;text-transform:uppercase;">Mobile</div>
+        <div class="fw-semibold">{{ match.patient.mobile }}</div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-muted" style="font-size:.72rem;font-weight:700;text-transform:uppercase;">Gender</div>
+        <div class="fw-semibold">{{ match.patient.gender }}</div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-muted" style="font-size:.72rem;font-weight:700;text-transform:uppercase;">Aadhaar (masked)</div>
+        <div class="fw-semibold font-monospace">{{ match.patient.aadhaar_masked or '—' }}</div>
+      </div>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      {% for reason in match.match_reasons %}
+      <span class="badge rounded-pill fw-semibold px-3 py-2" style="background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;font-size:.73rem;">
+        <i class="bi bi-check2 me-1"></i>{{ reason }}
+      </span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{# Decision Buttons #}
+<div style="background:#fff;border:1px solid #E2E8F0;border-radius:14px;padding:20px 24px;margin-top:20px;">
+  <h5 class="fw-bold mb-3" style="color:#0F172A;">What would you like to do?</h5>
+  <div class="d-flex flex-wrap gap-3 align-items-center">
+    <a href="{{ url_for('reception.register_patient_rec') }}" class="btn btn-light border rounded-pill px-4 fw-semibold">
+      <i class="bi bi-arrow-left me-1"></i> Go Back & Review
+    </a>
+    <form method="POST" action="{{ url_for('reception.register_patient_rec', force_create=1) }}" id="forceCreateForm">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {% for key, value in form_data.items() %}
+        {% if key != 'csrf_token' %}
+          <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endif %}
+      {% endfor %}
+      <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold" style="color:#92400E;">
+        <i class="bi bi-plus-circle-fill me-1"></i> Create New Record Anyway
+      </button>
+    </form>
+    <span class="text-muted" style="font-size:.8rem;">
+      <i class="bi bi-shield-check me-1 text-success"></i>
+      Or open a duplicate profile above and use <strong>Check In</strong> directly.
+    </span>
+  </div>
+</div>
+
+{% endblock %}

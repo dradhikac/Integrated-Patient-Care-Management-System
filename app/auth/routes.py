@@ -52,12 +52,34 @@ def register():
         )
         new_user.set_password(password)
         db.session.add(new_user)
-        db.session.commit()
+        db.session.flush()  # get new_user.id
 
-        # Create Patient record if not already existing
+        # --- Duplicate detection & linking ---
+        # Try to match an existing patient record by email OR mobile (exact match)
         from app.patients.models import Patient
-        existing_patient = Patient.query.filter((Patient.email == email) | (Patient.mobile == mobile)).first()
-        if not existing_patient:
+        linked_patient = None
+
+        # Priority 1: email match
+        if email:
+            linked_patient = Patient.query.filter_by(email=email).first()
+
+        # Priority 2: mobile match (if no email match)
+        if not linked_patient and mobile:
+            linked_patient = Patient.query.filter_by(mobile=mobile).first()
+
+        if linked_patient:
+            # Link the new User account to the existing patient record
+            linked_patient.portal_user_id = new_user.id
+            linked_patient.portal_status = 'ACTIVE'
+            db.session.commit()
+            login_user(new_user)
+            flash(
+                f'Welcome back, {full_name}! Your portal account is now linked to your existing patient record ({linked_patient.patient_code}).',
+                'success'
+            )
+            return redirect(url_for('auth.dashboard'))
+        else:
+            # No existing patient record — create one
             name_parts = full_name.split(' ', 1)
             f_name = name_parts[0]
             l_name = name_parts[1] if len(name_parts) > 1 else f_name
@@ -70,16 +92,18 @@ def register():
                 dob=dob,
                 mobile=mobile,
                 email=email,
-                address="Self Registered Patient"
+                address='Self Registered Patient',
+                portal_user_id=new_user.id,
+                portal_status='ACTIVE',
             )
             db.session.add(new_patient)
             db.session.commit()
-
-        login_user(new_user)
-        flash(f'🎉 Account created successfully! Welcome to IPCMS, {full_name}!', 'success')
-        return redirect(url_for('auth.dashboard'))
+            login_user(new_user)
+            flash(f'🎉 Account created successfully! Welcome to MediCore+, {full_name}!', 'success')
+            return redirect(url_for('auth.dashboard'))
 
     return render_template('auth/register.html', form=form)
+
 
 
 

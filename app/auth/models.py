@@ -96,11 +96,15 @@ class PasswordResetToken(db.Model):
     __tablename__ = 'password_resets'
     
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # NULL for pre-activation
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=True)  # For portal activation before User exists
     token = db.Column(db.String(64), unique=True, nullable=False, index=True)
     otp_code = db.Column(db.String(6), nullable=False)
     expires_at = db.Column(db.DateTime, nullable=False)
     is_used = db.Column(db.Boolean, default=False)
+    purpose = db.Column(db.String(30), default='PASSWORD_RESET', nullable=False)
+    # purpose: 'PASSWORD_RESET' | 'PORTAL_ACTIVATION'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship('User', backref='password_resets', lazy=True)
+

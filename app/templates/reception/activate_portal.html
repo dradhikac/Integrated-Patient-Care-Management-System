@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activate Your Patient Portal — MediCore+</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #0F172A 100%);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .act-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 40px 44px;
+      width: 100%; max-width: 460px;
+      box-shadow: 0 25px 60px rgba(0,0,0,.4);
+    }
+    .brand {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 28px;
+    }
+    .brand-icon {
+      width: 40px; height: 40px; background: linear-gradient(135deg, #2563EB, #1D4ED8);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 1.2rem;
+    }
+    .brand-name { font-weight: 900; font-size: 1.2rem; color: #0F172A; }
+    .brand-sub  { font-size: .72rem; color: #64748B; font-weight: 600; }
+
+    h2 { font-size: 1.4rem; font-weight: 800; color: #0F172A; margin-bottom: 4px; }
+    .subtitle { font-size: .87rem; color: #64748B; margin-bottom: 24px; }
+
+    .patient-pill {
+      background: #EFF6FF; border: 1px solid #BFDBFE;
+      border-radius: 12px; padding: 12px 16px; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .patient-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, #2563EB, #7C3AED);
+      color: #fff; font-weight: 800; font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+
+    label { font-size: .82rem; font-weight: 700; color: #374151; margin-bottom: 5px; display: block; }
+    .form-input {
+      width: 100%; border: 1.5px solid #E2E8F0; border-radius: 10px;
+      padding: 10px 14px; font-size: .9rem; font-family: inherit; color: #0F172A;
+      transition: all .18s; outline: none;
+      margin-bottom: 14px;
+    }
+    .form-input:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+
+    .pw-wrap { position: relative; }
+    .pw-wrap .form-input { padding-right: 44px; }
+    .pw-toggle {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-55%);
+      background: none; border: none; color: #94A3B8; cursor: pointer; font-size: 1rem; padding: 0;
+    }
+
+    .strength-bar { height: 4px; border-radius: 4px; background: #E2E8F0; margin-bottom: 6px; overflow: hidden; }
+    .strength-fill { height: 100%; border-radius: 4px; transition: width .3s, background .3s; width: 0%; }
+    .strength-label { font-size: .72rem; color: #64748B; margin-bottom: 14px; }
+
+    .submit-btn {
+      width: 100%; background: #2563EB; color: #fff; border: none;
+      border-radius: 10px; padding: 12px; font-size: .95rem; font-weight: 700;
+      font-family: inherit; cursor: pointer; transition: background .18s;
+    }
+    .submit-btn:hover { background: #1D4ED8; }
+    .submit-btn:disabled { background: #93C5FD; cursor: not-allowed; }
+
+    .error-box {
+      background: #FEF2F2; border: 1px solid #FECACA;
+      color: #B91C1C; border-radius: 10px; padding: 12px 16px;
+      font-size: .84rem; font-weight: 600; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .security-note {
+      margin-top: 20px; padding: 12px 14px;
+      background: #F8FAFC; border-radius: 10px; border: 1px solid #E2E8F0;
+      font-size: .75rem; color: #64748B;
+    }
+  </style>
+</head>
+<body>
+  <div class="act-card">
+    <div class="brand">
+      <div class="brand-icon"><i class="bi bi-hospital"></i></div>
+      <div>
+        <div class="brand-name">MediCore+</div>
+        <div class="brand-sub">Patient Portal Activation</div>
+      </div>
+    </div>
+
+    <h2>Create Your Password</h2>
+    <p class="subtitle">Welcome to MediCore+ Patient Portal, {{ patient.first_name }}. Set a strong password to activate your account.</p>
+
+    <div class="patient-pill">
+      <div class="patient-avatar">{{ patient.first_name[0] | upper }}</div>
+      <div>
+        <div style="font-weight:700;font-size:.9rem;color:#0F172A;">{{ patient.full_name }}</div>
+        <div style="font-size:.72rem;color:#1D4ED8;font-weight:600;">{{ patient.patient_code }}</div>
+      </div>
+    </div>
+
+    {% if error %}
+    <div class="error-box"><i class="bi bi-x-circle-fill"></i> {{ error }}</div>
+    {% endif %}
+
+    <form method="POST" id="actForm">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div>
+        <label for="pw">New Password <span style="color:#EF4444;">*</span></label>
+        <div class="pw-wrap">
+          <input type="password" name="password" id="pw" class="form-input" placeholder="At least 8 characters"
+                 required minlength="8" oninput="checkStrength(this.value)">
+          <button type="button" class="pw-toggle" onclick="togglePw('pw', this)">
+            <i class="bi bi-eye-slash"></i>
+          </button>
+        </div>
+        <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+        <div class="strength-label" id="strengthLabel">Enter a password</div>
+      </div>
+
+      <div>
+        <label for="cpw">Confirm Password <span style="color:#EF4444;">*</span></label>
+        <div class="pw-wrap">
+          <input type="password" name="confirm_password" id="cpw" class="form-input" placeholder="Re-enter password"
+                 required minlength="8">
+          <button type="button" class="pw-toggle" onclick="togglePw('cpw', this)">
+            <i class="bi bi-eye-slash"></i>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn">
+        <i class="bi bi-shield-lock-fill me-2"></i> Activate My Portal Account
+      </button>
+    </form>
+
+    <div class="security-note">
+      <i class="bi bi-lock-fill text-primary me-1"></i>
+      <strong>Your password is yours only.</strong> Hospital staff cannot see or reset your password.
+      This activation link is single-use and expires in 24 hours.
+    </div>
+  </div>
+
+  <script>
+  function togglePw(inputId, btn) {
+    const inp = document.getElementById(inputId);
+    if (inp.type === 'password') {
+      inp.type = 'text';
+      btn.innerHTML = '<i class="bi bi-eye"></i>';
+    } else {
+      inp.type = 'password';
+      btn.innerHTML = '<i class="bi bi-eye-slash"></i>';
+    }
+  }
+
+  function checkStrength(pw) {
+    const fill = document.getElementById('strengthFill');
+    const label = document.getElementById('strengthLabel');
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (/[A-Z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    const levels = [
+      { pct: '0%',   bg: '#E2E8F0', txt: 'Enter a password' },
+      { pct: '25%',  bg: '#EF4444', txt: 'Weak' },
+      { pct: '50%',  bg: '#F97316', txt: 'Fair' },
+      { pct: '75%',  bg: '#EAB308', txt: 'Good' },
+      { pct: '100%', bg: '#22C55E', txt: 'Strong ✓' },
+    ];
+    const l = levels[score];
+    fill.style.width = l.pct;
+    fill.style.background = l.bg;
+    label.textContent = l.txt;
+    label.style.color = l.bg;
+  }
+  </script>
+</body>
+</html>
