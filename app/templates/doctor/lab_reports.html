@@ -1,0 +1,90 @@
+{% extends "doctor/base_doctor.html" %}
+{% block title %}Lab Reports — Doctor Portal | MediCore+{% endblock %}
+{% block page_title %}Lab Reports{% endblock %}
+{% block page_subtitle %}Lab requests for your patients{% endblock %}
+
+{% block content %}
+
+<!-- Filter Tabs -->
+<div class="d-flex gap-2 mb-4 flex-wrap">
+  {% set statuses = [('', 'All'), ('REQUESTED', 'Requested'), ('SAMPLE_COLLECTED', 'Sample Collected'), ('IN_TESTING', 'In Testing'), ('COMPLETED', 'Completed')] %}
+  {% for val, label in statuses %}
+  <a href="{{ url_for('doctor_portal.lab_reports', status=val) }}"
+     style="padding:6px 14px;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;border:1px solid;
+       {% if status_filter == val %}background:#1E40AF;color:#fff;border-color:#1E40AF;{% else %}background:#F8FAFC;color:#475569;border-color:#E2E8F0;{% endif %}">
+    {{ label }}
+  </a>
+  {% endfor %}
+</div>
+
+<div class="doc-card">
+  {% if labs %}
+    <div class="table-responsive">
+      <table class="doc-table">
+        <thead>
+          <tr>
+            <th>REQUEST CODE</th>
+            <th>PATIENT</th>
+            <th>DATE</th>
+            <th>TESTS</th>
+            <th>STATUS</th>
+            <th>RESULTS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for lr in labs %}
+          {% set st_cfg = {
+            'REQUESTED': ('badge-booked', 'Requested'),
+            'SAMPLE_COLLECTED': ('badge-waiting', 'Sample Collected'),
+            'IN_TESTING': ('badge-in-consult', 'In Testing'),
+            'COMPLETED': ('badge-checked-in', 'Completed')
+          } %}
+          {% set sc = st_cfg.get(lr.status, ('badge-booked', lr.status)) %}
+          <tr>
+            <td><span style="font-family:monospace;font-size:0.82rem;color:#64748B;">{{ lr.request_code }}</span></td>
+            <td>
+              <a href="{{ url_for('doctor_portal.patient_detail', patient_id=lr.patient_id) }}" style="text-decoration:none;">
+                <div class="fw-semibold" style="font-size:0.87rem;color:#0F172A;">{{ lr.patient.full_name }}</div>
+                <div class="text-muted" style="font-size:0.73rem;">{{ lr.patient.patient_code }}</div>
+              </a>
+            </td>
+            <td style="font-size:0.84rem;">{{ lr.created_at.strftime('%d %b %Y') }}</td>
+            <td>
+              <span style="background:#EFF6FF;color:#1E40AF;border-radius:6px;padding:2px 9px;font-size:0.8rem;font-weight:700;">{{ lr.results|length }} test(s)</span>
+            </td>
+            <td><span class="status-badge {{ sc[0] }}">{{ sc[1] }}</span></td>
+            <td>
+              {% if lr.status == 'COMPLETED' and lr.results %}
+                <div style="font-size:0.82rem;">
+                  {% set abnormal = lr.results|selectattr('abnormal_flag','ne','NORMAL')|list %}
+                  {% if abnormal %}
+                    <span style="color:#EF4444;font-weight:700;"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ abnormal|length }} Abnormal</span>
+                  {% else %}
+                    <span style="color:#15803D;font-weight:600;"><i class="bi bi-check-circle-fill me-1"></i>All Normal</span>
+                  {% endif %}
+                </div>
+                <!-- Show individual results -->
+                {% for result in lr.results[:3] %}
+                <div style="font-size:0.75rem;color:#64748B;margin-top:2px;">
+                  {{ result.test_type.test_name }}: <strong style="color:{% if result.abnormal_flag != 'NORMAL' %}#EF4444{% else %}#0F172A{% endif %};">{{ result.result_value }} {{ result.test_type.unit or '' }}</strong>
+                </div>
+                {% endfor %}
+              {% else %}
+                <span class="text-muted" style="font-size:0.82rem;">Pending</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="doc-empty">
+      <i class="bi bi-flask doc-empty-icon"></i>
+      <div class="doc-empty-title">No lab requests found</div>
+      <div class="doc-empty-text">Lab requests for your patients will appear here.</div>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

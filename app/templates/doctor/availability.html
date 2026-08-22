@@ -1,0 +1,78 @@
+{% extends "doctor/base_doctor.html" %}
+{% block title %}Availability — Doctor Portal | MediCore+{% endblock %}
+{% block page_title %}Manage Availability{% endblock %}
+{% block page_subtitle %}Set your working hours and appointment slots{% endblock %}
+
+{% block content %}
+
+<div class="doc-card" style="max-width:700px;">
+  <div class="doc-card-header">
+    <div class="doc-card-title"><i class="bi bi-clock-history text-primary"></i> Weekly Availability Schedule</div>
+  </div>
+  <div style="padding:24px 28px;">
+    <p style="font-size:0.85rem;color:#64748B;margin-bottom:20px;">
+      Configure your available working days and hours. Only active days will show appointment slots to patients.
+      Changes take effect immediately.
+    </p>
+    <form method="POST" action="{{ url_for('doctor_portal.availability') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      {% for idx, day_name in enumerate(day_names) %}
+      {% set avail = avail_map.get(idx) %}
+      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:16px 18px;margin-bottom:10px;">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <div class="form-check" style="min-width:130px;">
+            <input type="checkbox" class="form-check-input" id="day_{{ idx }}" name="day_{{ idx }}" value="1"
+              {% if avail %}checked{% endif %}
+              onchange="toggleDay({{ idx }}, this.checked)">
+            <label class="form-check-label fw-bold" for="day_{{ idx }}" style="font-size:0.9rem;color:#0F172A;">{{ day_name }}</label>
+          </div>
+          <div id="day_settings_{{ idx }}" style="display:{% if avail %}flex{% else %}none{% endif %};align-items:center;gap:10px;flex-wrap:wrap;flex:1;">
+            <div>
+              <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#94A3B8;display:block;margin-bottom:2px;">Start Time</label>
+              <input type="time" name="start_{{ idx }}" class="form-control" style="border-radius:8px;border:1px solid #E2E8F0;font-size:0.87rem;width:120px;"
+                value="{{ avail.start_time.strftime('%H:%M') if avail else '09:00' }}">
+            </div>
+            <div>
+              <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#94A3B8;display:block;margin-bottom:2px;">End Time</label>
+              <input type="time" name="end_{{ idx }}" class="form-control" style="border-radius:8px;border:1px solid #E2E8F0;font-size:0.87rem;width:120px;"
+                value="{{ avail.end_time.strftime('%H:%M') if avail else '13:00' }}">
+            </div>
+            <div>
+              <label style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#94A3B8;display:block;margin-bottom:2px;">Slot Duration</label>
+              <select name="slot_{{ idx }}" class="form-select" style="border-radius:8px;border:1px solid #E2E8F0;font-size:0.87rem;width:100px;">
+                <option value="10" {% if avail and avail.slot_duration_minutes == 10 %}selected{% endif %}>10 min</option>
+                <option value="15" {% if not avail or avail.slot_duration_minutes == 15 %}selected{% endif %}>15 min</option>
+                <option value="20" {% if avail and avail.slot_duration_minutes == 20 %}selected{% endif %}>20 min</option>
+                <option value="30" {% if avail and avail.slot_duration_minutes == 30 %}selected{% endif %}>30 min</option>
+              </select>
+            </div>
+          </div>
+          {% if not avail %}
+          <span style="font-size:0.8rem;color:#94A3B8;font-style:italic;" id="day_off_{{ idx }}">Day Off</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+
+      <div class="d-flex gap-3 justify-content-end mt-4">
+        <button type="submit" class="btn-doc-primary" style="padding:10px 28px;">
+          <i class="bi bi-check2-circle"></i> Save Availability
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function toggleDay(idx, checked) {
+  const settings = document.getElementById(`day_settings_${idx}`);
+  const off = document.getElementById(`day_off_${idx}`);
+  settings.style.display = checked ? 'flex' : 'none';
+  if (off) off.style.display = checked ? 'none' : 'inline';
+}
+</script>
+{% endblock %}

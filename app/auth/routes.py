@@ -287,7 +287,7 @@ def dashboard():
     elif role_name == 'Receptionist':
         return redirect(url_for('reception.dashboard'))
     elif role_name == 'Doctor':
-        return render_template('auth/dashboards/doctor.html')
+        return redirect(url_for('doctor_portal.dashboard'))
     elif role_name == 'Lab Technician':
         return render_template('auth/dashboards/lab_tech.html')
     elif role_name == 'Patient':

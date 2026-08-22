@@ -1,0 +1,98 @@
+{% extends "doctor/base_doctor.html" %}
+{% block title %}{{ rx.prescription_code }} — Prescription | Doctor Portal{% endblock %}
+{% block page_title %}Prescription{% endblock %}
+{% block page_subtitle %}{{ rx.prescription_code }} &mdash; {{ rx.created_at.strftime('%d %B %Y') }}{% endblock %}
+
+{% block content %}
+
+<div class="d-flex gap-2 mb-4">
+  <a href="{{ url_for('doctor_portal.prescriptions') }}" class="btn-doc-secondary"><i class="bi bi-arrow-left"></i> Back</a>
+  <button onclick="window.print()" class="btn-doc-primary"><i class="bi bi-printer"></i> Print</button>
+</div>
+
+<!-- Prescription Document -->
+<div class="doc-card" id="rxDocument" style="max-width:780px;margin:0 auto;">
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#1E40AF 0%,#0D9488 100%);padding:24px 32px;color:#fff;border-radius:14px 14px 0 0;">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div>
+        <div style="font-size:1.3rem;font-weight:800;letter-spacing:-0.5px;">MediCore+ Healthcare</div>
+        <div style="font-size:0.82rem;opacity:0.85;margin-top:2px;">Digital Prescription — Confidential Medical Record</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:1rem;font-weight:700;">{{ rx.prescription_code }}</div>
+        <div style="font-size:0.8rem;opacity:0.85;">{{ rx.created_at.strftime('%d %B %Y, %I:%M %p') }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Doctor & Patient Info -->
+  <div style="padding:20px 32px;border-bottom:1px solid #E2E8F0;background:#F8FAFC;">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#94A3B8;margin-bottom:4px;">Prescribing Doctor</div>
+        <div style="font-size:0.95rem;font-weight:700;color:#0F172A;">{{ rx.doctor.name }}</div>
+        {% if doctor %}<div style="font-size:0.82rem;color:#64748B;">{{ doctor.specialization }} &bull; {{ doctor.department }}</div>
+        <div style="font-size:0.8rem;color:#64748B;">{{ doctor.education }}</div>{% endif %}
+      </div>
+      <div class="col-md-6">
+        <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#94A3B8;margin-bottom:4px;">Patient</div>
+        <div style="font-size:0.95rem;font-weight:700;color:#0F172A;">{{ rx.patient.full_name }}</div>
+        <div style="font-size:0.82rem;color:#64748B;">{{ rx.patient.patient_code }}{% if rx.patient.dob %} &bull; {{ ((now().date() - rx.patient.dob).days // 365) }}y{% endif %} &bull; {{ rx.patient.gender }}</div>
+        {% if rx.patient.blood_group %}<span style="background:#FEF2F2;color:#991B1B;border-radius:4px;padding:1px 7px;font-size:0.78rem;font-weight:700;">{{ rx.patient.blood_group }}</span>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Medications -->
+  <div style="padding:24px 32px;">
+    <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#94A3B8;letter-spacing:0.5px;margin-bottom:14px;">
+      <i class="bi bi-capsule me-1"></i> Prescribed Medications
+    </div>
+    {% for item in rx.items %}
+    <div style="border:1px solid #E2E8F0;border-radius:11px;padding:14px 18px;margin-bottom:10px;background:#FAFAFA;">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+          <div style="font-size:1rem;font-weight:700;color:#0F172A;">{{ loop.index }}. {{ item.medicine_name }}</div>
+          <div style="font-size:0.82rem;color:#64748B;margin-top:2px;">{{ item.food_relation }}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:0.88rem;font-weight:700;color:#1E40AF;">{{ item.frequency }}</div>
+          <div style="font-size:0.8rem;color:#64748B;">for {{ item.duration }}</div>
+        </div>
+      </div>
+      {% if item.instructions %}
+      <div style="font-size:0.82rem;color:#475569;margin-top:8px;padding-top:8px;border-top:1px solid #F1F5F9;">
+        <i class="bi bi-info-circle me-1"></i>{{ item.instructions }}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    {% if rx.general_advice %}
+    <div style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:11px;padding:14px 18px;margin-top:16px;">
+      <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#065F46;margin-bottom:6px;"><i class="bi bi-info-circle me-1"></i>General Advice</div>
+      <div style="font-size:0.87rem;color:#0F172A;">{{ rx.general_advice }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Footer -->
+  <div style="padding:16px 32px;border-top:1px solid #E2E8F0;background:#F8FAFC;border-radius:0 0 14px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+    <div style="font-size:0.78rem;color:#94A3B8;">MediCore+ &bull; Digital Health Records &bull; Confidential</div>
+    <div style="font-size:0.78rem;color:#94A3B8;">{{ rx.prescription_code }}</div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  @media print {
+    .doc-sidebar, .doc-header, .doc-sidebar-footer, footer, .d-flex.gap-2.mb-4 { display: none !important; }
+    .doc-main { margin-left: 0 !important; }
+    .doc-content { padding: 0 !important; }
+    #rxDocument { max-width: 100% !important; box-shadow: none !important; border: none !important; }
+  }
+</style>
+{% endblock %}

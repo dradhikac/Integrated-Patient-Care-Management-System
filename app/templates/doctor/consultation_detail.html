@@ -1,0 +1,115 @@
+{% extends "doctor/base_doctor.html" %}
+{% block title %}{{ consultation.consultation_code }} — Consultation | Doctor Portal{% endblock %}
+{% block page_title %}Consultation Detail{% endblock %}
+{% block page_subtitle %}{{ consultation.consultation_code }} &mdash; {{ consultation.created_at.strftime('%d %B %Y') }}{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+  <!-- Main Consultation Card -->
+  <div class="col-lg-8">
+    <div class="doc-card mb-4">
+      <div class="doc-card-header">
+        <div class="doc-card-title"><i class="bi bi-clipboard2-pulse text-primary"></i> Clinical Notes</div>
+        <span style="font-family:monospace;font-size:0.82rem;color:#64748B;">{{ consultation.consultation_code }}</span>
+      </div>
+      <div style="padding:20px 24px;">
+        <div class="mb-4">
+          <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94A3B8;margin-bottom:6px;">Chief Complaint / Symptoms</div>
+          <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px 16px;font-size:0.88rem;color:#0F172A;white-space:pre-wrap;">{{ consultation.symptoms }}</div>
+        </div>
+        <div class="mb-4">
+          <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94A3B8;margin-bottom:6px;">Diagnosis</div>
+          <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:14px 16px;font-size:0.88rem;color:#0F172A;font-weight:600;white-space:pre-wrap;">{{ consultation.diagnosis }}</div>
+        </div>
+        {% if consultation.treatment_plan %}
+        <div class="mb-4">
+          <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94A3B8;margin-bottom:6px;">Treatment Plan</div>
+          <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:14px 16px;font-size:0.88rem;color:#0F172A;white-space:pre-wrap;">{{ consultation.treatment_plan }}</div>
+        </div>
+        {% endif %}
+        {% if consultation.notes %}
+        <div>
+          <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94A3B8;margin-bottom:6px;">Clinical Notes</div>
+          <div style="background:#FAFAFA;border:1px solid #E2E8F0;border-radius:10px;padding:14px 16px;font-size:0.87rem;color:#475569;white-space:pre-wrap;">{{ consultation.notes }}</div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Vitals -->
+    {% if consultation.vital %}
+    <div class="doc-card mb-4">
+      <div class="doc-card-header"><div class="doc-card-title"><i class="bi bi-heart-pulse-fill text-danger"></i> Vital Signs</div></div>
+      <div style="padding:16px 24px;">
+        <div class="row g-3">
+          {% macro vital_chip(label, val, unit, icon, color) %}
+          <div class="col-6 col-sm-4">
+            <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px 14px;text-align:center;">
+              <div style="font-size:1.1rem; color:{{ color }};"><i class="bi bi-{{ icon }}"></i></div>
+              <div style="font-size:1rem;font-weight:800;color:#0F172A;margin-top:2px;">{{ val or '—' }}{% if val %}<span style="font-size:0.7rem;font-weight:500;color:#64748B;"> {{ unit }}</span>{% endif %}</div>
+              <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:#94A3B8;letter-spacing:0.3px;">{{ label }}</div>
+            </div>
+          </div>
+          {% endmacro %}
+          {{ vital_chip('Blood Pressure', consultation.vital.get_bp_string() if consultation.vital.bp_systolic else None, '', 'activity', '#EF4444') }}
+          {{ vital_chip('Temperature', consultation.vital.temperature_f, '°F', 'thermometer-half', '#F59E0B') }}
+          {{ vital_chip('Pulse', consultation.vital.pulse_bpm, 'bpm', 'heart-fill', '#EF4444') }}
+          {{ vital_chip('SpO₂', consultation.vital.spo2_percent, '%', 'lungs', '#0D9488') }}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Right Side -->
+  <div class="col-lg-4">
+    <!-- Patient Info -->
+    <div class="doc-card mb-4">
+      <div class="doc-card-header"><div class="doc-card-title"><i class="bi bi-person-fill text-primary"></i> Patient</div></div>
+      <div style="padding:16px 20px;">
+        <div class="fw-bold" style="font-size:0.95rem;color:#0F172A;">{{ consultation.patient.full_name }}</div>
+        <div class="text-muted" style="font-size:0.8rem;margin-top:2px;">{{ consultation.patient.patient_code }}</div>
+        <a href="{{ url_for('doctor_portal.patient_detail', patient_id=consultation.patient_id) }}" class="btn-doc-secondary mt-3" style="width:100%;justify-content:center;">
+          <i class="bi bi-folder2-open"></i> View Full Record
+        </a>
+      </div>
+    </div>
+
+    <!-- Prescription -->
+    <div class="doc-card mb-4">
+      <div class="doc-card-header"><div class="doc-card-title"><i class="bi bi-capsule text-teal" style="color:#0D9488;"></i> Prescription</div></div>
+      <div style="padding:16px 20px;">
+        {% if prescription %}
+          <div class="status-badge badge-checked-in mb-3"><i class="bi bi-check-circle"></i> Issued — {{ prescription.prescription_code }}</div>
+          <div class="text-muted" style="font-size:0.8rem;">{{ prescription.items|length }} medication(s)</div>
+          <a href="{{ url_for('doctor_portal.prescription_detail', prescription_id=prescription.id) }}" class="btn-doc-primary mt-3" style="width:100%;justify-content:center;">
+            <i class="bi bi-eye"></i> View Prescription
+          </a>
+        {% else %}
+          <div class="text-muted" style="font-size:0.84rem;margin-bottom:14px;">No prescription issued for this consultation.</div>
+          <a href="{{ url_for('doctor_portal.create_prescription', consultation_id=consultation.id) }}" class="btn-doc-teal" style="width:100%;justify-content:center;">
+            <i class="bi bi-plus-lg"></i> Issue Prescription
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Lab Reports -->
+    {% if lab_requests %}
+    <div class="doc-card">
+      <div class="doc-card-header"><div class="doc-card-title"><i class="bi bi-flask text-info"></i> Lab Requests</div></div>
+      <div style="padding:8px 0;">
+        {% for lr in lab_requests %}
+        <div style="padding:10px 20px;border-bottom:1px solid #F1F5F9;">
+          <div style="font-size:0.84rem;font-weight:600;color:#0F172A;">{{ lr.request_code }}</div>
+          <div style="font-size:0.75rem;color:#64748B;">{{ lr.status.replace('_',' ').title() }} &bull; {{ lr.results|length }} test(s)</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "doctor/base_doctor.html" %}
+{% block title %}My Patients — Doctor Portal | MediCore+{% endblock %}
+{% block page_title %}My Patients{% endblock %}
+{% block page_subtitle %}Patients who have had appointments with you{% endblock %}
+
+{% block content %}
+
+<!-- Search -->
+<form method="GET" class="mb-4 d-flex gap-2 align-items-center" style="max-width:480px;">
+  <div class="position-relative flex-grow-1">
+    <i class="bi bi-search position-absolute" style="left:12px;top:50%;transform:translateY(-50%);color:#94A3B8;"></i>
+    <input type="text" name="q" value="{{ search }}" class="form-control" style="padding-left:36px;border-radius:10px;border:1px solid #E2E8F0;font-size:0.88rem;" placeholder="Search by name, ID, or mobile...">
+  </div>
+  <button type="submit" class="btn-doc-primary">Search</button>
+  {% if search %}<a href="{{ url_for('doctor_portal.patients') }}" class="btn-doc-secondary">Clear</a>{% endif %}
+</form>
+
+<div class="doc-card">
+  <div class="doc-card-header">
+    <div class="doc-card-title"><i class="bi bi-person-lines-fill text-primary"></i> Patients ({{ patients|length }})</div>
+  </div>
+  {% if patients %}
+    <div class="table-responsive">
+      <table class="doc-table">
+        <thead>
+          <tr>
+            <th>PATIENT</th>
+            <th>PATIENT ID</th>
+            <th>AGE / GENDER</th>
+            <th>CONTACT</th>
+            <th>BLOOD GROUP</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in patients %}
+          {% set age = ((now().date() - p.dob).days // 365) if p.dob else 'N/A' %}
+          <tr>
+            <td>
+              <div class="fw-semibold" style="font-size:0.87rem;">{{ p.full_name }}</div>
+            </td>
+            <td><span style="font-family:monospace;font-size:0.82rem;color:#64748B;">{{ p.patient_code }}</span></td>
+            <td>
+              <span style="font-size:0.84rem;">{{ age }}y / {{ p.gender }}</span>
+            </td>
+            <td>
+              <div style="font-size:0.82rem;">{{ p.mobile }}</div>
+              {% if p.email %}<div class="text-muted" style="font-size:0.73rem;">{{ p.email }}</div>{% endif %}
+            </td>
+            <td>
+              {% if p.blood_group %}
+                <span style="background:#FEF2F2;color:#991B1B;border-radius:6px;padding:2px 8px;font-size:0.8rem;font-weight:700;">{{ p.blood_group }}</span>
+              {% else %}
+                <span class="text-muted" style="font-size:0.8rem;">—</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('doctor_portal.patient_detail', patient_id=p.id) }}" class="btn-doc-primary" style="padding:5px 12px; font-size:0.8rem;">
+                <i class="bi bi-folder2-open"></i> View Record
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="doc-empty">
+      <i class="bi bi-person-x doc-empty-icon"></i>
+      <div class="doc-empty-title">No patients found</div>
+      <div class="doc-empty-text">{% if search %}No results for "{{ search }}".{% else %}Patients you treat will appear here.{% endif %}</div>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "doctor/base_doctor.html" %}
+{% block title %}Patient Queue — Doctor Portal | MediCore+{% endblock %}
+{% block page_title %}Patient Queue{% endblock %}
+{% block page_subtitle %}Live waiting queue — {{ today.strftime('%A, %d %B %Y') }}{% endblock %}
+
+{% block content %}
+
+{% if queue %}
+<div class="doc-card">
+  <div class="doc-card-header">
+    <div class="doc-card-title">
+      <i class="bi bi-people-fill text-warning"></i> 
+      Waiting &amp; In-Consultation
+      <span style="background:#FFFBEB;color:#B45309;border:1px solid #FDE68A;border-radius:20px;padding:2px 10px;font-size:0.75rem;font-weight:700;">{{ queue|length }} patient{{ 's' if queue|length != 1 }}</span>
+    </div>
+    <button onclick="window.location.reload()" class="btn-doc-secondary"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+  </div>
+  <div class="table-responsive">
+    <table class="doc-table">
+      <thead>
+        <tr>
+          <th>TOKEN</th>
+          <th>PATIENT</th>
+          <th>APT TIME</th>
+          <th>WAITING</th>
+          <th>PRIORITY</th>
+          <th>STATUS</th>
+          <th>ACTION</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ci in queue %}
+        {% set wait_h = ci._wait_minutes // 60 %}
+        {% set wait_m = ci._wait_minutes % 60 %}
+        <tr>
+          <td>
+            <div style="width:38px;height:38px;border-radius:50%;background:#EFF6FF;color:#1E40AF;display:flex;align-items:center;justify-content:center;font-size:0.82rem;font-weight:800;">
+              {{ ci.token_no.replace('TK-','') }}
+            </div>
+          </td>
+          <td>
+            <div class="fw-semibold" style="font-size:0.88rem;">{{ ci.patient.full_name }}</div>
+            <div class="text-muted" style="font-size:0.73rem;">{{ ci.patient.patient_code }}</div>
+          </td>
+          <td>
+            <span style="font-size:0.85rem;">{{ ci.check_in_time.strftime('%I:%M %p') }}</span>
+          </td>
+          <td>
+            <span style="font-size:0.85rem; font-weight:600;
+              {% if ci._wait_minutes > 30 %}color:#EF4444{% elif ci._wait_minutes > 15 %}color:#F59E0B{% else %}color:#10B981{% endif %};">
+              {% if wait_h > 0 %}{{ wait_h }}h {% endif %}{{ wait_m }}m
+            </span>
+          </td>
+          <td>
+            {% set p_colors = {'Emergency': ('#FEF2F2','#991B1B'), 'Senior Citizen': ('#F5F3FF','#6D28D9'), 'Pregnant Woman': ('#FDF4FF','#86198F'), 'Child': ('#F0FDF4','#15803D'), 'Regular': ('#F8FAFC','#64748B')} %}
+            {% set pc = p_colors.get(ci.priority, ('#F8FAFC','#64748B')) %}
+            <span style="background:{{ pc[0] }};color:{{ pc[1] }};border-radius:6px;padding:2px 8px;font-size:0.75rem;font-weight:600;">{{ ci.priority }}</span>
+          </td>
+          <td>
+            {% if ci.status == 'WAITING' %}
+              <span class="status-badge badge-waiting"><i class="bi bi-hourglass-split"></i> Waiting</span>
+            {% else %}
+              <span class="status-badge badge-in-consult"><i class="bi bi-clipboard2-pulse"></i> In Consultation</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{{ url_for('doctor_portal.create_consultation', patient_id=ci.patient_id) }}" class="btn-doc-primary" style="padding:5px 12px; font-size:0.8rem;">
+                <i class="bi bi-play-fill"></i> Start
+              </a>
+              <a href="{{ url_for('doctor_portal.patient_detail', patient_id=ci.patient_id) }}" class="btn-doc-secondary" style="padding:5px 10px; font-size:0.8rem;">
+                <i class="bi bi-person"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="doc-card">
+  <div class="doc-empty">
+    <i class="bi bi-people doc-empty-icon"></i>
+    <div class="doc-empty-title">No patients in queue</div>
+    <div class="doc-empty-text">Patients will appear here once they are checked in by the receptionist.</div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  // Auto-refresh queue every 30 seconds
+  setTimeout(() => window.location.reload(), 30000);
+</script>
+{% endblock %}

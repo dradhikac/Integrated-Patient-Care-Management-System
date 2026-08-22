@@ -1,0 +1,211 @@
+{% extends "doctor/base_doctor.html" %}
+{% block title %}{{ patient.full_name }} — Patient Record | Doctor Portal{% endblock %}
+{% block page_title %}Patient Record{% endblock %}
+{% block page_subtitle %}{{ patient.full_name }} &mdash; {{ patient.patient_code }}{% endblock %}
+
+{% block content %}
+
+<!-- Patient Header Card -->
+<div class="doc-card mb-4 p-0 overflow-hidden">
+  <div style="background:linear-gradient(135deg,#EFF6FF 0%,#F0FDF4 100%);padding:24px 28px;border-bottom:1px solid #E2E8F0;">
+    <div class="d-flex align-items-center gap-4 flex-wrap">
+      <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#1E40AF,#0D9488);display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#fff;font-weight:800;flex-shrink:0;">
+        {{ patient.full_name[0] }}
+      </div>
+      <div class="flex-grow-1">
+        <div style="font-size:1.3rem;font-weight:800;color:#0F172A;">{{ patient.full_name }}</div>
+        <div style="font-size:0.85rem;color:#64748B;margin-top:2px;">
+          {{ patient.patient_code }}
+          &bull; {% set age = ((now().date() - patient.dob).days // 365) if patient.dob else 'N/A' %}{{ age }} years old
+          &bull; {{ patient.gender }}
+          {% if patient.blood_group %}&bull; <span style="background:#FEF2F2;color:#991B1B;border-radius:4px;padding:1px 6px;font-size:0.78rem;font-weight:700;">{{ patient.blood_group }}</span>{% endif %}
+        </div>
+        <div style="font-size:0.82rem;color:#64748B;margin-top:4px;">
+          <i class="bi bi-telephone me-1"></i>{{ patient.mobile }}
+          {% if patient.email %}<span class="ms-3"><i class="bi bi-envelope me-1"></i>{{ patient.email }}</span>{% endif %}
+        </div>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="{{ url_for('doctor_portal.create_consultation', patient_id=patient.id) }}" class="btn-doc-primary">
+          <i class="bi bi-clipboard2-plus"></i> New Consultation
+        </a>
+        <a href="{{ url_for('doctor_portal.create_prescription', patient_id=patient.id) }}" class="btn-doc-teal">
+          <i class="bi bi-capsule"></i> New Prescription
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left: Patient Info -->
+  <div class="col-lg-4">
+
+    <!-- Basic Info -->
+    <div class="doc-card mb-4">
+      <div class="doc-card-header"><div class="doc-card-title"><i class="bi bi-person-fill text-primary"></i> Patient Info</div></div>
+      <div style="padding:16px 20px;">
+        {% macro info_row(label, value) %}
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid #F8FAFC;">
+          <span style="font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;color:#94A3B8;">{{ label }}</span>
+          <span style="font-size:0.84rem;font-weight:600;color:#0F172A;text-align:right;max-width:60%;">{{ value or '—' }}</span>
+        </div>
+        {% endmacro %}
+        {{ info_row('Date of Birth', patient.dob.strftime('%d %b %Y') if patient.dob else '—') }}
+        {{ info_row('Gender', patient.gender) }}
+        {{ info_row('Blood Group', patient.blood_group) }}
+        {{ info_row('Language', patient.preferred_language) }}
+        {{ info_row('BMI', ('%.1f (%s)'|format(patient.bmi, patient.get_bmi_category())) if patient.bmi else '—') }}
+        {{ info_row('Height', ('%.0f cm'|format(patient.height_cm)) if patient.height_cm else '—') }}
+        {{ info_row('Weight', ('%.1f kg'|format(patient.weight_kg)) if patient.weight_kg else '—') }}
+      </div>
+    </div>
+
+    <!-- Allergies -->
+    <div class="doc-card mb-4">
+      <div class="doc-card-header"><div class="doc-card-title"><i class="bi bi-exclamation-triangle-fill text-danger"></i> Allergies</div></div>
+      <div style="padding:12px 20px;">
+        {% if patient.allergies %}
+          {% for a in patient.allergies %}
+          {% set sev_color = {'Severe':'#FEF2F2,#991B1B,#FECACA','Moderate':'#FFFBEB,#92400E,#FDE68A','Mild':'#F0FDF4,#15803D,#BBF7D0'} %}
+          {% set sc = (sev_color.get(a.severity,'#F8FAFC,#475569,#E2E8F0')).split(',') %}
+          <div style="background:{{ sc[0] }};border:1px solid {{ sc[2] }};border-radius:8px;padding:8px 12px;margin-bottom:6px;">
+            <div style="font-size:0.85rem;font-weight:700;color:{{ sc[1] }};">{{ a.allergen }}</div>
+            <div style="font-size:0.75rem;color:#64748B;">{{ a.severity }}{% if a.reaction %} — {{ a.reaction }}{% endif %}</div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-muted" style="font-size:0.84rem;padding:8px 0;">No known allergies recorded.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Medical History -->
+    <div class="doc-card">
+      <div class="doc-card-header"><div class="doc-card-title"><i class="bi bi-file-medical-fill text-info"></i> Medical History</div></div>
+      <div style="padding:12px 20px;">
+        {% if patient.medical_histories %}
+          {% for h in patient.medical_histories %}
+          <div style="padding:8px 0;border-bottom:1px solid #F1F5F9;">
+            <div style="font-size:0.82rem;font-weight:700;color:#0F172A;">{{ h.description }}</div>
+            <div style="font-size:0.73rem;color:#64748B;">{{ h.condition_type }}{% if h.diagnosed_year %} &bull; {{ h.diagnosed_year }}{% endif %}</div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-muted" style="font-size:0.84rem;padding:8px 0;">No medical history recorded.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Clinical Records -->
+  <div class="col-lg-8">
+
+    <!-- Consultations -->
+    <div class="doc-card mb-4">
+      <div class="doc-card-header">
+        <div class="doc-card-title"><i class="bi bi-clipboard2-pulse text-primary"></i> Consultations</div>
+        <a href="{{ url_for('doctor_portal.create_consultation', patient_id=patient.id) }}" class="btn-doc-primary" style="padding:5px 12px;font-size:0.78rem;">+ New</a>
+      </div>
+      {% if consultations %}
+        <div style="padding:8px 0;">
+          {% for c in consultations %}
+          <div style="padding:12px 20px;border-bottom:1px solid #F1F5F9;">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div style="font-size:0.85rem;font-weight:700;color:#0F172A;">{{ c.consultation_code }}</div>
+                <div style="font-size:0.8rem;color:#64748B;margin-top:2px;">{{ c.created_at.strftime('%d %b %Y, %I:%M %p') }}</div>
+                <div style="font-size:0.83rem;color:#334155;margin-top:4px;"><strong>Dx:</strong> {{ c.diagnosis[:100] }}{% if c.diagnosis|length > 100 %}...{% endif %}</div>
+              </div>
+              <a href="{{ url_for('doctor_portal.consultation_detail', consultation_id=c.id) }}" class="btn-doc-secondary" style="padding:4px 10px;font-size:0.78rem;flex-shrink:0;">View</a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="doc-empty" style="padding:28px 20px;"><div class="doc-empty-title">No consultations yet</div></div>
+      {% endif %}
+    </div>
+
+    <!-- Prescriptions -->
+    <div class="doc-card mb-4">
+      <div class="doc-card-header">
+        <div class="doc-card-title"><i class="bi bi-capsule text-teal" style="color:#0D9488;"></i> Prescriptions</div>
+        <a href="{{ url_for('doctor_portal.create_prescription', patient_id=patient.id) }}" class="btn-doc-teal" style="padding:5px 12px;font-size:0.78rem;">+ New</a>
+      </div>
+      {% if prescriptions %}
+        <div style="padding:8px 0;">
+          {% for rx in prescriptions %}
+          <div style="padding:12px 20px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:0.85rem;font-weight:700;color:#0F172A;">{{ rx.prescription_code }}</div>
+              <div style="font-size:0.78rem;color:#64748B;">{{ rx.created_at.strftime('%d %b %Y') }} &bull; {{ rx.items|length }} medication(s)</div>
+            </div>
+            <a href="{{ url_for('doctor_portal.prescription_detail', prescription_id=rx.id) }}" class="btn-doc-secondary" style="padding:4px 10px;font-size:0.78rem;">View</a>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="doc-empty" style="padding:28px 20px;"><div class="doc-empty-title">No prescriptions yet</div></div>
+      {% endif %}
+    </div>
+
+    <!-- Lab Reports -->
+    <div class="doc-card mb-4">
+      <div class="doc-card-header">
+        <div class="doc-card-title"><i class="bi bi-flask text-info"></i> Lab Requests</div>
+      </div>
+      {% if lab_requests %}
+        <div style="padding:8px 0;">
+          {% for lr in lab_requests %}
+          {% set st_cfg = {'REQUESTED':('badge-booked','Requested'),'SAMPLE_COLLECTED':('badge-waiting','Sample Collected'),'IN_TESTING':('badge-in-consult','In Testing'),'COMPLETED':('badge-checked-in','Completed')} %}
+          {% set sc = st_cfg.get(lr.status, ('badge-booked', lr.status)) %}
+          <div style="padding:12px 20px;border-bottom:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:0.85rem;font-weight:700;color:#0F172A;">{{ lr.request_code }}</div>
+              <div style="font-size:0.78rem;color:#64748B;">{{ lr.created_at.strftime('%d %b %Y') }} &bull; {{ lr.results|length }} test(s)</div>
+            </div>
+            <span class="status-badge {{ sc[0] }}">{{ sc[1] }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="doc-empty" style="padding:28px 20px;"><div class="doc-empty-title">No lab requests</div></div>
+      {% endif %}
+    </div>
+
+    <!-- Appointment History -->
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <div class="doc-card-title"><i class="bi bi-calendar-check text-success"></i> Appointment History</div>
+      </div>
+      {% if appointments %}
+        <div class="table-responsive">
+          <table class="doc-table">
+            <thead>
+              <tr><th>DATE</th><th>TIME</th><th>TYPE</th><th>STATUS</th></tr>
+            </thead>
+            <tbody>
+              {% for apt in appointments %}
+              <tr>
+                <td style="font-size:0.85rem;">{{ apt.appointment_date.strftime('%d %b %Y') }}</td>
+                <td style="font-size:0.85rem;">{{ apt.slot_time.strftime('%I:%M %p') }}</td>
+                <td style="font-size:0.83rem;">{{ apt.booking_type }}</td>
+                <td>
+                  {% set sc2 = {'BOOKED':'badge-booked','CHECKED_IN':'badge-checked-in','COMPLETED':'badge-completed','CANCELLED':'badge-cancelled','NO_SHOW':'badge-no-show'} %}
+                  <span class="status-badge {{ sc2.get(apt.status,'badge-booked') }}">{{ apt.status.replace('_',' ').title() }}</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="doc-empty" style="padding:28px 20px;"><div class="doc-empty-title">No appointments found</div></div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

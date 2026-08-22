@@ -1,0 +1,186 @@
+{% extends "doctor/base_doctor.html" %}
+
+{% block title %}Dashboard — Doctor Portal | MediCore+{% endblock %}
+{% block page_title %}Good Morning, {{ current_user.name.split()[0] }}{% endblock %}
+{% block page_subtitle %}Here's your clinical overview for today — {{ today.strftime('%A, %d %B %Y') }}{% endblock %}
+
+{% block content %}
+
+{% macro apt_badge(status) %}
+  {% set cfg = {
+    'BOOKED': ('badge-booked', 'calendar-check', 'Booked'),
+    'CHECKED_IN': ('badge-checked-in', 'person-check', 'Checked In'),
+    'COMPLETED': ('badge-completed', 'check-circle', 'Completed'),
+    'CANCELLED': ('badge-cancelled', 'x-circle', 'Cancelled'),
+    'NO_SHOW': ('badge-no-show', 'person-x', 'No Show')
+  } %}
+  {% set c = cfg.get(status, ('badge-booked', 'circle', status)) %}
+  <span class="status-badge {{ c[0] }}"><i class="bi bi-{{ c[1] }}"></i> {{ c[2] }}</span>
+{% endmacro %}
+
+<!-- ── Stats Row ── -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3">
+    <div class="doc-stat-card d-flex align-items-center gap-3">
+      <div class="doc-stat-icon" style="background:#EFF6FF; color:#1E40AF;"><i class="bi bi-calendar-check-fill"></i></div>
+      <div>
+        <div class="doc-stat-label">Today's Appointments</div>
+        <div class="doc-stat-value">{{ total_today }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="doc-stat-card d-flex align-items-center gap-3">
+      <div class="doc-stat-icon" style="background:#FFFBEB; color:#B45309;"><i class="bi bi-hourglass-split"></i></div>
+      <div>
+        <div class="doc-stat-label">Patients Waiting</div>
+        <div class="doc-stat-value">{{ waiting }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="doc-stat-card d-flex align-items-center gap-3">
+      <div class="doc-stat-icon" style="background:#F0FDF4; color:#15803D;"><i class="bi bi-clipboard2-check-fill"></i></div>
+      <div>
+        <div class="doc-stat-label">Completed Today</div>
+        <div class="doc-stat-value">{{ completed_today }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="doc-stat-card d-flex align-items-center gap-3">
+      <div class="doc-stat-icon" style="background:#F0F9FF; color:#0369A1;"><i class="bi bi-flask-fill"></i></div>
+      <div>
+        <div class="doc-stat-label">Pending Lab Reports</div>
+        <div class="doc-stat-value">{{ pending_labs }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main Grid ── -->
+<div class="row g-4">
+
+  <!-- Today's Schedule -->
+  <div class="col-lg-8">
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <div class="doc-card-title"><i class="bi bi-calendar-day text-primary"></i> Today's Schedule</div>
+        <a href="{{ url_for('doctor_portal.today_appointments') }}" class="btn-doc-secondary" style="padding:5px 12px; font-size:0.78rem;">View All</a>
+      </div>
+      {% if today_apts %}
+        <div class="table-responsive">
+          <table class="doc-table">
+            <thead>
+              <tr>
+                <th>TIME</th>
+                <th>PATIENT</th>
+                <th>TYPE</th>
+                <th>STATUS</th>
+                <th>ACTION</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for apt in today_apts %}
+              <tr>
+                <td>
+                  <span class="fw-bold" style="font-size:0.88rem; color:#0F172A;">{{ apt.slot_time.strftime('%I:%M %p') }}</span>
+                </td>
+                <td>
+                  <div class="fw-semibold" style="font-size:0.87rem; color:#0F172A;">{{ apt.patient.full_name }}</div>
+                  <div class="text-muted" style="font-size:0.73rem;">{{ apt.patient.patient_code }}</div>
+                </td>
+                <td>
+                  <span class="text-muted" style="font-size:0.82rem;">{{ apt.booking_type }}</span>
+                </td>
+                <td>{{ apt_badge(apt.status) }}</td>
+                <td>
+                  {% if apt.status == 'CHECKED_IN' %}
+                    <a href="{{ url_for('doctor_portal.create_consultation', appointment_id=apt.id) }}" class="btn-doc-primary">
+                      <i class="bi bi-clipboard2-plus"></i> Consult
+                    </a>
+                  {% else %}
+                    <a href="{{ url_for('doctor_portal.patient_detail', patient_id=apt.patient_id) }}" class="btn-doc-secondary">
+                      <i class="bi bi-person"></i> View
+                    </a>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="doc-empty">
+          <i class="bi bi-calendar-x doc-empty-icon"></i>
+          <div class="doc-empty-title">No appointments scheduled for today</div>
+          <div class="doc-empty-text">Your appointment schedule will appear here.</div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right Column -->
+  <div class="col-lg-4">
+
+    <!-- Patient Queue -->
+    <div class="doc-card mb-4">
+      <div class="doc-card-header">
+        <div class="doc-card-title"><i class="bi bi-people-fill text-warning"></i> Waiting Queue</div>
+        <a href="{{ url_for('doctor_portal.patient_queue') }}" class="btn-doc-secondary" style="padding:5px 12px; font-size:0.78rem;">Full Queue</a>
+      </div>
+      {% if active_checkins %}
+        <div style="padding: 8px 0;">
+          {% for ci in active_checkins %}
+          <div style="padding: 10px 18px; border-bottom: 1px solid #F1F5F9; display:flex; align-items:center; gap:12px;">
+            <div style="width:32px;height:32px;border-radius:50%;background:#EFF6FF;color:#1E40AF;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;flex-shrink:0;">
+              {{ ci.token_no.replace('TK-','') }}
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div class="fw-semibold text-truncate" style="font-size:0.84rem;">{{ ci.patient.full_name }}</div>
+              <div class="text-muted" style="font-size:0.72rem;">{{ ci.priority }} &bull; {{ ci.status.replace('_',' ').title() }}</div>
+            </div>
+            <a href="{{ url_for('doctor_portal.create_consultation', patient_id=ci.patient_id) }}" class="btn-doc-teal" style="padding:4px 10px; font-size:0.75rem;">
+              <i class="bi bi-play-fill"></i>
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="doc-empty" style="padding:30px 20px;">
+          <i class="bi bi-people doc-empty-icon" style="font-size:1.8rem;"></i>
+          <div class="doc-empty-title" style="font-size:0.9rem;">Queue is empty</div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Upcoming Appointments -->
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <div class="doc-card-title"><i class="bi bi-calendar-range text-teal" style="color:#0D9488;"></i> Upcoming</div>
+      </div>
+      {% if upcoming %}
+        <div style="padding: 8px 0;">
+          {% for apt in upcoming %}
+          <div style="padding: 10px 18px; border-bottom: 1px solid #F1F5F9;">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="fw-semibold" style="font-size:0.84rem;">{{ apt.patient.full_name }}</div>
+                <div class="text-muted" style="font-size:0.72rem;">{{ apt.appointment_date.strftime('%a, %d %b') }} &bull; {{ apt.slot_time.strftime('%I:%M %p') }}</div>
+              </div>
+              {{ apt_badge(apt.status) }}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="doc-empty" style="padding:30px 20px;">
+          <div class="doc-empty-title" style="font-size:0.9rem;">No upcoming appointments</div>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

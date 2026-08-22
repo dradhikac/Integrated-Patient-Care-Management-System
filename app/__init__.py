@@ -33,6 +33,7 @@ def create_app(config_class=Config):
     from app.admin.routes import admin_bp
     from app.doctors.routes import doctors_bp
     from app.portal import portal_bp
+    from app.doctor_portal import doctor_portal_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(patients_bp)
@@ -51,8 +52,15 @@ def create_app(config_class=Config):
     app.register_blueprint(admin_bp)
     app.register_blueprint(doctors_bp)
     app.register_blueprint(portal_bp)
+    app.register_blueprint(doctor_portal_bp)
 
     csrf.exempt(doctors_bp)
+
+    # Jinja2 globals
+    from datetime import datetime as _dt
+    app.jinja_env.globals['now'] = _dt.now
+    app.jinja_env.globals['enumerate'] = enumerate
+
 
     def _run_seed():
         from app.auth.models import Role, User

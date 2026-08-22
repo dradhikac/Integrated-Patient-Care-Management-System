@@ -1,0 +1,144 @@
+{% extends "doctor/base_doctor.html" %}
+{% block title %}New Consultation — Doctor Portal | MediCore+{% endblock %}
+{% block page_title %}Record Consultation{% endblock %}
+{% block page_subtitle %}Document clinical notes and diagnosis{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+  <div class="col-lg-8">
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <div class="doc-card-title"><i class="bi bi-clipboard2-plus text-primary"></i> New Consultation</div>
+      </div>
+      <div style="padding:24px 28px;">
+        <form method="POST" action="{{ url_for('doctor_portal.create_consultation') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          {% if appointment_id %}
+            <input type="hidden" name="appointment_id" value="{{ appointment_id }}">
+          {% endif %}
+
+          <!-- Patient Selection -->
+          <div class="mb-4">
+            <label class="form-label fw-bold" style="font-size:0.85rem;color:#0F172A;">Patient *</label>
+            {% if patient %}
+              <input type="hidden" name="patient_id" value="{{ patient.id }}">
+              <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:14px;">
+                <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1E40AF,#0D9488);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;font-weight:800;flex-shrink:0;">{{ patient.full_name[0] }}</div>
+                <div>
+                  <div style="font-size:0.95rem;font-weight:700;color:#0F172A;">{{ patient.full_name }}</div>
+                  <div style="font-size:0.8rem;color:#64748B;">{{ patient.patient_code }}{% if patient.dob %} &bull; {{ ((now().date() - patient.dob).days // 365) }}y{% endif %} &bull; {{ patient.gender }}</div>
+                </div>
+              </div>
+            {% else %}
+              <select name="patient_id" class="form-select" style="border-radius:10px;border:1px solid #E2E8F0;font-size:0.87rem;" required>
+                <option value="">-- Select a patient --</option>
+                {% for ci in todays_patients %}
+                  <option value="{{ ci.patient_id }}">{{ ci.patient.full_name }} ({{ ci.patient.patient_code }}) — Token {{ ci.token_no }}</option>
+                {% endfor %}
+              </select>
+            {% endif %}
+          </div>
+
+          <!-- Chief Complaint / Symptoms -->
+          <div class="mb-4">
+            <label class="form-label fw-bold" style="font-size:0.85rem;color:#0F172A;">Chief Complaint &amp; Symptoms *</label>
+            <textarea name="symptoms" rows="4" class="form-control" style="border-radius:10px;border:1px solid #E2E8F0;font-size:0.88rem;" placeholder="Describe the patient's main complaint and presenting symptoms..." required></textarea>
+          </div>
+
+          <!-- Diagnosis -->
+          <div class="mb-4">
+            <label class="form-label fw-bold" style="font-size:0.85rem;color:#0F172A;">Diagnosis *</label>
+            <textarea name="diagnosis" rows="3" class="form-control" style="border-radius:10px;border:1px solid #E2E8F0;font-size:0.88rem;" placeholder="Clinical diagnosis and ICD description..." required></textarea>
+          </div>
+
+          <!-- Treatment Plan -->
+          <div class="mb-4">
+            <label class="form-label fw-bold" style="font-size:0.85rem;color:#0F172A;">Treatment Plan</label>
+            <textarea name="treatment_plan" rows="3" class="form-control" style="border-radius:10px;border:1px solid #E2E8F0;font-size:0.88rem;" placeholder="Recommended treatment, procedures, and follow-up instructions..."></textarea>
+          </div>
+
+          <!-- Clinical Notes -->
+          <div class="mb-4">
+            <label class="form-label fw-bold" style="font-size:0.85rem;color:#0F172A;">Clinical Notes (Internal)</label>
+            <textarea name="notes" rows="2" class="form-control" style="border-radius:10px;border:1px solid #E2E8F0;font-size:0.88rem;" placeholder="Additional observations, referrals, or instructions..."></textarea>
+          </div>
+
+          <!-- Vitals -->
+          <div class="mb-4">
+            <div class="fw-bold mb-3" style="font-size:0.88rem;color:#0F172A;display:flex;align-items:center;gap:8px;">
+              <i class="bi bi-heart-pulse-fill text-danger"></i> Vital Signs (Optional)
+            </div>
+            <div class="row g-3">
+              <div class="col-sm-3">
+                <label class="form-label" style="font-size:0.78rem;font-weight:700;color:#64748B;text-transform:uppercase;">Systolic BP</label>
+                <div class="input-group">
+                  <input type="number" name="bp_systolic" class="form-control" style="border-radius:8px 0 0 8px;border:1px solid #E2E8F0;" placeholder="120" min="60" max="300">
+                  <span class="input-group-text" style="font-size:0.78rem;background:#F8FAFC;border:1px solid #E2E8F0;">mmHg</span>
+                </div>
+              </div>
+              <div class="col-sm-3">
+                <label class="form-label" style="font-size:0.78rem;font-weight:700;color:#64748B;text-transform:uppercase;">Diastolic BP</label>
+                <div class="input-group">
+                  <input type="number" name="bp_diastolic" class="form-control" style="border-radius:8px 0 0 8px;border:1px solid #E2E8F0;" placeholder="80" min="40" max="200">
+                  <span class="input-group-text" style="font-size:0.78rem;background:#F8FAFC;border:1px solid #E2E8F0;">mmHg</span>
+                </div>
+              </div>
+              <div class="col-sm-2">
+                <label class="form-label" style="font-size:0.78rem;font-weight:700;color:#64748B;text-transform:uppercase;">Temp</label>
+                <div class="input-group">
+                  <input type="number" name="temperature_f" class="form-control" style="border-radius:8px 0 0 8px;border:1px solid #E2E8F0;" placeholder="98.6" step="0.1">
+                  <span class="input-group-text" style="font-size:0.78rem;background:#F8FAFC;border:1px solid #E2E8F0;">°F</span>
+                </div>
+              </div>
+              <div class="col-sm-2">
+                <label class="form-label" style="font-size:0.78rem;font-weight:700;color:#64748B;text-transform:uppercase;">Pulse</label>
+                <div class="input-group">
+                  <input type="number" name="pulse_bpm" class="form-control" style="border-radius:8px 0 0 8px;border:1px solid #E2E8F0;" placeholder="72">
+                  <span class="input-group-text" style="font-size:0.78rem;background:#F8FAFC;border:1px solid #E2E8F0;">bpm</span>
+                </div>
+              </div>
+              <div class="col-sm-2">
+                <label class="form-label" style="font-size:0.78rem;font-weight:700;color:#64748B;text-transform:uppercase;">SpO₂</label>
+                <div class="input-group">
+                  <input type="number" name="spo2_percent" class="form-control" style="border-radius:8px 0 0 8px;border:1px solid #E2E8F0;" placeholder="98" min="70" max="100">
+                  <span class="input-group-text" style="font-size:0.78rem;background:#F8FAFC;border:1px solid #E2E8F0;">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex gap-3 justify-content-end pt-3" style="border-top:1px solid #F1F5F9;">
+            <a href="{{ url_for('doctor_portal.patient_queue') }}" class="btn-doc-secondary">Cancel</a>
+            <button type="submit" class="btn-doc-primary" style="padding:9px 24px;">
+              <i class="bi bi-check2-circle"></i> Save Consultation
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Quick Reference -->
+  {% if patient %}
+  <div class="col-lg-4">
+    <div class="doc-card">
+      <div class="doc-card-header"><div class="doc-card-title"><i class="bi bi-exclamation-triangle-fill text-danger"></i> Allergies</div></div>
+      <div style="padding:12px 20px;">
+        {% if patient.allergies %}
+          {% for a in patient.allergies %}
+          <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:8px;padding:7px 12px;margin-bottom:6px;">
+            <div style="font-size:0.84rem;font-weight:700;color:#991B1B;">{{ a.allergen }}</div>
+            <div style="font-size:0.73rem;color:#64748B;">{{ a.severity }}{% if a.reaction %} — {{ a.reaction }}{% endif %}</div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-muted" style="font-size:0.84rem;">No known allergies.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

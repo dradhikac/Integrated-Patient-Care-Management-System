@@ -1,0 +1,75 @@
+{% extends "doctor/base_doctor.html" %}
+{% block title %}Follow-ups — Doctor Portal | MediCore+{% endblock %}
+{% block page_title %}Follow-ups{% endblock %}
+{% block page_subtitle %}Patients with scheduled follow-up appointments{% endblock %}
+
+{% block content %}
+
+<div class="doc-card">
+  {% if followups %}
+    <div class="table-responsive">
+      <table class="doc-table">
+        <thead>
+          <tr>
+            <th>DATE &amp; TIME</th>
+            <th>PATIENT</th>
+            <th>PREVIOUS CONSULTATION</th>
+            <th>DIAGNOSIS (SUMMARY)</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for apt in followups %}
+          {% set sc = {'BOOKED': 'badge-booked', 'CHECKED_IN': 'badge-checked-in'} %}
+          <tr>
+            <td>
+              <div class="fw-bold" style="font-size:0.88rem;color:#0F172A;">{{ apt.appointment_date.strftime('%d %b %Y') }}</div>
+              <div class="text-muted" style="font-size:0.78rem;">{{ apt.slot_time.strftime('%I:%M %p') }}</div>
+            </td>
+            <td>
+              <div class="fw-semibold" style="font-size:0.87rem;">{{ apt.patient.full_name }}</div>
+              <div class="text-muted" style="font-size:0.73rem;">{{ apt.patient.patient_code }}</div>
+            </td>
+            <td>
+              {% if apt._last_consultation %}
+                <a href="{{ url_for('doctor_portal.consultation_detail', consultation_id=apt._last_consultation.id) }}" style="text-decoration:none;font-size:0.82rem;color:#1E40AF;font-weight:600;">
+                  {{ apt._last_consultation.consultation_code }}
+                </a>
+                <div class="text-muted" style="font-size:0.73rem;">{{ apt._last_consultation.created_at.strftime('%d %b %Y') }}</div>
+              {% else %}
+                <span class="text-muted" style="font-size:0.82rem;">—</span>
+              {% endif %}
+            </td>
+            <td style="max-width:200px;">
+              {% if apt._last_consultation %}
+                <span style="font-size:0.82rem;color:#334155;">{{ apt._last_consultation.diagnosis[:80] }}{% if apt._last_consultation.diagnosis|length > 80 %}…{% endif %}</span>
+              {% else %}
+                <span class="text-muted" style="font-size:0.82rem;">—</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="status-badge {{ sc.get(apt.status, 'badge-booked') }}">{{ apt.status.replace('_',' ').title() }}</span>
+            </td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{{ url_for('doctor_portal.patient_detail', patient_id=apt.patient_id) }}" class="btn-doc-primary" style="padding:5px 10px;font-size:0.78rem;">
+                  <i class="bi bi-person"></i> Patient
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="doc-empty">
+      <i class="bi bi-arrow-repeat doc-empty-icon"></i>
+      <div class="doc-empty-title">No follow-ups scheduled</div>
+      <div class="doc-empty-text">Follow-up appointments for your consulted patients will appear here.</div>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

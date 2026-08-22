@@ -1,0 +1,118 @@
+{% extends "doctor/base_doctor.html" %}
+{% block title %}New Prescription — Doctor Portal | MediCore+{% endblock %}
+{% block page_title %}Create Prescription{% endblock %}
+{% block page_subtitle %}Issue a digital prescription for your patient{% endblock %}
+
+{% block content %}
+
+<div class="doc-card">
+  <div class="doc-card-header">
+    <div class="doc-card-title"><i class="bi bi-capsule text-teal" style="color:#0D9488;"></i> New Prescription</div>
+  </div>
+  <div style="padding:24px 28px;">
+    <form method="POST" action="{{ url_for('doctor_portal.create_prescription') }}" id="rxForm">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {% if consultation_id %}
+        <input type="hidden" name="consultation_id" value="{{ consultation_id }}">
+      {% endif %}
+
+      <!-- Patient -->
+      <div class="mb-4">
+        <label class="form-label fw-bold" style="font-size:0.85rem;color:#0F172A;">Patient *</label>
+        {% if patient %}
+          <input type="hidden" name="patient_id" value="{{ patient.id }}">
+          <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:14px 18px;">
+            <div style="font-size:0.95rem;font-weight:700;color:#0F172A;">{{ patient.full_name }}</div>
+            <div style="font-size:0.8rem;color:#64748B;">{{ patient.patient_code }}{% if consultation %} &bull; Consultation: {{ consultation.consultation_code }}{% endif %}</div>
+          </div>
+        {% else %}
+          <input type="number" name="patient_id" class="form-control" style="border-radius:10px;border:1px solid #E2E8F0;" placeholder="Patient ID (search from My Patients)" required>
+        {% endif %}
+      </div>
+
+      <!-- Medicine Table -->
+      <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="fw-bold" style="font-size:0.88rem;color:#0F172A;"><i class="bi bi-capsule me-2"></i>Medications</div>
+          <button type="button" class="btn-doc-secondary" onclick="addMedRow()" style="padding:5px 12px;">
+            <i class="bi bi-plus"></i> Add Medication
+          </button>
+        </div>
+
+        <div id="medRows">
+          <!-- Row added by JS -->
+        </div>
+      </div>
+
+      <!-- General Advice -->
+      <div class="mb-4">
+        <label class="form-label fw-bold" style="font-size:0.85rem;color:#0F172A;">General Advice / Instructions</label>
+        <textarea name="general_advice" rows="2" class="form-control" style="border-radius:10px;border:1px solid #E2E8F0;font-size:0.88rem;" placeholder="Dietary advice, rest, follow-up, lifestyle modifications..."></textarea>
+      </div>
+
+      <div class="d-flex gap-3 justify-content-end pt-3" style="border-top:1px solid #F1F5F9;">
+        <a href="{{ url_for('doctor_portal.prescriptions') }}" class="btn-doc-secondary">Cancel</a>
+        <button type="submit" class="btn-doc-teal" style="padding:9px 24px;">
+          <i class="bi bi-check2-circle"></i> Issue Prescription
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const knownMeds = {{ medicines | map(attribute='brand_name') | list | tojson }};
+
+function addMedRow(defaultName='') {
+  const container = document.getElementById('medRows');
+  const idx = container.children.length;
+  const row = document.createElement('div');
+  row.className = 'med-row';
+  row.style.cssText = 'background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:16px 18px;margin-bottom:10px;position:relative;';
+  row.innerHTML = `
+    <button type="button" onclick="this.closest('.med-row').remove()" style="position:absolute;top:10px;right:12px;background:none;border:none;color:#EF4444;font-size:1rem;cursor:pointer;"><i class="bi bi-x-lg"></i></button>
+    <div class="row g-2">
+      <div class="col-md-4">
+        <label style="font-size:0.75rem;font-weight:700;text-transform:uppercase;color:#94A3B8;margin-bottom:4px;">Medicine Name *</label>
+        <input type="text" name="medicine_name[]" class="form-control" style="border-radius:8px;border:1px solid #E2E8F0;font-size:0.87rem;" placeholder="e.g. Dolo 650" required list="medlist-${idx}">
+        <datalist id="medlist-${idx}">${knownMeds.map(m => `<option value="${m}">`).join('')}</datalist>
+      </div>
+      <div class="col-md-2">
+        <label style="font-size:0.75rem;font-weight:700;text-transform:uppercase;color:#94A3B8;margin-bottom:4px;">Frequency</label>
+        <select name="frequency[]" class="form-select" style="border-radius:8px;border:1px solid #E2E8F0;font-size:0.87rem;">
+          <option value="1-0-1">1-0-1 (Twice)</option>
+          <option value="1-1-1">1-1-1 (Thrice)</option>
+          <option value="1-0-0">1-0-0 (Morning)</option>
+          <option value="0-0-1">0-0-1 (Night)</option>
+          <option value="SOS">SOS (As needed)</option>
+          <option value="0-1-0">0-1-0 (Afternoon)</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label style="font-size:0.75rem;font-weight:700;text-transform:uppercase;color:#94A3B8;margin-bottom:4px;">Duration</label>
+        <input type="text" name="duration[]" class="form-control" style="border-radius:8px;border:1px solid #E2E8F0;font-size:0.87rem;" placeholder="5 Days" value="5 Days">
+      </div>
+      <div class="col-md-2">
+        <label style="font-size:0.75rem;font-weight:700;text-transform:uppercase;color:#94A3B8;margin-bottom:4px;">With Food</label>
+        <select name="food_relation[]" class="form-select" style="border-radius:8px;border:1px solid #E2E8F0;font-size:0.87rem;">
+          <option value="After Food">After Food</option>
+          <option value="Before Food">Before Food</option>
+          <option value="With Food">With Food</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label style="font-size:0.75rem;font-weight:700;text-transform:uppercase;color:#94A3B8;margin-bottom:4px;">Notes</label>
+        <input type="text" name="instructions[]" class="form-control" style="border-radius:8px;border:1px solid #E2E8F0;font-size:0.87rem;" placeholder="Optional">
+      </div>
+    </div>
+  `;
+  container.appendChild(row);
+}
+
+// Start with one row
+addMedRow();
+</script>
+{% endblock %}

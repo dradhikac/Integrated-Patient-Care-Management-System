@@ -1,0 +1,81 @@
+{% extends "doctor/base_doctor.html" %}
+{% block title %}Consultations — Doctor Portal | MediCore+{% endblock %}
+{% block page_title %}Consultations{% endblock %}
+{% block page_subtitle %}All your recorded consultations{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <span class="text-muted" style="font-size:0.88rem;">{{ consultations.total }} consultation(s) total</span>
+  <a href="{{ url_for('doctor_portal.create_consultation') }}" class="btn-doc-primary">
+    <i class="bi bi-plus-lg"></i> New Consultation
+  </a>
+</div>
+
+<div class="doc-card">
+  {% if consultations.items %}
+    <div class="table-responsive">
+      <table class="doc-table">
+        <thead>
+          <tr>
+            <th>CODE</th>
+            <th>PATIENT</th>
+            <th>DATE &amp; TIME</th>
+            <th>DIAGNOSIS (PREVIEW)</th>
+            <th>PRESCRIPTION</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in consultations.items %}
+          <tr>
+            <td><span style="font-family:monospace;font-size:0.82rem;color:#64748B;">{{ c.consultation_code }}</span></td>
+            <td>
+              <div class="fw-semibold" style="font-size:0.87rem;">{{ c.patient.full_name }}</div>
+              <div class="text-muted" style="font-size:0.73rem;">{{ c.patient.patient_code }}</div>
+            </td>
+            <td style="font-size:0.84rem;">{{ c.created_at.strftime('%d %b %Y, %I:%M %p') }}</td>
+            <td style="font-size:0.84rem;max-width:220px;">{{ c.diagnosis[:80] }}{% if c.diagnosis|length > 80 %}…{% endif %}</td>
+            <td>
+              {% if c.prescription %}
+                <span class="status-badge badge-checked-in"><i class="bi bi-check-circle"></i> Issued</span>
+              {% else %}
+                <a href="{{ url_for('doctor_portal.create_prescription', consultation_id=c.id) }}" class="btn-doc-secondary" style="padding:3px 8px;font-size:0.75rem;">+ Prescribe</a>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('doctor_portal.consultation_detail', consultation_id=c.id) }}" class="btn-doc-secondary" style="padding:5px 10px;font-size:0.78rem;">
+                <i class="bi bi-eye"></i> View
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if consultations.pages > 1 %}
+    <div style="padding:14px 20px;border-top:1px solid #F1F5F9;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+      {% if consultations.has_prev %}
+        <a href="{{ url_for('doctor_portal.consultations', page=consultations.prev_num) }}" class="btn-doc-secondary" style="padding:5px 12px;">« Prev</a>
+      {% endif %}
+      <span style="padding:5px 14px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;font-size:0.82rem;">
+        Page {{ consultations.page }} of {{ consultations.pages }}
+      </span>
+      {% if consultations.has_next %}
+        <a href="{{ url_for('doctor_portal.consultations', page=consultations.next_num) }}" class="btn-doc-secondary" style="padding:5px 12px;">Next »</a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  {% else %}
+    <div class="doc-empty">
+      <i class="bi bi-clipboard2-x doc-empty-icon"></i>
+      <div class="doc-empty-title">No consultations recorded yet</div>
+      <div class="doc-empty-text">Start a consultation from the Patient Queue or Today's Appointments.</div>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

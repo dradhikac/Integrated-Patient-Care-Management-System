@@ -1,0 +1,102 @@
+{% extends "doctor/base_doctor.html" %}
+{% block title %}My Profile — Doctor Portal | MediCore+{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+{% block page_subtitle %}View and update your professional information{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+  <!-- Profile Card -->
+  <div class="col-lg-4">
+    <div class="doc-card text-center" style="padding:28px 24px;">
+      {% if doctor and doctor.image_url %}
+        <img src="{{ doctor.image_url }}" alt="{{ current_user.name }}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #E2E8F0;margin-bottom:16px;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#1E40AF,#0D9488);display:none;align-items:center;justify-content:center;font-size:2rem;color:#fff;font-weight:800;margin:0 auto 16px;">{{ current_user.name[0] }}</div>
+      {% else %}
+        <div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#1E40AF,#0D9488);display:flex;align-items:center;justify-content:center;font-size:2rem;color:#fff;font-weight:800;margin:0 auto 16px;">{{ current_user.name[0] }}</div>
+      {% endif %}
+      <div style="font-size:1.2rem;font-weight:800;color:#0F172A;">{{ current_user.name }}</div>
+      {% if doctor %}
+        <div style="font-size:0.88rem;color:#1E40AF;font-weight:600;margin-top:4px;">{{ doctor.specialization }}</div>
+        <div style="font-size:0.8rem;color:#64748B;margin-top:2px;">{{ doctor.department }}</div>
+        <div style="font-size:0.8rem;color:#64748B;margin-top:6px;">{{ doctor.experience }} Experience</div>
+        <div style="margin-top:14px;display:flex;justify-content:center;gap:16px;">
+          <div>
+            <div style="font-size:1.1rem;font-weight:800;color:#0F172A;">{{ doctor.rating }}</div>
+            <div style="font-size:0.7rem;color:#94A3B8;text-transform:uppercase;">Rating</div>
+          </div>
+          <div style="width:1px;background:#E2E8F0;"></div>
+          <div>
+            <div style="font-size:1.1rem;font-weight:800;color:#0D9488;">₹{{ '%.0f'|format(doctor.consultation_fee) }}</div>
+            <div style="font-size:0.7rem;color:#94A3B8;text-transform:uppercase;">OPD Fee</div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Edit Form -->
+  <div class="col-lg-8">
+    <div class="doc-card">
+      <div class="doc-card-header"><div class="doc-card-title"><i class="bi bi-pencil-square text-primary"></i> Edit Profile</div></div>
+      <div style="padding:24px 28px;">
+
+        <!-- Read-only fields (admin-managed) -->
+        <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:12px 16px;margin-bottom:22px;font-size:0.82rem;color:#92400E;">
+          <i class="bi bi-info-circle me-2"></i>
+          Fields marked as <strong>read-only</strong> are managed by the hospital administrator. Contact admin to update your name, specialization, department, education, or qualifications.
+        </div>
+
+        <!-- Read-only info grid -->
+        <div class="row g-3 mb-4">
+          {% macro ro_field(label, value) %}
+          <div class="col-md-6">
+            <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;color:#94A3B8;margin-bottom:4px;">{{ label }}</div>
+            <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:9px;padding:9px 14px;font-size:0.87rem;color:#475569;">{{ value or '—' }}</div>
+          </div>
+          {% endmacro %}
+          {% if doctor %}
+            {{ ro_field('Full Name', current_user.name) }}
+            {{ ro_field('Specialization', doctor.specialization) }}
+            {{ ro_field('Department', doctor.department) }}
+            {{ ro_field('Qualifications', doctor.education) }}
+            {{ ro_field('Experience', doctor.experience) }}
+            {{ ro_field('Doctor Code', doctor.doctor_code) }}
+          {% endif %}
+          {{ ro_field('Email', current_user.email) }}
+          {{ ro_field('Mobile', current_user.mobile or '—') }}
+        </div>
+
+        <!-- Editable fields -->
+        {% if doctor %}
+        <form method="POST" action="{{ url_for('doctor_portal.my_profile') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="mb-3">
+            <label class="form-label fw-bold" style="font-size:0.85rem;color:#0F172A;">Professional Biography</label>
+            <textarea name="bio" rows="4" class="form-control" style="border-radius:10px;border:1px solid #E2E8F0;font-size:0.88rem;" placeholder="Write a professional overview for your public profile...">{{ doctor.bio or '' }}</textarea>
+          </div>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label fw-bold" style="font-size:0.85rem;color:#0F172A;">OPD Consultation Fee (₹)</label>
+              <input type="number" name="consultation_fee" class="form-control" style="border-radius:10px;border:1px solid #E2E8F0;font-size:0.88rem;" value="{{ doctor.consultation_fee }}" min="0" step="50">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold" style="font-size:0.85rem;color:#0F172A;">Available Days (Display Text)</label>
+              <input type="text" name="available_days" class="form-control" style="border-radius:10px;border:1px solid #E2E8F0;font-size:0.88rem;" value="{{ doctor.available_days }}" placeholder="e.g. Monday - Saturday">
+            </div>
+          </div>
+          <div class="d-flex gap-3 justify-content-end pt-3" style="border-top:1px solid #F1F5F9;">
+            <button type="submit" class="btn-doc-primary" style="padding:9px 24px;">
+              <i class="bi bi-check2-circle"></i> Save Changes
+            </button>
+          </div>
+        </form>
+        {% else %}
+          <div class="doc-empty"><div class="doc-empty-title">Doctor profile not yet configured</div></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

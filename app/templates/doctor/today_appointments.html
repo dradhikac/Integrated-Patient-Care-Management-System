@@ -1,0 +1,116 @@
+{% extends "doctor/base_doctor.html" %}
+{% block title %}Today's Appointments — Doctor Portal | MediCore+{% endblock %}
+{% block page_title %}Today's Appointments{% endblock %}
+{% block page_subtitle %}{{ today.strftime('%A, %d %B %Y') }}{% endblock %}
+
+{% block content %}
+
+{% macro apt_badge(status) %}
+  {% set cfg = {
+    'BOOKED': ('badge-booked','calendar-check','Booked'),
+    'CHECKED_IN': ('badge-checked-in','person-check','Checked In'),
+    'COMPLETED': ('badge-completed','check-circle','Completed'),
+    'CANCELLED': ('badge-cancelled','x-circle','Cancelled'),
+    'NO_SHOW': ('badge-no-show','person-x','No Show')
+  } %}
+  {% set c = cfg.get(status, ('badge-booked','circle',status)) %}
+  <span class="status-badge {{ c[0] }}"><i class="bi bi-{{ c[1] }}"></i> {{ c[2] }}</span>
+{% endmacro %}
+
+<!-- Summary Strip -->
+<div class="d-flex flex-wrap gap-3 mb-4">
+  {% set total = apts|length %}
+  {% set completed = apts|selectattr('status','eq','COMPLETED')|list|length %}
+  {% set pending = apts|selectattr('status','in',['BOOKED','CHECKED_IN'])|list|length %}
+  {% set cancelled = apts|selectattr('status','eq','CANCELLED')|list|length %}
+  <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:10px 18px;min-width:100px;text-align:center;">
+    <div style="font-size:1.5rem;font-weight:800;color:#1E40AF;">{{ total }}</div>
+    <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#3B82F6;">Total</div>
+  </div>
+  <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:10px 18px;min-width:100px;text-align:center;">
+    <div style="font-size:1.5rem;font-weight:800;color:#15803D;">{{ completed }}</div>
+    <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#16A34A;">Completed</div>
+  </div>
+  <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:10px 18px;min-width:100px;text-align:center;">
+    <div style="font-size:1.5rem;font-weight:800;color:#B45309;">{{ pending }}</div>
+    <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#D97706;">Pending</div>
+  </div>
+  <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:10px 18px;min-width:100px;text-align:center;">
+    <div style="font-size:1.5rem;font-weight:800;color:#991B1B;">{{ cancelled }}</div>
+    <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#EF4444;">Cancelled</div>
+  </div>
+</div>
+
+<div class="doc-card">
+  <div class="doc-card-header">
+    <div class="doc-card-title"><i class="bi bi-list-check text-primary"></i> Appointment Schedule</div>
+    <a href="{{ url_for('doctor_portal.patient_queue') }}" class="btn-doc-secondary"><i class="bi bi-people"></i> View Queue</a>
+  </div>
+  {% if apts %}
+    <div class="table-responsive">
+      <table class="doc-table">
+        <thead>
+          <tr>
+            <th>TIME</th>
+            <th>PATIENT</th>
+            <th>CODE</th>
+            <th>TYPE / PRIORITY</th>
+            <th>CHECK-IN</th>
+            <th>STATUS</th>
+            <th>ACTION</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for apt in apts %}
+          <tr>
+            <td>
+              <div class="fw-bold" style="font-size:0.9rem; color:#0F172A;">{{ apt.slot_time.strftime('%I:%M %p') }}</div>
+            </td>
+            <td>
+              <div class="fw-semibold" style="font-size:0.87rem;">{{ apt.patient.full_name }}</div>
+              <div class="text-muted" style="font-size:0.72rem;">{{ apt.patient.mobile }}</div>
+            </td>
+            <td><span class="text-muted" style="font-size:0.8rem; font-family: monospace;">{{ apt.appointment_code }}</span></td>
+            <td>
+              <div style="font-size:0.82rem;">{{ apt.booking_type }}</div>
+              {% if apt.priority != 'Regular' %}
+                <span style="font-size:0.7rem;background:#FEF3C7;color:#92400E;border-radius:4px;padding:1px 6px;font-weight:600;">{{ apt.priority }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if apt._checkin %}
+                <span class="status-badge badge-checked-in" style="font-size:0.7rem;">
+                  <i class="bi bi-check2"></i> {{ apt._checkin.token_no }}
+                </span>
+              {% else %}
+                <span class="text-muted" style="font-size:0.8rem;">—</span>
+              {% endif %}
+            </td>
+            <td>{{ apt_badge(apt.status) }}</td>
+            <td>
+              <div class="d-flex gap-1">
+                {% if apt.status == 'CHECKED_IN' %}
+                  <a href="{{ url_for('doctor_portal.create_consultation', appointment_id=apt.id) }}" class="btn-doc-primary" style="padding:5px 10px; font-size:0.78rem;">
+                    <i class="bi bi-clipboard2-plus"></i> Consult
+                  </a>
+                {% endif %}
+                <a href="{{ url_for('doctor_portal.patient_detail', patient_id=apt.patient_id) }}" class="btn-doc-secondary" style="padding:5px 10px; font-size:0.78rem;">
+                  <i class="bi bi-person"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="doc-empty">
+      <i class="bi bi-calendar-x doc-empty-icon"></i>
+      <div class="doc-empty-title">No appointments today</div>
+      <div class="doc-empty-text">Your schedule is clear for {{ today.strftime('%A, %d %B %Y') }}.</div>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

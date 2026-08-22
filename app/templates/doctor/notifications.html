@@ -1,0 +1,78 @@
+{% extends "doctor/base_doctor.html" %}
+{% block title %}Notifications — Doctor Portal | MediCore+{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+{% block page_subtitle %}Recent appointments and lab report updates{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+  <!-- New Appointments -->
+  <div class="col-lg-6">
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <div class="doc-card-title"><i class="bi bi-calendar-plus text-primary"></i> Recent Bookings (Last 7 Days)</div>
+      </div>
+      {% if recent_apts %}
+        <div style="padding:8px 0;">
+          {% for apt in recent_apts %}
+          {% set sc = {'BOOKED':'badge-booked','CHECKED_IN':'badge-checked-in','COMPLETED':'badge-completed','CANCELLED':'badge-cancelled'} %}
+          <div style="padding:12px 20px;border-bottom:1px solid #F1F5F9;display:flex;align-items:flex-start;gap:12px;">
+            <div style="width:38px;height:38px;border-radius:50%;background:#EFF6FF;color:#1E40AF;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i class="bi bi-{% if apt.status == 'CANCELLED' %}calendar-x{% elif apt.status == 'COMPLETED' %}calendar-check{% else %}calendar{% endif %}"></i>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div class="fw-semibold text-truncate" style="font-size:0.87rem;color:#0F172A;">{{ apt.patient.full_name }}</div>
+              <div style="font-size:0.78rem;color:#64748B;">{{ apt.appointment_date.strftime('%d %b %Y') }} at {{ apt.slot_time.strftime('%I:%M %p') }}</div>
+              <span class="status-badge {{ sc.get(apt.status,'badge-booked') }}" style="margin-top:4px;display:inline-flex;">{{ apt.status.replace('_',' ').title() }}</span>
+            </div>
+            <div style="font-size:0.72rem;color:#94A3B8;white-space:nowrap;">{{ apt.created_at.strftime('%d %b') }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="doc-empty" style="padding:32px 20px;">
+          <i class="bi bi-calendar-event doc-empty-icon" style="font-size:1.8rem;"></i>
+          <div class="doc-empty-title" style="font-size:0.9rem;">No recent bookings</div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Completed Lab Reports -->
+  <div class="col-lg-6">
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <div class="doc-card-title"><i class="bi bi-flask-fill text-success"></i> Completed Lab Reports</div>
+      </div>
+      {% if completed_labs %}
+        <div style="padding:8px 0;">
+          {% for lr in completed_labs %}
+          {% set abnormal = lr.results|selectattr('abnormal_flag','ne','NORMAL')|list %}
+          <div style="padding:12px 20px;border-bottom:1px solid #F1F5F9;display:flex;align-items:flex-start;gap:12px;">
+            <div style="width:38px;height:38px;border-radius:50%;background:{% if abnormal %}#FEF2F2{% else %}#F0FDF4{% endif %};color:{% if abnormal %}#EF4444{% else %}#15803D{% endif %};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i class="bi bi-{% if abnormal %}exclamation-triangle{% else %}check-circle{% endif %}"></i>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div class="fw-semibold text-truncate" style="font-size:0.87rem;color:#0F172A;">{{ lr.patient.full_name }}</div>
+              <div style="font-size:0.78rem;color:#64748B;">{{ lr.request_code }} &bull; {{ lr.results|length }} test(s)</div>
+              {% if abnormal %}
+                <div style="font-size:0.75rem;color:#EF4444;font-weight:600;margin-top:3px;"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ abnormal|length }} abnormal result(s)</div>
+              {% else %}
+                <div style="font-size:0.75rem;color:#15803D;font-weight:600;margin-top:3px;"><i class="bi bi-check-circle-fill me-1"></i>All normal</div>
+              {% endif %}
+            </div>
+            <div style="font-size:0.72rem;color:#94A3B8;white-space:nowrap;">{{ lr.created_at.strftime('%d %b') }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="doc-empty" style="padding:32px 20px;">
+          <i class="bi bi-flask doc-empty-icon" style="font-size:1.8rem;"></i>
+          <div class="doc-empty-title" style="font-size:0.9rem;">No completed lab reports</div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}
