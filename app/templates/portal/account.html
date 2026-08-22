@@ -1,0 +1,94 @@
+{% extends 'portal/base_patient.html' %}
+
+{% block title %}Account & Security — MediCore+ Health Portal{% endblock %}
+{% block header_title %}Account & Security{% endblock %}
+{% block header_subtitle %}Manage your authentication credentials, login security, and patient identity links{% endblock %}
+
+{% block portal_content %}
+
+<div class="row g-4 justify-content-center">
+  <!-- Left Column: Patient Account Information -->
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+      <div class="p-4 border-bottom" style="border-color: #F1F5F9 !important;">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="bi bi-person-lock"></i>
+          </div>
+          <div>
+            <h6 class="fw-bold text-dark mb-0">Patient Identity Link</h6>
+            <div class="text-muted small">Unique healthcare credentials</div>
+          </div>
+        </div>
+      </div>
+      <div class="p-4">
+        <div class="mb-3">
+          <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.7rem;">Hospital Patient ID</div>
+          <div class="fw-bold fs-5 font-monospace text-primary">{{ patient.patient_code }}</div>
+        </div>
+        <div class="mb-3">
+          <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.7rem;">Account User Code</div>
+          <div class="fw-semibold text-dark font-monospace">{{ current_user.user_code }}</div>
+        </div>
+        <div class="mb-3">
+          <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.7rem;">Registered Login Email</div>
+          <div class="fw-semibold text-dark">{{ current_user.email }}</div>
+        </div>
+        <div>
+          <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.7rem;">Account Role</div>
+          <span class="badge bg-primary rounded-pill px-3 py-1">Patient User</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security Tips -->
+    <div class="card border-0 shadow-sm rounded-4 p-4" style="background: #F8FAFC; border: 1px solid var(--portal-border) !important;">
+      <h6 class="fw-bold text-dark mb-2"><i class="bi bi-shield-check text-success me-2"></i>Security Best Practices</h6>
+      <ul class="text-muted small mb-0 ps-3">
+        <li class="mb-1">Use a password with at least 8 characters, numbers, and symbols.</li>
+        <li class="mb-1">Never share your patient portal credentials with third parties.</li>
+        <li>Always log out when accessing your medical portal from public devices.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Right Column: Change Password Form -->
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+      <div class="p-4 border-bottom" style="border-color: #F1F5F9 !important;">
+        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-key-fill text-primary me-2"></i>Change Portal Password</h6>
+        <div class="text-muted small">Update your confidential password for account login</div>
+      </div>
+
+      <div class="p-4">
+        <form method="POST" action="{{ url_for('portal.change_password') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-muted">Current Password <span class="text-danger">*</span></label>
+            <input type="password" name="current_password" class="form-control rounded-3" placeholder="Enter existing password" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-muted">New Password <span class="text-danger">*</span></label>
+            <input type="password" name="new_password" class="form-control rounded-3" placeholder="Minimum 8 characters" minlength="8" required>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label small fw-bold text-muted">Confirm New Password <span class="text-danger">*</span></label>
+            <input type="password" name="confirm_password" class="form-control rounded-3" placeholder="Re-enter new password" minlength="8" required>
+          </div>
+
+          <div class="d-flex align-items-center justify-content-between pt-3 border-top">
+            <span class="text-muted small"><i class="bi bi-lock me-1"></i> Passwords are encrypted with Bcrypt.</span>
+            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" style="background-color: #2563EB;">
+              <i class="bi bi-shield-lock me-1"></i> Update Password
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

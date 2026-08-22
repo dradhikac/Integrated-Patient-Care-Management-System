@@ -1,0 +1,169 @@
+{% extends 'portal/base_patient.html' %}
+
+{% block title %}My Appointments — MediCore+ Health Portal{% endblock %}
+{% block header_title %}My Appointments{% endblock %}
+{% block header_subtitle %}Manage your upcoming clinic visits and view past consultation appointments{% endblock %}
+
+{% block extra_css %}
+<style>
+  .nav-pills-custom .nav-link {
+    color: #64748B;
+    font-weight: 700;
+    font-size: 0.88rem;
+    padding: 8px 18px;
+    border-radius: 20px;
+    transition: all 0.18s ease;
+  }
+  .nav-pills-custom .nav-link.active {
+    background-color: #2563EB;
+    color: #FFFFFF;
+  }
+  .apt-card {
+    background: #FFFFFF;
+    border: 1px solid var(--portal-border);
+    border-radius: 14px;
+    padding: 20px;
+    transition: all 0.2s ease;
+    margin-bottom: 14px;
+  }
+  .apt-card:hover {
+    border-color: #CBD5E1;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+  .status-booked { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+  .status-checked-in { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+  .status-completed { background: #F1F5F9; color: #475569; border: 1px solid #CBD5E1; }
+  .status-cancelled { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+</style>
+{% endblock %}
+
+{% block portal_content %}
+
+<!-- Top Header with Actions -->
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+  <!-- Tabs -->
+  <ul class="nav nav-pills nav-pills-custom gap-2">
+    <li class="nav-item">
+      <a class="nav-link {% if tab == 'upcoming' %}active{% endif %}" href="{{ url_for('portal.appointments', tab='upcoming') }}">
+        <i class="bi bi-calendar-event me-1"></i> Upcoming Visits
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if tab == 'past' %}active{% endif %}" href="{{ url_for('portal.appointments', tab='past') }}">
+        <i class="bi bi-clock-history me-1"></i> Past & Cancelled
+      </a>
+    </li>
+  </ul>
+
+  <!-- CTA -->
+  <a href="{{ url_for('portal.book_appointment') }}" class="btn btn-primary rounded-pill px-4 fw-bold" style="background-color: #2563EB;">
+    <i class="bi bi-plus-lg me-1"></i> Book New Appointment
+  </a>
+</div>
+
+<!-- Appointments List -->
+{% if appointments %}
+  <div class="row g-3">
+    {% for apt in appointments %}
+    <div class="col-12">
+      <div class="apt-card">
+        <div class="row align-items-center g-3">
+          <!-- Time & Date -->
+          <div class="col-md-3">
+            <div class="d-flex align-items-center gap-3">
+              <div style="width: 48px; height: 48px; border-radius: 12px; background: #EFF6FF; color: #2563EB; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; line-height: 1.1; flex-shrink: 0;">
+                <span style="font-size: 1.1rem;">{{ apt.appointment_date.strftime('%d') }}</span>
+                <span style="font-size: 0.65rem; text-transform: uppercase;">{{ apt.appointment_date.strftime('%b') }}</span>
+              </div>
+              <div>
+                <div class="fw-bold text-dark font-monospace" style="font-size: 1rem;">
+                  {{ apt.slot_time.strftime('%I:%M %p') }}
+                </div>
+                <div class="text-muted small">
+                  {{ apt.appointment_date.strftime('%A, %Y') }}
+                  {% if apt.appointment_date == today %}
+                  <span class="badge bg-primary rounded-pill ms-1" style="font-size: 0.65rem;">TODAY</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Doctor & Specialty -->
+          <div class="col-md-4">
+            <div class="fw-bold text-dark fs-6">{{ apt.doctor.name }}</div>
+            <div class="text-muted small">
+              <i class="bi bi-hospital me-1 text-primary"></i> {{ apt.doctor.department or 'Outpatient Department (OPD)' }}
+            </div>
+            <div class="text-muted small font-monospace">Token: {{ apt.appointment_code }}</div>
+          </div>
+
+          <!-- Type & Status -->
+          <div class="col-md-3">
+            <div class="mb-1">
+              {% if apt.status == 'BOOKED' %}
+                <span class="status-pill status-booked"><i class="bi bi-calendar-check-fill"></i> Scheduled</span>
+              {% elif apt.status in ('CHECKED_IN', 'WAITING') %}
+                <span class="status-pill status-checked-in"><i class="bi bi-door-open-fill"></i> Arrived / Waiting</span>
+              {% elif apt.status == 'COMPLETED' %}
+                <span class="status-pill status-completed"><i class="bi bi-check2-all"></i> Completed</span>
+              {% elif apt.status == 'CANCELLED' %}
+                <span class="status-pill status-cancelled"><i class="bi bi-x-circle-fill"></i> Cancelled</span>
+              {% else %}
+                <span class="status-pill status-completed">{{ apt.status }}</span>
+              {% endif %}
+            </div>
+            <div class="small text-muted">
+              Booking Type: <strong>{{ apt.booking_type or 'Online' }}</strong>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="col-md-2 text-md-end">
+            {% if apt.status == 'BOOKED' and apt.appointment_date >= today %}
+            <form method="POST" action="{{ url_for('portal.cancel_appointment', appointment_id=apt.id) }}" onsubmit="return confirm('Are you sure you want to cancel this appointment?');" class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold">
+                <i class="bi bi-x-lg me-1"></i> Cancel
+              </button>
+            </form>
+            {% elif apt.status == 'COMPLETED' %}
+            <a href="{{ url_for('portal.consultations') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
+              View Visit
+            </a>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if apt.notes %}
+        <div class="mt-3 pt-2 border-top text-muted small">
+          <i class="bi bi-chat-left-text me-1 text-primary"></i> <strong>Reason / Notes:</strong> {{ apt.notes }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card border-0 shadow-sm rounded-4 text-center py-5" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+    <div class="py-4">
+      <i class="bi bi-calendar-x fs-1 text-muted opacity-25 d-block mb-3"></i>
+      <h5 class="fw-bold text-dark mb-1">No {{ tab }} appointments found</h5>
+      <p class="text-muted small mb-4">You have no {{ tab }} clinic consultations registered in your health record.</p>
+      <a href="{{ url_for('portal.book_appointment') }}" class="btn btn-primary rounded-pill px-4 fw-bold" style="background-color: #2563EB;">
+        <i class="bi bi-plus-lg me-1"></i> Schedule a Doctor Consultation
+      </a>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}

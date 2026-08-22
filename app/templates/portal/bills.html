@@ -1,0 +1,91 @@
+{% extends 'portal/base_patient.html' %}
+
+{% block title %}Bills & Payments — MediCore+ Health Portal{% endblock %}
+{% block header_title %}Bills & Invoices{% endblock %}
+{% block header_subtitle %}Overview of your outpatient consultation fees, diagnostic bills, and payment receipts{% endblock %}
+
+{% block portal_content %}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div class="text-muted small">
+    Showing <strong>{{ bills|length }}</strong> hospital billing invoice(s)
+  </div>
+</div>
+
+{% if bills %}
+  <div class="row g-3">
+    {% for b in bills %}
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-4 p-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important; transition: all 0.2s ease;">
+        <div class="row align-items-center g-3">
+          <!-- Left: Icon & Invoice Code -->
+          <div class="col-md-3">
+            <div class="d-flex align-items-center gap-3">
+              <div style="width: 48px; height: 48px; border-radius: 12px; background: #FFFBEB; color: #D97706; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;">
+                <i class="bi bi-receipt"></i>
+              </div>
+              <div>
+                <div class="fw-bold text-dark font-monospace" style="font-size: 0.92rem;">{{ b.invoice_code }}</div>
+                <div class="text-muted small">{{ b.created_at.strftime('%d %B %Y') }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Middle: Financial Summary -->
+          <div class="col-md-4">
+            <div class="d-flex align-items-baseline gap-2">
+              <span class="text-muted small">Total:</span>
+              <strong class="fs-6 text-dark font-monospace">₹{{ "%.2f"|format(b.grand_total) }}</strong>
+              <span class="text-muted small ms-2">Paid:</span>
+              <strong class="small text-success font-monospace">₹{{ "%.2f"|format(b.paid_amount) }}</strong>
+            </div>
+            {% if b.balance_due > 0 %}
+            <div class="small text-danger fw-bold mt-0.5">
+              Balance Due: ₹{{ "%.2f"|format(b.balance_due) }}
+            </div>
+            {% else %}
+            <div class="small text-success fw-semibold mt-0.5">
+              Fully Settled ✓
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Status -->
+          <div class="col-md-3">
+            {% if b.status == 'PAID' %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5 fw-semibold">
+                <i class="bi bi-check-circle-fill me-1"></i> Paid in Full
+              </span>
+            {% elif b.status == 'PARTIALLY_PAID' %}
+              <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1.5 fw-semibold">
+                <i class="bi bi-hourglass-split me-1"></i> Partially Paid
+              </span>
+            {% else %}
+              <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1.5 fw-semibold">
+                <i class="bi bi-exclamation-circle-fill me-1"></i> Payment Due
+              </span>
+            {% endif %}
+          </div>
+
+          <!-- Action -->
+          <div class="col-md-2 text-md-end">
+            <a href="{{ url_for('portal.bill_detail', bill_id=b.id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
+              <i class="bi bi-file-earmark-text me-1"></i> View Invoice
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card border-0 shadow-sm rounded-4 text-center py-5" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+    <div class="py-4">
+      <i class="bi bi-receipt-cutoff fs-1 text-muted opacity-25 d-block mb-3"></i>
+      <h5 class="fw-bold text-dark mb-1">No billing records found</h5>
+      <p class="text-muted small mb-0">When hospital consultation or diagnostic invoices are generated, they will appear here with full line-item details.</p>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}

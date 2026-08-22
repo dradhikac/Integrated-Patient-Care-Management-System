@@ -1,0 +1,163 @@
+{% extends 'portal/base_patient.html' %}
+
+{% block title %}Book Appointment — MediCore+ Health Portal{% endblock %}
+{% block header_title %}Book an Appointment{% endblock %}
+{% block header_subtitle %}Select your preferred doctor, appointment date, and available time slot{% endblock %}
+
+{% block extra_css %}
+<style>
+  .slot-chip {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    font-family: monospace;
+    cursor: pointer;
+    border: 1.5px solid #E2E8F0;
+    background-color: #FFFFFF;
+    color: #0F172A;
+    transition: all 0.18s ease;
+    user-select: none;
+  }
+  .slot-chip:hover {
+    border-color: #2563EB;
+    background-color: #EFF6FF;
+    color: #2563EB;
+  }
+  .slot-chip.selected {
+    background-color: #2563EB !important;
+    color: #FFFFFF !important;
+    border-color: #2563EB !important;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+  }
+  .slot-chip.disabled {
+    background-color: #F8FAFC;
+    color: #94A3B8;
+    border-color: #E2E8F0;
+    cursor: not-allowed;
+    text-decoration: line-through;
+  }
+</style>
+{% endblock %}
+
+{% block portal_content %}
+
+<div class="row justify-content-center">
+  <div class="col-lg-10">
+    <div class="card border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+      <div class="p-4 border-bottom" style="border-color: #F1F5F9 !important;">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width: 44px; height: 44px; border-radius: 12px; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="bi bi-calendar2-plus-fill"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold text-dark mb-0">Schedule a Doctor Consultation</h5>
+            <p class="text-muted small mb-0">Appointments booked online receive immediate token confirmation</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4">
+        <!-- Step 1 & 2: Doctor and Date Picker Form (GET for slot refresh) -->
+        <form method="GET" action="{{ url_for('portal.book_appointment') }}" id="filterForm" class="mb-4">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-muted">1. Select Consulting Doctor <span class="text-danger">*</span></label>
+              <select name="doctor_id" class="form-select rounded-3" onchange="document.getElementById('filterForm').submit();">
+                <option value="">-- Choose Doctor --</option>
+                {% for doc in doctors %}
+                <option value="{{ doc.id }}" {% if selected_doc_id == doc.id %}selected{% endif %}>
+                  {{ doc.name }} ({{ doc.department or 'General Medicine' }})
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-muted">2. Select Consultation Date <span class="text-danger">*</span></label>
+              <input type="date" name="date" class="form-control rounded-3" value="{{ selected_date.strftime('%Y-%m-%d') }}" min="{{ today_date if today_date else selected_date.strftime('%Y-%m-%d') }}" onchange="document.getElementById('filterForm').submit();">
+            </div>
+          </div>
+        </form>
+
+        <hr class="my-4" style="border-color: #F1F5F9;">
+
+        <!-- Step 3: Booking Confirmation Form (POST) -->
+        <form method="POST" action="{{ url_for('portal.book_appointment') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="doctor_id" value="{{ selected_doc_id or '' }}">
+          <input type="hidden" name="appointment_date" value="{{ selected_date.strftime('%Y-%m-%d') }}">
+          <input type="hidden" name="slot_time" id="selectedSlotInput" value="">
+
+          <!-- Available Time Slots Display -->
+          <div class="mb-4">
+            <label class="form-label small fw-bold text-muted d-block">
+              3. Available Time Slots for {{ selected_date.strftime('%A, %d %B %Y') }} <span class="text-danger">*</span>
+            </label>
+
+            {% if not selected_doc_id %}
+              <div class="alert alert-light border rounded-3 text-muted small p-3">
+                <i class="bi bi-arrow-up-circle me-1"></i> Please select a consulting doctor above to see available time slots.
+              </div>
+            {% elif slot_info.get('is_holiday') %}
+              <div class="alert alert-warning border rounded-3 small p-3">
+                <i class="bi bi-calendar-x me-1"></i> <strong>Hospital Holiday / Closed:</strong> {{ slot_info.get('holiday_reason') }}
+              </div>
+            {% elif not slot_info.get('is_scheduled') %}
+              <div class="alert alert-light border rounded-3 text-muted small p-3">
+                <i class="bi bi-info-circle me-1"></i> The selected doctor is not on shift on {{ selected_date.strftime('%A') }}s. Please pick another date.
+              </div>
+            {% elif slot_info.get('slots') %}
+              <div class="d-flex flex-wrap gap-2 pt-1">
+                {% for s in slot_info.get('slots') %}
+                  {% if s.is_booked %}
+                    <span class="slot-chip disabled" title="Already booked">
+                      {{ s.time_str }} (Booked)
+                    </span>
+                  {% else %}
+                    <span class="slot-chip" onclick="selectSlot('{{ s.time_raw }}', this)">
+                      <i class="bi bi-clock me-1"></i> {{ s.time_str }}
+                    </span>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              <div class="form-text mt-2 small text-muted">Click a time chip above to select your preferred consultation slot.</div>
+            {% else %}
+              <div class="alert alert-warning border rounded-3 small p-3">
+                <i class="bi bi-exclamation-triangle me-1"></i> All slots for this date are fully booked.
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Symptoms / Notes -->
+          <div class="mb-4">
+            <label class="form-label small fw-bold text-muted">4. Chief Complaints / Reason for Visit (Optional)</label>
+            <textarea name="notes" class="form-control rounded-3" rows="3" placeholder="Describe symptoms, fever duration, or purpose of follow-up..."></textarea>
+          </div>
+
+          <!-- Submit -->
+          <div class="d-flex align-items-center justify-content-between pt-3 border-top">
+            <a href="{{ url_for('portal.appointments') }}" class="btn btn-light border rounded-pill px-4 fw-semibold">
+              <i class="bi bi-arrow-left me-1"></i> Back to Appointments
+            </a>
+            <button type="submit" id="submitBookingBtn" class="btn btn-primary rounded-pill px-5 fw-bold" style="background-color: #2563EB;" disabled>
+              <i class="bi bi-check2-circle me-1"></i> Confirm & Book Appointment
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function selectSlot(timeRaw, el) {
+    document.querySelectorAll('.slot-chip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('selectedSlotInput').value = timeRaw;
+    document.getElementById('submitBookingBtn').disabled = false;
+  }
+</script>
+
+{% endblock %}

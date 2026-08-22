@@ -291,10 +291,10 @@ def dashboard():
     elif role_name == 'Lab Technician':
         return render_template('auth/dashboards/lab_tech.html')
     elif role_name == 'Patient':
-        return render_template('auth/dashboards/patient.html')
+        return redirect(url_for('portal.dashboard'))
     else:
         flash('Unknown role assigned.', 'danger')
-        return render_template('auth/dashboards/patient.html')
+        return redirect(url_for('portal.dashboard'))
 
 
 @auth_bp.route('/auth/audit-logs')

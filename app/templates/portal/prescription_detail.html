@@ -1,0 +1,154 @@
+{% extends 'portal/base_patient.html' %}
+
+{% block title %}{{ rx.prescription_code }} — MediCore+ Health Portal{% endblock %}
+{% block header_title %}Digital Prescription{% endblock %}
+{% block header_subtitle %}{{ rx.prescription_code }} · Issued by {{ rx.doctor.name }} on {{ rx.created_at.strftime('%d %B %Y') }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    #prescriptionPrintArea, #prescriptionPrintArea * {
+      visibility: visible;
+    }
+    #prescriptionPrintArea {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block portal_content %}
+
+<!-- Action Bar -->
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div class="d-flex align-items-center gap-2">
+    <span class="badge bg-success font-monospace px-3 py-2 fs-6">{{ rx.prescription_code }}</span>
+    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-semibold">
+      <i class="bi bi-shield-check me-1"></i> QR Authenticated
+    </span>
+  </div>
+  <div class="d-flex gap-2">
+    <button onclick="window.print()" class="btn btn-outline-primary rounded-pill px-4 fw-bold">
+      <i class="bi bi-printer-fill me-1"></i> Print / Save PDF
+    </button>
+    <a href="{{ url_for('portal.prescriptions') }}" class="btn btn-light border rounded-pill px-3 fw-semibold">
+      <i class="bi bi-arrow-left me-1"></i> Back to Prescriptions
+    </a>
+  </div>
+</div>
+
+<!-- Prescription Sheet -->
+<div class="card border-0 shadow-sm rounded-4" id="prescriptionPrintArea" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+  <!-- Prescription Header -->
+  <div class="p-4 p-md-5 border-bottom" style="border-color: #F1F5F9 !important;">
+    <div class="row align-items-center g-4">
+      <div class="col-md-7">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <div style="width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(135deg, #2563EB, #0D9488); color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+            <i class="bi bi-hospital"></i>
+          </div>
+          <div>
+            <h4 class="fw-bold text-dark mb-0">MediCore+ Healthcare</h4>
+            <div class="text-muted small">Integrated Patient Care Management System</div>
+          </div>
+        </div>
+        <div class="text-muted small">
+          Prescribing Doctor: <strong>{{ rx.doctor.name }}</strong> ({{ rx.doctor.department or 'General Medicine' }})
+        </div>
+      </div>
+
+      <div class="col-md-5 text-md-end">
+        <div class="d-inline-flex flex-column align-items-md-end">
+          <img src="data:image/png;base64,{{ qr_base64 }}" alt="QR Code" style="width: 90px; height: 90px; border: 1px solid #E2E8F0; border-radius: 8px; padding: 4px;" class="mb-1">
+          <span class="text-muted" style="font-size: 0.7rem;">Scan for Pharmacy Verification</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Patient Summary Strip -->
+  <div class="p-4 bg-light border-bottom" style="border-color: #F1F5F9 !important;">
+    <div class="row g-3">
+      <div class="col-sm-3">
+        <span class="text-muted small d-block">Patient Name</span>
+        <strong class="text-dark">{{ patient.full_name }}</strong>
+      </div>
+      <div class="col-sm-3">
+        <span class="text-muted small d-block">Patient ID</span>
+        <strong class="text-dark font-monospace">{{ patient.patient_code }}</strong>
+      </div>
+      <div class="col-sm-3">
+        <span class="text-muted small d-block">Age / Gender</span>
+        <strong class="text-dark">{{ patient.gender }} · {{ patient.dob.strftime('%d %b %Y') if patient.dob else '—' }}</strong>
+      </div>
+      <div class="col-sm-3">
+        <span class="text-muted small d-block">Date of Issue</span>
+        <strong class="text-dark">{{ rx.created_at.strftime('%d %B %Y') }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Medications Table -->
+  <div class="p-4 p-md-5">
+    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-capsule text-primary me-2"></i>Prescribed Medications & Dosage Instructions (Rx)</h6>
+    <div class="table-responsive mb-4">
+      <table class="table table-bordered align-middle">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 5%;">#</th>
+            <th style="width: 35%;">Medicine & Strength</th>
+            <th style="width: 20%;">Frequency</th>
+            <th style="width: 15%;">Duration</th>
+            <th style="width: 25%;">Instructions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in rx.items %}
+          <tr>
+            <td class="text-muted">{{ loop.index }}</td>
+            <td>
+              <strong class="text-dark">{{ item.medicine_name }}</strong>
+            </td>
+            <td>
+              <span class="badge bg-primary-subtle text-primary font-monospace px-2.5 py-1">{{ item.frequency }}</span>
+            </td>
+            <td>{{ item.duration }}</td>
+            <td class="small">
+              <span class="badge bg-light text-dark border me-1">{{ item.food_relation }}</span>
+              {{ item.instructions or '' }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- General Advice -->
+    {% if rx.general_advice %}
+    <div class="p-3 rounded-3 bg-light border mb-4">
+      <div class="fw-bold text-dark mb-1 small text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">General Medical Advice / Precautions</div>
+      <div class="text-dark" style="font-size: 0.92rem; white-space: pre-line;">{{ rx.general_advice }}</div>
+    </div>
+    {% endif %}
+
+    <div class="row align-items-end pt-4 border-top">
+      <div class="col-6">
+        <span class="text-muted" style="font-size: 0.75rem;">
+          This is a computer-generated digital prescription with cryptographic verification hash.
+        </span>
+      </div>
+      <div class="col-6 text-end">
+        <div class="fw-bold text-dark">{{ rx.doctor.name }}</div>
+        <div class="text-muted small">Registered Medical Practitioner</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

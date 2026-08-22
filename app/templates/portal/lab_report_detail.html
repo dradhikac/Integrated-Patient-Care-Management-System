@@ -1,0 +1,114 @@
+{% extends 'portal/base_patient.html' %}
+
+{% block title %}{{ lab_request.request_code }} — MediCore+ Health Portal{% endblock %}
+{% block header_title %}Diagnostic Lab Report{% endblock %}
+{% block header_subtitle %}{{ lab_request.request_code }} · Ordered by {{ lab_request.doctor.name }} on {{ lab_request.created_at.strftime('%d %B %Y') }}{% endblock %}
+
+{% block portal_content %}
+
+<!-- Action Bar -->
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div class="d-flex align-items-center gap-2">
+    <span class="badge bg-dark font-monospace px-3 py-2 fs-6">{{ lab_request.request_code }}</span>
+    {% if lab_request.status == 'COMPLETED' %}
+      <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-semibold">
+        <i class="bi bi-check-circle-fill me-1"></i> Verified & Completed
+      </span>
+    {% else %}
+      <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-2 fw-semibold">
+        Status: {{ lab_request.status }}
+      </span>
+    {% endif %}
+  </div>
+  <a href="{{ url_for('portal.lab_reports') }}" class="btn btn-light border rounded-pill px-3 fw-semibold">
+    <i class="bi bi-arrow-left me-1"></i> Back to Lab Reports
+  </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+  <!-- Order Header -->
+  <div class="p-4 border-bottom" style="border-color: #F1F5F9 !important;">
+    <div class="row g-3">
+      <div class="col-sm-4">
+        <span class="text-muted small d-block">Ordering Clinician</span>
+        <strong class="text-dark">{{ lab_request.doctor.name }}</strong>
+      </div>
+      <div class="col-sm-4">
+        <span class="text-muted small d-block">Order Timestamp</span>
+        <strong class="text-dark">{{ lab_request.created_at.strftime('%d %B %Y · %I:%M %p') }}</strong>
+      </div>
+      <div class="col-sm-4">
+        <span class="text-muted small d-block">Clinical Notes</span>
+        <strong class="text-dark">{{ lab_request.clinical_notes or 'Diagnostic Panel' }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Table -->
+  <div class="p-4">
+    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-clipboard2-check text-primary me-2"></i>Laboratory Analysis & Measured Values</h6>
+
+    {% if lab_request.results %}
+    <div class="table-responsive mb-4">
+      <table class="table table-bordered align-middle">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 5%;">#</th>
+            <th style="width: 30%;">Test Name & Category</th>
+            <th style="width: 20%;">Measured Value</th>
+            <th style="width: 25%;">Normal Biological Reference</th>
+            <th style="width: 20%;">Evaluation / Flag</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in lab_request.results %}
+          <tr>
+            <td class="text-muted">{{ loop.index }}</td>
+            <td>
+              <strong class="text-dark">{{ r.test_type.test_name }}</strong>
+              <div class="text-muted small">{{ r.test_type.category }} · <span class="font-monospace">{{ r.test_type.test_code }}</span></div>
+            </td>
+            <td>
+              <strong class="fs-6 font-monospace text-dark">{{ r.result_value }}</strong>
+              <span class="text-muted small">{{ r.test_type.unit or '' }}</span>
+            </td>
+            <td class="small">
+              {% if r.test_type.min_normal_val is not none and r.test_type.max_normal_val is not none %}
+                {{ r.test_type.min_normal_val }} - {{ r.test_type.max_normal_val }} {{ r.test_type.unit or '' }}
+              {% else %}
+                <span class="text-muted">Standard Reference</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if r.abnormal_flag == 'NORMAL' %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
+                  <i class="bi bi-check-circle me-1"></i> Normal
+                </span>
+              {% elif r.abnormal_flag == 'ABNORMAL_HIGH' %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1">
+                  <i class="bi bi-arrow-up-circle-fill me-1"></i> High
+                </span>
+              {% elif r.abnormal_flag == 'ABNORMAL_LOW' %}
+                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-2.5 py-1">
+                  <i class="bi bi-arrow-down-circle-fill me-1"></i> Low
+                </span>
+              {% else %}
+                <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1">{{ r.abnormal_flag }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="alert alert-light border rounded-3 p-4 text-center text-muted">
+      <i class="bi bi-hourglass-split fs-2 d-block mb-2 text-primary opacity-50"></i>
+      <h6 class="fw-bold text-dark mb-1">Laboratory Testing In Progress</h6>
+      <p class="small mb-0">Specimen has been logged in the laboratory information system. Results will appear once verified by the pathologist.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

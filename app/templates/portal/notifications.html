@@ -1,0 +1,76 @@
+{% extends 'portal/base_patient.html' %}
+
+{% block title %}Notifications — MediCore+ Health Portal{% endblock %}
+{% block header_title %}Notifications & Alerts{% endblock %}
+{% block header_subtitle %}Important updates regarding appointments, prescriptions, diagnostic results, and hospital reminders{% endblock %}
+
+{% block portal_content %}
+
+<!-- Filter Pills -->
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+  <div class="d-flex flex-wrap gap-2">
+    <a href="{{ url_for('portal.notifications', type='ALL') }}" class="btn btn-sm rounded-pill {% if type_filter == 'ALL' %}btn-primary fw-bold{% else %}btn-light border{% endif %}">
+      All Alerts
+    </a>
+    <a href="{{ url_for('portal.notifications', type='APPOINTMENT_REMINDER') }}" class="btn btn-sm rounded-pill {% if type_filter == 'APPOINTMENT_REMINDER' %}btn-primary fw-bold{% else %}btn-light border{% endif %}">
+      <i class="bi bi-calendar-event me-1"></i> Appointments
+    </a>
+    <a href="{{ url_for('portal.notifications', type='PRESCRIPTION_READY') }}" class="btn btn-sm rounded-pill {% if type_filter == 'PRESCRIPTION_READY' %}btn-primary fw-bold{% else %}btn-light border{% endif %}">
+      <i class="bi bi-capsule me-1"></i> Prescriptions
+    </a>
+    <a href="{{ url_for('portal.notifications', type='LAB_READY') }}" class="btn btn-sm rounded-pill {% if type_filter == 'LAB_READY' %}btn-primary fw-bold{% else %}btn-light border{% endif %}">
+      <i class="bi bi-clipboard-pulse me-1"></i> Lab Reports
+    </a>
+    <a href="{{ url_for('portal.notifications', type='PAYMENT_REMINDER') }}" class="btn btn-sm rounded-pill {% if type_filter == 'PAYMENT_REMINDER' %}btn-primary fw-bold{% else %}btn-light border{% endif %}">
+      <i class="bi bi-receipt me-1"></i> Bills
+    </a>
+  </div>
+  <span class="text-muted small">Showing {{ notifications|length }} alert(s)</span>
+</div>
+
+{% if notifications %}
+  <div class="row g-3">
+    {% for n in notifications %}
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-4 p-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+        <div class="d-flex align-items-start gap-3">
+          <div style="width: 44px; height: 44px; border-radius: 12px;
+            {% if 'APPOINTMENT' in n.type %}background: #EFF6FF; color: #2563EB;
+            {% elif 'PRESCRIPTION' in n.type %}background: #ECFDF5; color: #059669;
+            {% elif 'LAB' in n.type %}background: #F0FDFA; color: #0D9488;
+            {% elif 'PAYMENT' in n.type %}background: #FFFBEB; color: #D97706;
+            {% else %}background: #F1F5F9; color: #475569;{% endif %}
+            display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+            {% if 'APPOINTMENT' in n.type %}<i class="bi bi-calendar-check-fill"></i>
+            {% elif 'PRESCRIPTION' in n.type %}<i class="bi bi-capsule-pill"></i>
+            {% elif 'LAB' in n.type %}<i class="bi bi-clipboard2-pulse-fill"></i>
+            {% elif 'PAYMENT' in n.type %}<i class="bi bi-receipt"></i>
+            {% else %}<i class="bi bi-bell-fill"></i>{% endif %}
+          </div>
+
+          <div class="flex-grow-1">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+              <h6 class="fw-bold text-dark mb-0">{{ n.title }}</h6>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-light text-dark border rounded-pill small">{{ n.channel }}</span>
+                <span class="text-muted" style="font-size: 0.75rem;">{{ n.created_at.strftime('%d %b %Y · %I:%M %p') }}</span>
+              </div>
+            </div>
+            <p class="text-muted small mb-0">{{ n.message }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card border-0 shadow-sm rounded-4 text-center py-5" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+    <div class="py-4">
+      <i class="bi bi-bell-slash fs-1 text-muted opacity-25 d-block mb-3"></i>
+      <h5 class="fw-bold text-dark mb-1">No notifications</h5>
+      <p class="text-muted small mb-0">You have no active alerts or reminders in this category.</p>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}

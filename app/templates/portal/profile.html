@@ -1,0 +1,182 @@
+{% extends 'portal/base_patient.html' %}
+
+{% block title %}My Profile — MediCore+ Health Portal{% endblock %}
+{% block header_title %}My Profile{% endblock %}
+{% block header_subtitle %}View your personal medical demographics and update contact preferences{% endblock %}
+
+{% block portal_content %}
+
+<div class="row g-4">
+  <!-- Left Column: Personal Identity & Clinical Baseline -->
+  <div class="col-lg-4">
+    <!-- ID Card -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+      <div class="p-4 text-center border-bottom" style="border-color: #F1F5F9 !important;">
+        <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #2563EB, #0D9488); color: #FFF; font-weight: 800; font-size: 2rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.2);">
+          {{ patient.first_name[0]|upper }}{{ patient.last_name[0]|upper }}
+        </div>
+        <h4 class="fw-bold text-dark mb-1">{{ patient.full_name }}</h4>
+        <div class="badge bg-primary-subtle text-primary font-monospace px-3 py-1.5 rounded-pill mb-2">
+          {{ patient.patient_code }}
+        </div>
+        <div class="text-muted small">
+          Registered: {{ patient.created_at.strftime('%d %B %Y') }}
+        </div>
+      </div>
+      <div class="p-4">
+        <div class="mb-3">
+          <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Gender & Age</div>
+          <div class="fw-semibold text-dark">{{ patient.gender }} · DOB: {{ patient.dob.strftime('%d %b %Y') if patient.dob else '—' }}</div>
+        </div>
+        <div class="mb-3">
+          <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Blood Group</div>
+          <span class="badge bg-danger rounded-pill px-3 py-1">{{ patient.blood_group or 'Not Recorded' }}</span>
+        </div>
+        <div class="mb-3">
+          <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">National ID / Aadhaar</div>
+          <div class="fw-semibold text-dark"><i class="bi bi-shield-lock-fill text-success me-1"></i>{{ patient.aadhaar_masked or 'Not linked' }}</div>
+        </div>
+        <div>
+          <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 0.5px;">Portal Account Status</div>
+          <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
+            <i class="bi bi-check-circle-fill me-1"></i> Active & Verified
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clinical Baseline (Read-Only) -->
+    <div class="card border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+      <div class="p-3 px-4 border-bottom d-flex align-items-center justify-content-between" style="border-color: #F1F5F9 !important;">
+        <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+          <i class="bi bi-activity text-danger me-2"></i> Clinical Baseline
+        </div>
+        <span class="badge bg-light text-muted border rounded-pill small">Staff Verified</span>
+      </div>
+      <div class="p-4">
+        <div class="row g-2 text-center mb-3">
+          <div class="col-4">
+            <div class="p-2 rounded-3 bg-light border">
+              <span class="text-muted small d-block">Height</span>
+              <strong class="fs-6 text-dark">{{ patient.height_cm or '—' }}</strong> <small class="text-muted">cm</small>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-2 rounded-3 bg-light border">
+              <span class="text-muted small d-block">Weight</span>
+              <strong class="fs-6 text-dark">{{ patient.weight_kg or '—' }}</strong> <small class="text-muted">kg</small>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-2 rounded-3 bg-light border">
+              <span class="text-muted small d-block">BMI</span>
+              <strong class="fs-6 text-dark">{{ patient.bmi or '—' }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.7rem;">Recorded Allergies</div>
+          {% if patient.allergies %}
+            {% for a in patient.allergies %}
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1 mb-1 me-1">
+              <i class="bi bi-exclamation-octagon-fill me-1"></i>{{ a.allergen }} ({{ a.severity }})
+            </span>
+            {% endfor %}
+          {% else %}
+            <span class="text-muted small">No known drug/food allergies recorded.</span>
+          {% endif %}
+        </div>
+
+        <div>
+          <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.7rem;">Chronic Conditions</div>
+          {% if patient.medical_histories %}
+            {% for h in patient.medical_histories %}
+            <div class="small text-dark mb-1"><i class="bi bi-dot text-primary"></i> <strong>{{ h.condition_type }}:</strong> {{ h.description }}</div>
+            {% endfor %}
+          {% else %}
+            <span class="text-muted small">No chronic conditions listed.</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Editable Contact & Emergency Details -->
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+      <div class="p-3 px-4 border-bottom d-flex align-items-center justify-content-between" style="border-color: #F1F5F9 !important;">
+        <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+          <i class="bi bi-pencil-square text-primary me-2"></i> Update Contact & Preferences
+        </div>
+      </div>
+
+      <div class="p-4">
+        <form method="POST" action="{{ url_for('portal.profile') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <h6 class="fw-bold text-dark mb-3"><i class="bi bi-telephone-fill text-primary me-1"></i> Contact Details</h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-muted">Mobile Number <span class="text-danger">*</span></label>
+              <input type="text" name="mobile" class="form-control rounded-3" value="{{ patient.mobile or '' }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-muted">Email Address <span class="text-danger">*</span></label>
+              <input type="email" name="email" class="form-control rounded-3" value="{{ patient.email or '' }}" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-bold text-muted">Residential Address</label>
+              <textarea name="address" class="form-control rounded-3" rows="2">{{ patient.address or '' }}</textarea>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-muted">Preferred Communication Language</label>
+              <select name="preferred_language" class="form-select rounded-3">
+                <option value="English" {% if patient.preferred_language == 'English' %}selected{% endif %}>English</option>
+                <option value="Hindi" {% if patient.preferred_language == 'Hindi' %}selected{% endif %}>Hindi</option>
+                <option value="Marathi" {% if patient.preferred_language == 'Marathi' %}selected{% endif %}>Marathi</option>
+                <option value="Gujarati" {% if patient.preferred_language == 'Gujarati' %}selected{% endif %}>Gujarati</option>
+                <option value="Tamil" {% if patient.preferred_language == 'Tamil' %}selected{% endif %}>Tamil</option>
+                <option value="Telugu" {% if patient.preferred_language == 'Telugu' %}selected{% endif %}>Telugu</option>
+                <option value="Bengali" {% if patient.preferred_language == 'Bengali' %}selected{% endif %}>Bengali</option>
+              </select>
+            </div>
+          </div>
+
+          <hr class="my-4" style="border-color: #F1F5F9;">
+
+          <h6 class="fw-bold text-dark mb-3"><i class="bi bi-shield-fill-plus text-danger me-1"></i> Emergency Contact & Insurance</h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-muted">Emergency Contact Name</label>
+              <input type="text" name="emergency_contact_name" class="form-control rounded-3" value="{{ patient.emergency_contact_name or '' }}" placeholder="Next of Kin / Relative Name">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-muted">Emergency Contact Phone</label>
+              <input type="text" name="emergency_contact_mobile" class="form-control rounded-3" value="{{ patient.emergency_contact_mobile or '' }}" placeholder="+91-98XXXXXXXX">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-muted">Health Insurance Provider</label>
+              <input type="text" name="insurance_provider" class="form-control rounded-3" value="{{ patient.insurance_provider or '' }}" placeholder="e.g. Star Health, Max Bupa, Ayushman Bharat">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold text-muted">Insurance Policy / Card Number</label>
+              <input type="text" name="insurance_policy_no" class="form-control rounded-3" value="{{ patient.insurance_policy_no or '' }}" placeholder="POL-XXXX-XXXX">
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center justify-content-between pt-3 border-top">
+            <div class="text-muted small">
+              <i class="bi bi-info-circle me-1"></i> Clinical data can only be modified by your attending doctor.
+            </div>
+            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold" style="background-color: #2563EB;">
+              <i class="bi bi-check2-circle me-1"></i> Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

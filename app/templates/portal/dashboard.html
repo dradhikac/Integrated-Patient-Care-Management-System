@@ -1,0 +1,358 @@
+{% extends 'portal/base_patient.html' %}
+
+{% block title %}Dashboard — MediCore+ Health Portal{% endblock %}
+{% block header_title %}Patient Dashboard{% endblock %}
+{% block header_subtitle %}Overview of your healthcare records and upcoming appointments{% endblock %}
+
+{% block extra_css %}
+<style>
+  .greeting-banner {
+    background: linear-gradient(135deg, #1E40AF 0%, #0D9488 100%);
+    border-radius: 18px;
+    padding: 28px 32px;
+    color: #FFFFFF;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 18px rgba(30, 64, 175, 0.15);
+  }
+
+  .greeting-banner::after {
+    content: '';
+    position: absolute;
+    right: -30px;
+    bottom: -30px;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+    border-radius: 50%;
+  }
+
+  .stat-card {
+    background: #FFFFFF;
+    border: 1px solid var(--portal-border);
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    height: 100%;
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+    border-color: #CBD5E1;
+  }
+
+  .stat-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    margin-bottom: 12px;
+  }
+
+  .action-btn-card {
+    background: #FFFFFF;
+    border: 1px solid var(--portal-border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    color: var(--portal-navy);
+    transition: all 0.2s ease;
+  }
+
+  .action-btn-card:hover {
+    border-color: var(--portal-blue);
+    background-color: #F8FAFC;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+  }
+
+  .action-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+</style>
+{% endblock %}
+
+{% block portal_content %}
+
+<!-- 1. Warm Greeting Banner -->
+<div class="greeting-banner mb-4">
+  <div class="row align-items-center">
+    <div class="col-lg-8">
+      <div class="badge px-3 py-1.5 rounded-pill mb-2" style="background: rgba(255,255,255,0.2); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.4px;">
+        <i class="bi bi-shield-check me-1"></i> VERIFIED PATIENT PORTAL
+      </div>
+      <h2 class="fw-bold mb-1" style="font-size: 1.6rem; letter-spacing: -0.4px;">
+        {{ greeting }}, {{ patient.first_name }}! 👋
+      </h2>
+      <p class="mb-0 opacity-90" style="font-size: 0.92rem;">
+        Here is a complete summary of your personal health records, prescriptions, and upcoming care.
+      </p>
+    </div>
+    <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+      <div class="d-inline-flex flex-column align-items-lg-end">
+        <span class="opacity-75 small">Patient ID</span>
+        <span class="fs-5 fw-bold font-monospace bg-white text-primary px-3 py-1 rounded-pill mt-1 shadow-sm">
+          {{ patient.patient_code }}
+        </span>
+        <span class="opacity-75 small mt-1">Blood Group: <strong>{{ patient.blood_group or 'Not Recorded' }}</strong></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Health Summary Stats Cards -->
+<div class="row g-3 mb-4">
+  <!-- Next Appointment Card -->
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="stat-icon-wrap" style="background: #EFF6FF; color: #2563EB;">
+          <i class="bi bi-calendar2-check-fill"></i>
+        </div>
+        <span class="badge rounded-pill bg-primary-subtle text-primary fw-semibold" style="font-size: 0.72rem;">Upcoming</span>
+      </div>
+      <div class="text-muted small fw-semibold">Next Appointment</div>
+      {% if next_appointment %}
+      <div class="fw-bold text-dark fs-5 mt-1">
+        {{ next_appointment.slot_time.strftime('%I:%M %p') }}
+      </div>
+      <div class="small text-muted">
+        {{ next_appointment.appointment_date.strftime('%d %b %Y') }} · {{ next_appointment.doctor.name }}
+      </div>
+      {% else %}
+      <div class="fw-bold text-dark fs-5 mt-1">No Upcoming</div>
+      <a href="{{ url_for('portal.book_appointment') }}" class="small text-primary fw-semibold text-decoration-none">
+        + Schedule Visit
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Active Prescriptions Card -->
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="stat-icon-wrap" style="background: #ECFDF5; color: #059669;">
+          <i class="bi bi-capsule-pill"></i>
+        </div>
+        <span class="badge rounded-pill bg-success-subtle text-success fw-semibold" style="font-size: 0.72rem;">Digital Rx</span>
+      </div>
+      <div class="text-muted small fw-semibold">Prescriptions Issued</div>
+      <div class="fw-bold text-dark fs-3 mt-1">{{ total_prescriptions }}</div>
+      <a href="{{ url_for('portal.prescriptions') }}" class="small text-success fw-semibold text-decoration-none">
+        View & Download Prescriptions →
+      </a>
+    </div>
+  </div>
+
+  <!-- Lab Reports Card -->
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="stat-icon-wrap" style="background: #F0FDFA; color: #0D9488;">
+          <i class="bi bi-clipboard2-pulse-fill"></i>
+        </div>
+        <span class="badge rounded-pill bg-info-subtle text-info-emphasis fw-semibold" style="font-size: 0.72rem;">Diagnostic</span>
+      </div>
+      <div class="text-muted small fw-semibold">Lab Reports</div>
+      <div class="d-flex align-items-baseline gap-2 mt-1">
+        <span class="fw-bold text-dark fs-3">{{ completed_labs }}</span>
+        <span class="small text-muted">Ready</span>
+        {% if pending_labs > 0 %}
+        <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill ms-auto small">
+          {{ pending_labs }} In Progress
+        </span>
+        {% endif %}
+      </div>
+      <a href="{{ url_for('portal.lab_reports') }}" class="small text-teal fw-semibold text-decoration-none" style="color: #0D9488;">
+        Open Lab Reports →
+      </a>
+    </div>
+  </div>
+
+  <!-- Billing Card -->
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="stat-icon-wrap" style="background: #FFFBEB; color: #D97706;">
+          <i class="bi bi-receipt"></i>
+        </div>
+        <span class="badge rounded-pill {% if total_due > 0 %}bg-warning-subtle text-warning-emphasis{% else %}bg-success-subtle text-success{% endif %} fw-semibold" style="font-size: 0.72rem;">
+          {% if total_due > 0 %}Due{% else %}Clear{% endif %}
+        </span>
+      </div>
+      <div class="text-muted small fw-semibold">Pending Balance</div>
+      <div class="fw-bold text-dark fs-3 mt-1">
+        ₹{{ "%.2f"|format(total_due) }}
+      </div>
+      <a href="{{ url_for('portal.bills') }}" class="small text-secondary fw-semibold text-decoration-none">
+        {% if pending_bills_count > 0 %}{{ pending_bills_count }} unpaid invoice(s) →{% else %}All invoices settled ✓{% endif %}
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Primary Quick Actions -->
+<div class="mb-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h5 class="fw-bold mb-0 text-dark" style="font-size: 1.05rem;">
+      <i class="bi bi-lightning-charge-fill text-primary me-1"></i> Quick Actions
+    </h5>
+  </div>
+  <div class="row g-3">
+    <div class="col-md-4 col-sm-6">
+      <a href="{{ url_for('portal.book_appointment') }}" class="action-btn-card">
+        <div class="action-icon" style="background: #EFF6FF; color: #2563EB;">
+          <i class="bi bi-calendar-plus-fill"></i>
+        </div>
+        <div>
+          <div class="fw-bold text-dark" style="font-size: 0.92rem;">Book Appointment</div>
+          <div class="text-muted small">Choose doctor & time slot</div>
+        </div>
+        <i class="bi bi-chevron-right ms-auto text-muted small"></i>
+      </a>
+    </div>
+    <div class="col-md-4 col-sm-6">
+      <a href="{{ url_for('portal.prescriptions') }}" class="action-btn-card">
+        <div class="action-icon" style="background: #ECFDF5; color: #059669;">
+          <i class="bi bi-file-earmark-medical-fill"></i>
+        </div>
+        <div>
+          <div class="fw-bold text-dark" style="font-size: 0.92rem;">My Prescriptions</div>
+          <div class="text-muted small">QR verified digital Rx</div>
+        </div>
+        <i class="bi bi-chevron-right ms-auto text-muted small"></i>
+      </a>
+    </div>
+    <div class="col-md-4 col-sm-6">
+      <a href="{{ url_for('portal.medical_records') }}" class="action-btn-card">
+        <div class="action-icon" style="background: #F0FDFA; color: #0D9488;">
+          <i class="bi bi-journal-medical"></i>
+        </div>
+        <div>
+          <div class="fw-bold text-dark" style="font-size: 0.92rem;">Medical Timeline</div>
+          <div class="text-muted small">Complete EHR health history</div>
+        </div>
+        <i class="bi bi-chevron-right ms-auto text-muted small"></i>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Next Care & Recent Visits Section -->
+<div class="row g-4">
+  <!-- Left: Recent Consultations -->
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+      <div class="p-3 px-4 border-bottom d-flex align-items-center justify-content-between" style="border-color: #F1F5F9 !important;">
+        <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+          <i class="bi bi-chat-heart-fill text-primary me-2"></i> Recent Consultations & Visits
+        </div>
+        <a href="{{ url_for('portal.consultations') }}" class="text-primary small fw-semibold text-decoration-none">
+          View All →
+        </a>
+      </div>
+      <div class="p-3 px-4">
+        {% if recent_consultations %}
+        <div class="list-group list-group-flush">
+          {% for c in recent_consultations %}
+          <div class="list-group-item px-0 py-3 border-bottom d-flex align-items-start justify-content-between gap-3" style="border-color: #F8FAFC !important;">
+            <div class="d-flex align-items-start gap-3">
+              <div style="width: 40px; height: 40px; border-radius: 10px; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
+                <i class="bi bi-stethoscope"></i>
+              </div>
+              <div>
+                <div class="fw-bold text-dark" style="font-size: 0.92rem;">{{ c.doctor.name }}</div>
+                <div class="text-muted small mb-1">{{ c.created_at.strftime('%d %B %Y · %I:%M %p') }}</div>
+                <div class="badge bg-light text-dark border rounded-pill small">
+                  <strong>Diagnosis:</strong> {{ c.diagnosis }}
+                </div>
+              </div>
+            </div>
+            <a href="{{ url_for('portal.consultation_detail', consultation_id=c.id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold text-nowrap">
+              View Visit
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+          <i class="bi bi-calendar-x fs-1 opacity-25 d-block mb-2"></i>
+          <p class="mb-2">No past consultation records found.</p>
+          <a href="{{ url_for('portal.book_appointment') }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold">
+            Book Your First Appointment
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Patient Vitals & Health Baseline Overview -->
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+      <div class="p-3 px-4 border-bottom d-flex align-items-center justify-content-between" style="border-color: #F1F5F9 !important;">
+        <div class="fw-bold text-dark" style="font-size: 0.95rem;">
+          <i class="bi bi-heart-pulse-fill text-danger me-2"></i> Vitals Baseline
+        </div>
+        <a href="{{ url_for('portal.profile') }}" class="text-primary small fw-semibold text-decoration-none">
+          Full Profile →
+        </a>
+      </div>
+      <div class="p-4">
+        <div class="row g-2 text-center mb-3">
+          <div class="col-4">
+            <div class="p-2 rounded-3 bg-light border">
+              <span class="text-muted small d-block">Height</span>
+              <strong class="fs-6 text-dark">{{ patient.height_cm or '—' }}</strong> <small class="text-muted">cm</small>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-2 rounded-3 bg-light border">
+              <span class="text-muted small d-block">Weight</span>
+              <strong class="fs-6 text-dark">{{ patient.weight_kg or '—' }}</strong> <small class="text-muted">kg</small>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-2 rounded-3 bg-light border">
+              <span class="text-muted small d-block">BMI</span>
+              <strong class="fs-6 text-dark">{{ patient.bmi or '—' }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-top pt-3">
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted small">Blood Group:</span>
+            <span class="badge bg-danger rounded-pill px-2.5 py-1">{{ patient.blood_group or 'Unknown' }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted small">Emergency Contact:</span>
+            <span class="fw-semibold text-dark small">{{ patient.emergency_contact_name or 'Not set' }}</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted small">Insurance:</span>
+            <span class="fw-semibold text-dark small text-truncate" style="max-width: 150px;">{{ patient.insurance_provider or 'Self-Pay' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

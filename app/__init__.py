@@ -32,6 +32,7 @@ def create_app(config_class=Config):
     from app.reports.routes import reports_bp
     from app.admin.routes import admin_bp
     from app.doctors.routes import doctors_bp
+    from app.portal import portal_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(patients_bp)
@@ -49,6 +50,7 @@ def create_app(config_class=Config):
     app.register_blueprint(reports_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(doctors_bp)
+    app.register_blueprint(portal_bp)
 
     csrf.exempt(doctors_bp)
 

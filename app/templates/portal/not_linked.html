@@ -1,0 +1,38 @@
+{% extends 'portal/base_patient.html' %}
+
+{% block title %}Account Setup Required — MediCore+{% endblock %}
+{% block header_title %}Account Setup Required{% endblock %}
+{% block header_subtitle %}Linking your account with your clinical patient record{% endblock %}
+
+{% block portal_content %}
+<div class="row justify-content-center py-5">
+  <div class="col-md-7 text-center">
+    <div class="card border-0 shadow-sm rounded-4 p-5" style="background: #FFFFFF;">
+      <div class="mb-4">
+        <div style="width: 72px; height: 72px; border-radius: 50%; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto;">
+          <i class="bi bi-hospital"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold mb-2 text-dark">Welcome to MediCore+ Patient Portal</h3>
+      <p class="text-muted mb-4" style="font-size: 0.95rem;">
+        Your login account has been created, but it is not yet linked to an active hospital medical record.
+      </p>
+
+      <div class="p-3 rounded-3 mb-4 text-start" style="background: #F8FAFC; border: 1px solid #E2E8F0;">
+        <div class="fw-bold text-dark mb-1" style="font-size: 0.88rem;"><i class="bi bi-info-circle-fill text-primary me-2"></i>How to activate your medical profile:</div>
+        <ul class="text-muted small mb-0 ps-3">
+          <li>If you registered in-person at the front desk, provide your registered mobile number (<strong>{{ current_user.mobile or 'N/A' }}</strong>) or email (<strong>{{ current_user.email }}</strong>) to the receptionist.</li>
+          <li>The receptionist will generate an immediate activation token or link your hospital file.</li>
+          <li>For immediate assistance, visit the Front Desk or call <strong>1800-MEDICORE</strong>.</li>
+        </ul>
+      </div>
+
+      <div class="d-flex justify-content-center gap-3">
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-secondary rounded-pill px-4 fw-semibold">
+          <i class="bi bi-box-arrow-right me-1"></i> Sign Out
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends 'portal/base_patient.html' %}
+
+{% block title %}{{ consultation.consultation_code }} — MediCore+ Health Portal{% endblock %}
+{% block header_title %}Consultation Record{% endblock %}
+{% block header_subtitle %}{{ consultation.consultation_code }} · {{ consultation.created_at.strftime('%d %B %Y at %I:%M %p') }}{% endblock %}
+
+{% block portal_content %}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div class="d-flex align-items-center gap-2">
+    <span class="badge bg-dark font-monospace px-3 py-2 fs-6">{{ consultation.consultation_code }}</span>
+    <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 fw-semibold">Consultation Record</span>
+  </div>
+  <a href="{{ url_for('portal.consultations') }}" class="btn btn-light border rounded-pill px-3 fw-semibold">
+    <i class="bi bi-arrow-left me-1"></i> Back to History
+  </a>
+</div>
+
+<div class="row g-4">
+  <!-- Left Column: Clinical Diagnosis & Doctor Notes -->
+  <div class="col-lg-8">
+    <!-- Doctor & Diagnosis Card -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+      <div class="p-4 border-bottom" style="border-color: #F1F5F9 !important;">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width: 48px; height: 48px; border-radius: 12px; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+            <i class="bi bi-person-badge-fill"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold text-dark mb-0">{{ consultation.doctor.name }}</h5>
+            <div class="text-muted small">
+              {{ consultation.doctor.department or 'General Medicine' }} · Consult Date: {{ consultation.created_at.strftime('%d %B %Y') }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4">
+        <!-- Symptoms -->
+        <div class="mb-4">
+          <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Reported Symptoms / Complaints</div>
+          <div class="p-3 rounded-3 bg-light border text-dark" style="font-size: 0.92rem;">
+            {{ consultation.symptoms }}
+          </div>
+        </div>
+
+        <!-- Diagnosis -->
+        <div class="mb-4">
+          <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Clinical Diagnosis</div>
+          <div class="p-3 rounded-3 text-dark fw-semibold" style="background: #EFF6FF; border: 1px solid #BFDBFE; font-size: 0.95rem;">
+            <i class="bi bi-check-circle-fill text-primary me-2"></i>{{ consultation.diagnosis }}
+          </div>
+        </div>
+
+        <!-- Treatment Plan -->
+        {% if consultation.treatment_plan %}
+        <div class="mb-4">
+          <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Treatment Plan / Doctor's Advice</div>
+          <div class="p-3 rounded-3 bg-light border text-dark" style="font-size: 0.92rem; white-space: pre-line;">
+            {{ consultation.treatment_plan }}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Notes -->
+        {% if consultation.notes %}
+        <div>
+          <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.7rem; letter-spacing: 0.5px;">Follow-up / Clinical Notes</div>
+          <div class="p-3 rounded-3 bg-light border text-dark" style="font-size: 0.92rem;">
+            {{ consultation.notes }}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Vitals Baseline & Linked Records -->
+  <div class="col-lg-4">
+    <!-- Vitals Recorded -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+      <div class="p-3 px-4 border-bottom d-flex align-items-center justify-content-between" style="border-color: #F1F5F9 !important;">
+        <div class="fw-bold text-dark" style="font-size: 0.92rem;">
+          <i class="bi bi-heart-pulse-fill text-danger me-2"></i> Recorded Vitals
+        </div>
+      </div>
+      <div class="p-4">
+        {% if consultation.vital %}
+        <div class="row g-2 text-center">
+          <div class="col-6">
+            <div class="p-3 rounded-3 bg-light border">
+              <span class="text-muted small d-block">Blood Pressure</span>
+              <strong class="fs-6 text-dark font-monospace">{{ consultation.vital.get_bp_string() }}</strong>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-3 rounded-3 bg-light border">
+              <span class="text-muted small d-block">Pulse</span>
+              <strong class="fs-6 text-dark font-monospace">{{ consultation.vital.pulse_bpm or '—' }}</strong> <small class="text-muted">bpm</small>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-3 rounded-3 bg-light border">
+              <span class="text-muted small d-block">Temperature</span>
+              <strong class="fs-6 text-dark font-monospace">{{ consultation.vital.temperature_f or '—' }}</strong> <small class="text-muted">°F</small>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-3 rounded-3 bg-light border">
+              <span class="text-muted small d-block">SpO2 Oxygen</span>
+              <strong class="fs-6 text-dark font-monospace">{{ consultation.vital.spo2_percent or '—' }}</strong> <small class="text-muted">%</small>
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-3 small">
+          No vitals recorded for this session.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Linked Digital Prescription -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+      <div class="p-3 px-4 border-bottom d-flex align-items-center justify-content-between" style="border-color: #F1F5F9 !important;">
+        <div class="fw-bold text-dark" style="font-size: 0.92rem;">
+          <i class="bi bi-capsule text-success me-2"></i> Digital Prescription
+        </div>
+      </div>
+      <div class="p-4">
+        {% if linked_rx %}
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <div>
+            <div class="fw-bold font-monospace text-dark" style="font-size: 0.88rem;">{{ linked_rx.prescription_code }}</div>
+            <div class="text-muted small">{{ linked_rx.items|length }} medication(s) prescribed</div>
+          </div>
+          <span class="badge bg-success-subtle text-success rounded-pill px-2.5 py-1">QR Verified</span>
+        </div>
+        <a href="{{ url_for('portal.prescription_detail', prescription_id=linked_rx.id) }}" class="btn btn-sm btn-success w-100 rounded-pill fw-bold">
+          <i class="bi bi-file-earmark-medical me-1"></i> View & Download Prescription
+        </a>
+        {% else %}
+        <div class="text-center text-muted py-2 small">
+          No prescription issued for this visit.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Linked Lab Reports -->
+    <div class="card border-0 shadow-sm rounded-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+      <div class="p-3 px-4 border-bottom d-flex align-items-center justify-content-between" style="border-color: #F1F5F9 !important;">
+        <div class="fw-bold text-dark" style="font-size: 0.92rem;">
+          <i class="bi bi-clipboard2-pulse text-info me-2"></i> Ordered Lab Tests
+        </div>
+      </div>
+      <div class="p-4">
+        {% if linked_labs %}
+          {% for lr in linked_labs %}
+          <div class="p-2.5 rounded-3 bg-light border mb-2 d-flex align-items-center justify-content-between">
+            <div>
+              <div class="fw-bold font-monospace small text-dark">{{ lr.request_code }}</div>
+              <div class="text-muted" style="font-size: 0.72rem;">Status: {{ lr.status }}</div>
+            </div>
+            <a href="{{ url_for('portal.lab_report_detail', request_id=lr.id) }}" class="btn btn-sm btn-outline-info rounded-pill px-2.5 py-0.5 fw-semibold" style="font-size: 0.75rem;">
+              View
+            </a>
+          </div>
+          {% endfor %}
+        {% else %}
+        <div class="text-center text-muted py-2 small">
+          No laboratory tests ordered.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

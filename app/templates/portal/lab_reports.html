@@ -1,0 +1,89 @@
+{% extends 'portal/base_patient.html' %}
+
+{% block title %}Lab Reports — MediCore+ Health Portal{% endblock %}
+{% block header_title %}My Diagnostic & Lab Reports{% endblock %}
+{% block header_subtitle %}View and download pathology, biochemistry, and diagnostic test results{% endblock %}
+
+{% block portal_content %}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div class="text-muted small">
+    Showing <strong>{{ lab_requests|length }}</strong> diagnostic test order(s)
+  </div>
+</div>
+
+{% if lab_requests %}
+  <div class="row g-3">
+    {% for lr in lab_requests %}
+    <div class="col-12">
+      <div class="card border-0 shadow-sm rounded-4 p-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important; transition: all 0.2s ease;">
+        <div class="row align-items-center g-3">
+          <!-- Left: Icon & Request Code -->
+          <div class="col-md-3">
+            <div class="d-flex align-items-center gap-3">
+              <div style="width: 48px; height: 48px; border-radius: 12px; background: #F0FDFA; color: #0D9488; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;">
+                <i class="bi bi-clipboard2-pulse"></i>
+              </div>
+              <div>
+                <div class="fw-bold text-dark font-monospace" style="font-size: 0.92rem;">{{ lr.request_code }}</div>
+                <div class="text-muted small">{{ lr.created_at.strftime('%d %B %Y') }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Middle: Doctor & Test Details -->
+          <div class="col-md-4">
+            <div class="fw-bold text-dark fs-6">{{ lr.doctor.name }}</div>
+            <div class="text-muted small mb-1">{{ lr.doctor.department or 'Laboratory Pathology' }}</div>
+            <div class="text-muted small">
+              Clinical Notes: <strong>{{ lr.clinical_notes or 'Standard diagnostic panel' }}</strong>
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div class="col-md-3">
+            {% if lr.status == 'COMPLETED' %}
+              <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5 fw-semibold">
+                <i class="bi bi-check-circle-fill me-1"></i> Results Ready
+              </span>
+            {% elif lr.status == 'IN_TESTING' %}
+              <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-3 py-1.5 fw-semibold">
+                <i class="bi bi-hourglass-split me-1"></i> In Testing
+              </span>
+            {% elif lr.status == 'SAMPLE_COLLECTED' %}
+              <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1.5 fw-semibold">
+                <i class="bi bi-droplet-fill me-1"></i> Sample Collected
+              </span>
+            {% else %}
+              <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill px-3 py-1.5 fw-semibold">
+                <i class="bi bi-clock-history me-1"></i> Sample Requested
+              </span>
+            {% endif %}
+          </div>
+
+          <!-- Action -->
+          <div class="col-md-2 text-md-end">
+            <a href="{{ url_for('portal.lab_report_detail', request_id=lr.id) }}" class="btn btn-sm {% if lr.status == 'COMPLETED' %}btn-primary{% else %}btn-outline-secondary{% endif %} rounded-pill px-3 fw-bold" {% if lr.status == 'COMPLETED' %}style="background-color: #2563EB;"{% endif %}>
+              {% if lr.status == 'COMPLETED' %}
+                <i class="bi bi-eye me-1"></i> View Results
+              {% else %}
+                <i class="bi bi-info-circle me-1"></i> View Status
+              {% endif %}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="card border-0 shadow-sm rounded-4 text-center py-5" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+    <div class="py-4">
+      <i class="bi bi-clipboard-x fs-1 text-muted opacity-25 d-block mb-3"></i>
+      <h5 class="fw-bold text-dark mb-1">No diagnostic lab orders</h5>
+      <p class="text-muted small mb-0">When your doctor orders pathology, hematology, or biochemistry tests, reports will be uploaded here.</p>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}

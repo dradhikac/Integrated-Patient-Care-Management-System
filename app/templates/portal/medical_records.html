@@ -1,0 +1,126 @@
+{% extends 'portal/base_patient.html' %}
+
+{% block title %}Medical Records Timeline — MediCore+ Health Portal{% endblock %}
+{% block header_title %}EHR Medical Timeline{% endblock %}
+{% block header_subtitle %}Comprehensive longitudinal health record of consultations, prescriptions, lab orders, and vital measurements{% endblock %}
+
+{% block extra_css %}
+<style>
+  .timeline-container {
+    position: relative;
+    padding-left: 28px;
+  }
+  .timeline-container::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: 8px;
+    width: 2px;
+    background: #E2E8F0;
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 24px;
+  }
+  .timeline-dot {
+    position: absolute;
+    left: -28px;
+    top: 14px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 3px solid #2563EB;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+  .timeline-dot.green { border-color: #059669; box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15); }
+  .timeline-dot.teal { border-color: #0D9488; box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15); }
+  .timeline-dot.amber { border-color: #D97706; box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15); }
+</style>
+{% endblock %}
+
+{% block portal_content %}
+
+<!-- Search and Filter Bar -->
+<div class="card border-0 shadow-sm rounded-4 p-3 mb-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+  <form method="GET" action="{{ url_for('portal.medical_records') }}" class="row g-2 align-items-center">
+    <div class="col-md-5">
+      <div class="input-group">
+        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+        <input type="text" name="q" class="form-control border-start-0" placeholder="Search diagnosis, doctor, medicine..." value="{{ search_q or '' }}">
+      </div>
+    </div>
+    <div class="col-md-4">
+      <select name="type" class="form-select" onchange="this.form.submit()">
+        <option value="ALL" {% if event_filter == 'ALL' %}selected{% endif %}>All Clinical Events</option>
+        <option value="CONSULTATION" {% if event_filter == 'CONSULTATION' %}selected{% endif %}>Consultations & Vitals</option>
+        <option value="PRESCRIPTION" {% if event_filter == 'PRESCRIPTION' %}selected{% endif %}>Prescriptions (Rx)</option>
+        <option value="LAB_REQUEST" {% if event_filter == 'LAB_REQUEST' %}selected{% endif %}>Lab Tests & Diagnostics</option>
+        <option value="CHECK_IN" {% if event_filter == 'CHECK_IN' %}selected{% endif %}>Clinic Check-Ins</option>
+      </select>
+    </div>
+    <div class="col-md-3 text-md-end">
+      <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold w-100 w-md-auto" style="background-color: #2563EB;">
+        Filter Timeline
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Timeline List -->
+{% if events %}
+<div class="timeline-container">
+  {% for ev in events %}
+  <div class="timeline-item">
+    <div class="timeline-dot {% if ev.event_type == 'PRESCRIPTION' %}green{% elif ev.event_type == 'LAB_REQUEST' %}teal{% elif ev.event_type == 'CHECK_IN' %}amber{% endif %}"></div>
+    <div class="card border-0 shadow-sm rounded-4 p-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge {% if ev.event_type == 'CONSULTATION' %}bg-primary-subtle text-primary border border-primary-subtle{% elif ev.event_type == 'PRESCRIPTION' %}bg-success-subtle text-success border border-success-subtle{% elif ev.event_type == 'LAB_REQUEST' %}bg-info-subtle text-info-emphasis border border-info-subtle{% else %}bg-light text-dark border{% endif %} rounded-pill px-3 py-1 font-monospace" style="font-size: 0.75rem;">
+            {{ ev.event_type }}
+          </span>
+          <h6 class="fw-bold text-dark mb-0 fs-6">{{ ev.title }}</h6>
+        </div>
+        <span class="text-muted small">
+          <i class="bi bi-clock me-1"></i>{{ ev.timestamp.strftime('%d %B %Y · %I:%M %p') }}
+        </span>
+      </div>
+
+      <div class="text-muted small mb-2">{{ ev.description }}</div>
+
+      <!-- Action if applicable -->
+      {% if ev.event_type == 'CONSULTATION' %}
+      <div class="mt-2 pt-2 border-top">
+        <a href="{{ url_for('portal.consultation_detail', consultation_id=ev.ref_id) }}" class="small fw-semibold text-primary text-decoration-none">
+          Open Consultation Record →
+        </a>
+      </div>
+      {% elif ev.event_type == 'PRESCRIPTION' %}
+      <div class="mt-2 pt-2 border-top">
+        <a href="{{ url_for('portal.prescription_detail', prescription_id=ev.ref_id) }}" class="small fw-semibold text-success text-decoration-none">
+          View Digital Prescription & QR →
+        </a>
+      </div>
+      {% elif ev.event_type == 'LAB_REQUEST' %}
+      <div class="mt-2 pt-2 border-top">
+        <a href="{{ url_for('portal.lab_report_detail', request_id=ev.ref_id) }}" class="small fw-semibold text-teal text-decoration-none" style="color: #0D9488;">
+          View Diagnostic Results →
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card border-0 shadow-sm rounded-4 text-center py-5" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
+  <div class="py-4">
+    <i class="bi bi-journal-x fs-1 text-muted opacity-25 d-block mb-3"></i>
+    <h5 class="fw-bold text-dark mb-1">No medical records match your criteria</h5>
+    <p class="text-muted small mb-0">Try clearing the search query or selecting "All Clinical Events".</p>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
