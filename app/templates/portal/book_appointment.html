@@ -104,16 +104,16 @@
               <div class="alert alert-warning border rounded-3 small p-3">
                 <i class="bi bi-calendar-x me-1"></i> <strong>Hospital Holiday / Closed:</strong> {{ slot_info.get('holiday_reason') }}
               </div>
-            {% elif not slot_info.get('is_scheduled') %}
+            {% elif not slot_info.get('has_availability') and not slot_info.get('is_scheduled') %}
               <div class="alert alert-light border rounded-3 text-muted small p-3">
                 <i class="bi bi-info-circle me-1"></i> The selected doctor is not on shift on {{ selected_date.strftime('%A') }}s. Please pick another date.
               </div>
             {% elif slot_info.get('slots') %}
               <div class="d-flex flex-wrap gap-2 pt-1">
                 {% for s in slot_info.get('slots') %}
-                  {% if s.is_booked %}
-                    <span class="slot-chip disabled" title="Already booked">
-                      {{ s.time_str }} (Booked)
+                  {% if not s.is_available %}
+                    <span class="slot-chip disabled" title="{{ s.reason }}">
+                      {{ s.time_str }} ({{ s.reason }})
                     </span>
                   {% else %}
                     <span class="slot-chip" onclick="selectSlot('{{ s.time_raw }}', this)">
@@ -125,7 +125,7 @@
               <div class="form-text mt-2 small text-muted">Click a time chip above to select your preferred consultation slot.</div>
             {% else %}
               <div class="alert alert-warning border rounded-3 small p-3">
-                <i class="bi bi-exclamation-triangle me-1"></i> All slots for this date are fully booked.
+                <i class="bi bi-exclamation-triangle me-1"></i> All slots for this date are fully booked or unavailable.
               </div>
             {% endif %}
           </div>

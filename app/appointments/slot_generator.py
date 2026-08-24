@@ -10,6 +10,7 @@ def generate_doctor_slots(doctor_id: int, target_date: date, allow_emergency: bo
         'is_holiday': bool,
         'holiday_reason': str or None,
         'has_availability': bool,
+        'is_scheduled': bool,
         'slots': list of slot dicts
     }
     """
@@ -20,6 +21,7 @@ def generate_doctor_slots(doctor_id: int, target_date: date, allow_emergency: bo
             'is_holiday': True,
             'holiday_reason': holiday.description,
             'has_availability': False,
+            'is_scheduled': False,
             'slots': []
         }
 
@@ -31,13 +33,29 @@ def generate_doctor_slots(doctor_id: int, target_date: date, allow_emergency: bo
         is_active=True
     ).all()
 
-    # If no custom schedule configured, default shift is 09:00 AM to 01:00 PM (Monday-Saturday)
+    # Check if doctor has ever configured any custom schedule
+    has_any_schedule = DoctorAvailability.query.filter_by(
+        doctor_id=doctor_id,
+        is_active=True
+    ).first()
+
     if not availabilities:
+        # If doctor has custom schedule configured but no record for this day, this day is a Day Off
+        if has_any_schedule:
+            return {
+                'is_holiday': False,
+                'holiday_reason': None,
+                'has_availability': False,
+                'is_scheduled': False,
+                'slots': []
+            }
+        # Fallback default schedule if doctor has never configured schedule (Mon-Sat 9am-1pm, Sun off)
         if day_of_week == 6: # Sunday default off
             return {
                 'is_holiday': False,
                 'holiday_reason': None,
                 'has_availability': False,
+                'is_scheduled': False,
                 'slots': []
             }
         # Default shift
@@ -69,6 +87,8 @@ def generate_doctor_slots(doctor_id: int, target_date: date, allow_emergency: bo
     while current_dt < end_dt:
         slot_time = current_dt.time()
         time_str = current_dt.strftime('%I:%M %p')
+        time_24h = current_dt.strftime('%H:%M')
+        time_raw = current_dt.strftime('%H:%M:%S')
         slot_count += 1
 
         # Hold back 2 slots per shift for Emergency (e.g. every 6th slot or last 2 slots)
@@ -80,7 +100,7 @@ def generate_doctor_slots(doctor_id: int, target_date: date, allow_emergency: bo
 
         if is_past:
             is_avail = False
-            reason = 'Past Time'
+            reason = 'Past'
         elif is_booked:
             is_avail = False
             reason = 'Booked'
@@ -94,7 +114,10 @@ def generate_doctor_slots(doctor_id: int, target_date: date, allow_emergency: bo
         slots.append({
             'time': slot_time,
             'time_str': time_str,
+            'time_24h': time_24h,
+            'time_raw': time_raw,
             'is_available': is_avail,
+            'is_booked': not is_avail,
             'is_emergency_reserved': is_emergency,
             'reason': reason
         })
@@ -105,5 +128,6 @@ def generate_doctor_slots(doctor_id: int, target_date: date, allow_emergency: bo
         'is_holiday': False,
         'holiday_reason': None,
         'has_availability': True,
+        'is_scheduled': True,
         'slots': slots
     }
