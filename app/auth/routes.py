@@ -112,6 +112,10 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('auth.dashboard'))
 
+    portal = request.args.get('portal', 'patient')
+    if request.method == 'POST':
+        portal = request.form.get('portal', portal)
+
     form = LoginForm()
     if form.validate_on_submit():
         email = form.email.data.strip().lower()
@@ -163,18 +167,18 @@ def login():
         if not user:
             log_login_activity(email_attempted=email, status='FAILED', failure_reason='User account not found')
             flash('Invalid email address or password.', 'danger')
-            return render_template('auth/login.html', form=form)
+            return render_template('auth/login.html', form=form, portal=portal)
 
         if not user.is_active:
             log_login_activity(email_attempted=email, status='FAILED', user=user, failure_reason='Account deactivated')
             flash('Your account has been deactivated. Please contact the administrator.', 'warning')
-            return render_template('auth/login.html', form=form)
+            return render_template('auth/login.html', form=form, portal=portal)
 
         if user.is_account_locked():
             remaining_mins = int((user.locked_until - datetime.utcnow()).total_seconds() // 60) + 1
             log_login_activity(email_attempted=email, status='LOCKED', user=user, failure_reason='Account locked due to consecutive failed attempts')
             flash(f'Account locked due to multiple failed login attempts. Try again in {remaining_mins} minute(s).', 'danger')
-            return render_template('auth/login.html', form=form)
+            return render_template('auth/login.html', form=form, portal=portal)
 
         if user.check_password(password):
             user.reset_failed_attempts()
@@ -199,7 +203,7 @@ def login():
                 log_login_activity(email_attempted=email, status='FAILED', user=user, failure_reason='Incorrect password')
                 flash(f'Invalid email or password. Remaining attempts before lockout: {attempts_left}', 'danger')
 
-    return render_template('auth/login.html', form=form)
+    return render_template('auth/login.html', form=form, portal=portal)
 
 
 @auth_bp.route('/logout')

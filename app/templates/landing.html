@@ -1585,37 +1585,85 @@
   </footer>
 
   <!-- ============================================================
-       9. Unified Patient Portal Authentication Modal
+       9. Unified MediCore+ Login Portal Authentication Modal
   ============================================================ -->
   <div class="modal fade" id="patientPortalAuthModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-        <div class="modal-header text-white border-0 py-3" style="background: linear-gradient(135deg, #1E40AF, #0D9488) !important;">
+        <div class="modal-header text-white border-0 py-3 px-4" style="background: linear-gradient(135deg, #1E40AF, #0D9488) !important;">
           <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-shield-lock-fill fs-5"></i>
-            <h5 class="modal-title fw-bold mb-0">MediCore+ Patient Portal</h5>
+            <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">
+              <i class="bi bi-shield-lock-fill text-white fs-6"></i>
+            </div>
+            <div>
+              <h5 class="modal-title fw-bold mb-0" style="font-size: 1.15rem;">MediCore+ Access Portals</h5>
+              <div style="font-size: 0.72rem; opacity: 0.9; font-weight: 500;">Select your designated healthcare portal below</div>
+            </div>
           </div>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div class="modal-body p-4 text-center">
-          <p class="text-muted small mb-4">
-            Access your verified health records, view doctor prescriptions, download lab reports, and manage appointment bookings.
-          </p>
+        <div class="modal-body p-4 p-md-5">
+          <div class="row g-4">
+            
+            <!-- Patient Health Portal Card -->
+            <div class="col-md-6">
+              <div class="h-100 p-4 rounded-4 border d-flex flex-column justify-content-between" style="background: #F8FAFC; border-color: #E2E8F0 !important;">
+                <div>
+                  <div class="d-flex align-items-center gap-2.5 mb-3">
+                    <div style="width: 42px; height: 42px; border-radius: 12px; background: #EFF6FF; color: #1E40AF; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                      <i class="bi bi-person-heart"></i>
+                    </div>
+                    <div>
+                      <h5 class="fw-bold text-dark mb-0" style="font-size: 1.05rem;">Patient Portal</h5>
+                      <span class="badge bg-primary-subtle text-primary fw-bold px-2 py-0.5 rounded-pill" style="font-size: 0.68rem;">Self-Service</span>
+                    </div>
+                  </div>
+                  <p class="text-muted small mb-4" style="font-size: 0.85rem; line-height: 1.5;">
+                    Access your personal health records, view doctor prescriptions, download lab reports, and manage appointment bookings.
+                  </p>
+                </div>
 
-          <div class="d-grid gap-3 mb-4">
-            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg rounded-pill fw-bold py-2.5" style="background-color: #1E40AF; font-size: 0.95rem;">
-              <i class="bi bi-box-arrow-in-right me-2"></i> Sign In to Patient Portal
-            </a>
-            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-lg rounded-pill fw-bold py-2.5" style="border-width: 1.5px; font-size: 0.95rem;">
-              <i class="bi bi-person-plus-fill me-2"></i> Create Patient Account
-            </a>
-          </div>
-
-          <div class="p-3 bg-light rounded-3 text-start border">
-            <div class="text-muted fw-bold small mb-1 text-uppercase" style="font-size: 0.68rem;">Hospital Staff & Clinical Access</div>
-            <div class="small text-muted">
-              Staff members and medical practitioners should use the <a href="{{ url_for('auth.login') }}" class="text-primary fw-semibold">Staff Sign In</a> with institutional credentials.
+                <div class="d-grid gap-2">
+                  <a href="{{ url_for('auth.login', portal='patient') }}" class="btn btn-primary rounded-pill fw-bold py-2.5 shadow-sm" style="background-color: #1E40AF; font-size: 0.9rem;">
+                    <i class="bi bi-box-arrow-in-right me-1.5"></i> Sign In to Patient Portal
+                  </a>
+                  <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary rounded-pill fw-bold py-2.5" style="border-width: 1.5px; font-size: 0.9rem;">
+                    <i class="bi bi-person-plus-fill me-1.5"></i> Create Patient Account
+                  </a>
+                </div>
+              </div>
             </div>
+
+            <!-- Hospital Staff & Clinical Portal Card -->
+            <div class="col-md-6">
+              <div class="h-100 p-4 rounded-4 border d-flex flex-column justify-content-between" style="background: #F8FAFC; border-color: #E2E8F0 !important;">
+                <div>
+                  <div class="d-flex align-items-center gap-2.5 mb-3">
+                    <div style="width: 42px; height: 42px; border-radius: 12px; background: #F0FDF4; color: #0D9488; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                      <i class="bi bi-hospital"></i>
+                    </div>
+                    <div>
+                      <h5 class="fw-bold text-dark mb-0" style="font-size: 1.05rem;">Staff &amp; Clinical Portal</h5>
+                      <span class="badge bg-success-subtle text-success fw-bold px-2 py-0.5 rounded-pill" style="font-size: 0.68rem;">Institutional</span>
+                    </div>
+                  </div>
+                  <p class="text-muted small mb-3" style="font-size: 0.85rem; line-height: 1.5;">
+                    Secure workspace for Physicians, Receptionists, Lab Technicians, and Hospital System Administrators.
+                  </p>
+                  <div class="p-2.5 bg-white rounded-3 border mb-4">
+                    <div class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Institutional Policy</div>
+                    <div class="text-secondary" style="font-size: 0.76rem;">Staff accounts are provisioned exclusively by Hospital Administrators. Self-registration is disabled.</div>
+                  </div>
+                </div>
+
+                <div class="d-grid">
+                  <a href="{{ url_for('auth.login', portal='staff') }}" class="btn btn-dark rounded-pill fw-bold py-2.5 shadow-sm" style="background-color: #0F172A; font-size: 0.9rem;">
+                    <i class="bi bi-shield-lock-fill me-1.5 text-warning"></i> Sign In to Staff Portal
+                  </a>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
