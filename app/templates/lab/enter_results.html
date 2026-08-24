@@ -10,7 +10,8 @@
         <span class="badge bg-dark font-monospace fs-5 px-3 py-2">{{ lab_req.request_code }}</span>
         <h3 class="fw-bold mb-0">Laboratory Test Results Entry</h3>
       </div>
-      <p class="text-muted mb-0">Patient: {{ lab_req.patient.full_name }} ({{ lab_req.patient.patient_code }}) | Ordered By: {{ lab_req.doctor.name }}</p>
+      <p class="text-muted mb-0">Patient: {{ lab_req.patient.full_name }} ({{ lab_req.patient.patient_code }}) | Ordered
+        By: {{ lab_req.doctor.name }}</p>
     </div>
     <a href="{{ url_for('lab.tech_desk') }}" class="btn btn-outline-secondary">
       <i class="bi bi-arrow-left me-1"></i> Tech Desk
@@ -40,21 +41,26 @@
               <tr>
                 <td>
                   <div class="fw-bold text-dark">{{ res.test_type.test_name }}</div>
-                  <small class="text-muted font-monospace">{{ res.test_type.test_code }} ({{ res.test_type.category }})</small>
+                  <small class="text-muted font-monospace">{{ res.test_type.test_code }} ({{ res.test_type.category
+                    }})</small>
                 </td>
                 <td>
                   <span class="badge bg-secondary font-monospace">
-                    {{ res.test_type.min_normal_val or '0' }} - {{ res.test_type.max_normal_val or 'N/A' }} {{ res.test_type.unit }}
+                    {{ res.test_type.min_normal_val or '0' }} - {{ res.test_type.max_normal_val or 'N/A' }} {{
+                    res.test_type.unit }}
                   </span>
                 </td>
                 <td>
                   <div class="input-group input-group-sm">
-                    <input type="number" step="0.01" name="result_val_{{ res.id }}" value="{{ res.result_value if res.result_value > 0 else '' }}" class="form-control fw-bold" placeholder="e.g. 14.5" required>
+                    <input type="number" step="0.01" name="result_val_{{ res.id }}"
+                      value="{{ res.result_value if res.result_value > 0 else '' }}" class="form-control fw-bold"
+                      placeholder="e.g. 14.5" required>
                     <span class="input-group-text small">{{ res.test_type.unit or '' }}</span>
                   </div>
                 </td>
                 <td>
-                  <input type="text" name="remarks_{{ res.id }}" value="{{ res.remarks or '' }}" class="form-control form-control-sm" placeholder="Optional notes...">
+                  <input type="text" name="remarks_{{ res.id }}" value="{{ res.remarks or '' }}"
+                    class="form-control form-control-sm" placeholder="Optional notes...">
                 </td>
               </tr>
               {% endfor %}

@@ -10,14 +10,16 @@
         <span class="badge bg-dark font-monospace fs-5 px-3 py-2">{{ lab_req.request_code }}</span>
         <h3 class="fw-bold mb-0">Laboratory Investigation Report</h3>
       </div>
-      <p class="text-muted mb-0">Patient: {{ lab_req.patient.full_name }} | Ordering Doctor: {{ lab_req.doctor.name }}</p>
+      <p class="text-muted mb-0">Patient: {{ lab_req.patient.full_name }} | Ordering Doctor: {{ lab_req.doctor.name }}
+      </p>
     </div>
     <div class="d-flex gap-2">
       <a href="{{ url_for('lab.list_requests') }}" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left me-1"></i> Directory
       </a>
       {% if lab_req.status == 'COMPLETED' %}
-      <a href="{{ url_for('lab.print_report', request_id=lab_req.id) }}" target="_blank" class="btn btn-primary-custom" style="width: auto;">
+      <a href="{{ url_for('lab.print_report', request_id=lab_req.id) }}" target="_blank" class="btn btn-primary-custom"
+        style="width: auto;">
         <i class="bi bi-printer-fill me-1"></i> Print / Download PDF
       </a>
       {% endif %}
@@ -28,14 +30,17 @@
     <div class="card-header bg-white p-4 border-bottom">
       <div class="d-flex justify-content-between align-items-center">
         <div>
-          <h4 class="fw-bold text-primary mb-1"><i class="bi bi-hospital me-2"></i> IPCMS CLINICAL DIAGNOSTICS LABORATORY</h4>
+          <h4 class="fw-bold text-primary mb-1"><i class="bi bi-hospital me-2"></i> IPCMS CLINICAL DIAGNOSTICS
+            LABORATORY</h4>
           <small class="text-muted d-block">Accredited Multi-Specialty Pathology & Radiology Services</small>
         </div>
         <div>
           {% if lab_req.status == 'COMPLETED' %}
-            <span class="badge bg-success fs-6 px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i> REPORT FINALIZED</span>
+          <span class="badge bg-success fs-6 px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i> REPORT
+            FINALIZED</span>
           {% else %}
-            <span class="badge bg-warning text-dark fs-6 px-3 py-2"><i class="bi bi-clock me-1"></i> {{ lab_req.status }}</span>
+          <span class="badge bg-warning text-dark fs-6 px-3 py-2"><i class="bi bi-clock me-1"></i> {{ lab_req.status
+            }}</span>
           {% endif %}
         </div>
       </div>
@@ -51,7 +56,8 @@
         </div>
         <div class="col-md-3">
           <small class="text-muted d-block fw-bold">Gender & Age</small>
-          <div class="fw-semibold">{{ lab_req.patient.gender }} (DOB: {{ lab_req.patient.dob.strftime('%Y-%m-%d') }})</div>
+          <div class="fw-semibold">{{ lab_req.patient.gender }} (DOB: {{ lab_req.patient.dob.strftime('%Y-%m-%d') }})
+          </div>
         </div>
         <div class="col-md-3">
           <small class="text-muted d-block fw-bold">Requisition Date</small>
@@ -66,7 +72,8 @@
 
     <!-- Results Parameters Table -->
     <div class="card-body p-4">
-      <h5 class="fw-bold text-dark mb-3"><i class="bi bi-file-earmark-spreadsheet me-2 text-primary"></i> Measured Test Parameters</h5>
+      <h5 class="fw-bold text-dark mb-3"><i class="bi bi-file-earmark-spreadsheet me-2 text-primary"></i> Measured Test
+        Parameters</h5>
 
       <div class="table-responsive mb-4">
         <table class="table table-bordered table-hover align-middle mb-0">
@@ -85,23 +92,29 @@
               <td><span class="fw-bold text-muted">{{ loop.index }}</span></td>
               <td>
                 <div class="fw-bold text-dark">{{ res.test_type.test_name }}</div>
-                <small class="text-muted font-monospace">{{ res.test_type.test_code }} ({{ res.test_type.category }})</small>
+                <small class="text-muted font-monospace">{{ res.test_type.test_code }} ({{ res.test_type.category
+                  }})</small>
               </td>
               <td>
-                <span class="fw-bold fs-6">{{ res.result_value }}</span> <small class="text-muted">{{ res.test_type.unit or '' }}</small>
+                <span class="fw-bold fs-6">{{ res.result_value }}</span> <small class="text-muted">{{ res.test_type.unit
+                  or '' }}</small>
               </td>
               <td>
                 <small class="badge bg-light text-dark border font-monospace me-1">
-                  {{ res.test_type.min_normal_val or '0' }} - {{ res.test_type.max_normal_val or 'N/A' }} {{ res.test_type.unit }}
+                  {{ res.test_type.min_normal_val or '0' }} - {{ res.test_type.max_normal_val or 'N/A' }} {{
+                  res.test_type.unit }}
                 </small>
               </td>
               <td>
                 {% if res.abnormal_flag == 'ABNORMAL_HIGH' %}
-                  <span class="badge bg-danger px-3 py-2"><i class="bi bi-arrow-up-circle-fill me-1"></i> ABNORMAL HIGH</span>
+                <span class="badge bg-danger px-3 py-2"><i class="bi bi-arrow-up-circle-fill me-1"></i> ABNORMAL
+                  HIGH</span>
                 {% elif res.abnormal_flag == 'ABNORMAL_LOW' %}
-                  <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-arrow-down-circle-fill me-1"></i> ABNORMAL LOW</span>
+                <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-arrow-down-circle-fill me-1"></i>
+                  ABNORMAL LOW</span>
                 {% else %}
-                  <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i> NORMAL</span>
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2"><i
+                    class="bi bi-check-circle-fill me-1"></i> NORMAL</span>
                 {% endif %}
               </td>
             </tr>

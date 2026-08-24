@@ -9,7 +9,9 @@
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
   <!-- Bootstrap 5.3 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -31,7 +33,9 @@
       --card-shadow-hover: 0 12px 30px rgba(15, 23, 42, 0.08);
     }
 
-    *, *::before, *::after {
+    *,
+    *::before,
+    *::after {
       box-sizing: border-box;
     }
 
@@ -111,7 +115,8 @@
       transition: color 0.2s ease;
     }
 
-    .nav-link-item:hover, .nav-link-item.active {
+    .nav-link-item:hover,
+    .nav-link-item.active {
       color: var(--primary-blue) !important;
     }
 
@@ -185,7 +190,7 @@
       border-bottom: 1px solid var(--border-color);
     }
 
-    .hero-wrapper > .container {
+    .hero-wrapper>.container {
       position: relative;
       z-index: 2;
     }
@@ -214,8 +219,13 @@
     }
 
     @keyframes gridDrift {
-      0% { background-position: 0 0, 0 0; }
-      100% { background-position: 88px 44px, 88px 44px; }
+      0% {
+        background-position: 0 0, 0 0;
+      }
+
+      100% {
+        background-position: 88px 44px, 88px 44px;
+      }
     }
 
     .hero-orb {
@@ -257,9 +267,19 @@
     }
 
     @keyframes orbFloat {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      33% { transform: translate(34px, -42px) scale(1.08); }
-      66% { transform: translate(-28px, 30px) scale(0.94); }
+
+      0%,
+      100% {
+        transform: translate(0, 0) scale(1);
+      }
+
+      33% {
+        transform: translate(34px, -42px) scale(1.08);
+      }
+
+      66% {
+        transform: translate(-28px, 30px) scale(0.94);
+      }
     }
 
     .hero-particle {
@@ -280,14 +300,30 @@
     }
 
     @keyframes particleRise {
-      0% { transform: translateY(0) translateX(0); opacity: 0; }
-      12% { opacity: 0.65; }
-      88% { opacity: 0.55; }
-      100% { transform: translateY(-560px) translateX(30px); opacity: 0; }
+      0% {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+      }
+
+      12% {
+        opacity: 0.65;
+      }
+
+      88% {
+        opacity: 0.55;
+      }
+
+      100% {
+        transform: translateY(-560px) translateX(30px);
+        opacity: 0;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .hero-grid-overlay, .hero-orb, .hero-particle {
+
+      .hero-grid-overlay,
+      .hero-orb,
+      .hero-particle {
         animation: none !important;
       }
     }
@@ -352,8 +388,15 @@
     }
 
     @keyframes ctaPulseGlow {
-      0%, 100% { box-shadow: 0 4px 16px rgba(30, 64, 175, 0.25); }
-      50% { box-shadow: 0 4px 22px rgba(30, 64, 175, 0.45); }
+
+      0%,
+      100% {
+        box-shadow: 0 4px 16px rgba(30, 64, 175, 0.25);
+      }
+
+      50% {
+        box-shadow: 0 4px 22px rgba(30, 64, 175, 0.45);
+      }
     }
 
     .btn-cta-primary:hover {
@@ -723,8 +766,13 @@
       border-color: var(--primary-blue);
     }
 
-    .nav-btn-3d.prev { left: 10px; }
-    .nav-btn-3d.next { right: 10px; }
+    .nav-btn-3d.prev {
+      left: 10px;
+    }
+
+    .nav-btn-3d.next {
+      right: 10px;
+    }
 
     .dots-3d-container {
       display: flex;
@@ -779,7 +827,7 @@
       bottom: -20px;
       width: 200px;
       height: 200px;
-      background: radial-gradient(circle, rgba(13, 148, 136, 0.25) 0%, rgba(0,0,0,0) 70%);
+      background: radial-gradient(circle, rgba(13, 148, 136, 0.25) 0%, rgba(0, 0, 0, 0) 70%);
       border-radius: 50%;
     }
 
@@ -939,7 +987,12 @@
 
     /* Reduced Motion */
     @media (prefers-reduced-motion: reduce) {
-      .scroll-reveal, .hero-slide, .card-3d, .btn-patient-portal, .btn-cta-primary {
+
+      .scroll-reveal,
+      .hero-slide,
+      .card-3d,
+      .btn-patient-portal,
+      .btn-cta-primary {
         transition: none !important;
         transform: none !important;
         opacity: 1 !important;
@@ -952,29 +1005,40 @@
       .hero-main-title {
         font-size: 2.5rem;
       }
+
       .hero-photo-stage {
         height: 380px;
       }
+
       .stage-3d-wrapper {
         min-height: 420px;
       }
-      .nav-btn-3d.prev { left: 0px; }
-      .nav-btn-3d.next { right: 0px; }
+
+      .nav-btn-3d.prev {
+        left: 0px;
+      }
+
+      .nav-btn-3d.next {
+        right: 0px;
+      }
     }
 
     @media (max-width: 767.98px) {
       .hero-main-title {
         font-size: 2.1rem;
       }
+
       .cta-group {
         flex-direction: column;
         align-items: stretch;
       }
+
       .hero-stats-strip {
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
       }
+
       .portal-cta-banner {
         padding: 32px 24px;
       }
@@ -1002,7 +1066,8 @@
       </a>
 
       <!-- Mobile Toggle -->
-      <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#medicoreNav">
+      <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
+        data-bs-target="#medicoreNav">
         <span class="navbar-toggler-icon"></span>
       </button>
 
@@ -1042,15 +1107,18 @@
           <div class="d-flex align-items-center gap-2">
             <a href="{{ url_for('auth.dashboard') }}" class="btn-patient-portal" title="Go to Dashboard">
               <i class="bi bi-person-circle"></i>
-              <span>{{ current_user.name.split(' ')[0] }} ({{ current_user.role.name if current_user.role else 'User' }})</span>
+              <span>{{ current_user.name.split(' ')[0] }} ({{ current_user.role.name if current_user.role else 'User'
+                }})</span>
             </a>
-            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-2 fw-semibold" title="Sign Out">
+            <a href="{{ url_for('auth.logout') }}"
+              class="btn btn-outline-danger btn-sm rounded-pill px-3 py-2 fw-semibold" title="Sign Out">
               <i class="bi bi-box-arrow-right"></i>
             </a>
           </div>
           {% else %}
           <!-- ONE Unified Primary Button: Patient Portal -->
-          <button type="button" class="btn-patient-portal" data-bs-toggle="modal" data-bs-target="#patientPortalAuthModal">
+          <button type="button" class="btn-patient-portal" data-bs-toggle="modal"
+            data-bs-target="#patientPortalAuthModal">
             <i class="bi bi-shield-lock-fill"></i>
             <span>Login Portal</span>
           </button>
@@ -1094,7 +1162,8 @@
           </h1>
 
           <p class="hero-lead-text">
-            Advanced medical care with compassion, innovation and clinical expertise — connecting patients, doctors, and diagnostics in one unified healthcare ecosystem.
+            Advanced medical care with compassion, innovation and clinical expertise — connecting patients, doctors, and
+            diagnostics in one unified healthcare ecosystem.
           </p>
 
           <div class="cta-group">
@@ -1117,14 +1186,16 @@
               </div>
             </div>
             <div class="hero-stat-item">
-              <div class="hero-stat-icon" style="background:#ECFDF5; color:#059669;"><i class="bi bi-shield-lock-fill"></i></div>
+              <div class="hero-stat-icon" style="background:#ECFDF5; color:#059669;"><i
+                  class="bi bi-shield-lock-fill"></i></div>
               <div>
                 <div class="hero-stat-val">100%</div>
                 <div class="hero-stat-lbl">Encrypted EHR</div>
               </div>
             </div>
             <div class="hero-stat-item">
-              <div class="hero-stat-icon" style="background:#FFFBEB; color:#D97706;"><i class="bi bi-clock-history"></i></div>
+              <div class="hero-stat-icon" style="background:#FFFBEB; color:#D97706;"><i class="bi bi-clock-history"></i>
+              </div>
               <div>
                 <div class="hero-stat-val">24/7</div>
                 <div class="hero-stat-lbl">Emergency Desk</div>
@@ -1137,11 +1208,39 @@
         <div class="col-lg-6">
           <div class="hero-photo-stage" id="heroPhotoStage">
             <!-- Slideshow Images -->
-            <img src="{{ url_for('static', filename='images/hero_doctor_patient.jpg') }}" alt="Doctor Patient Consultation" class="hero-slide active">
-            <img src="{{ url_for('static', filename='images/hero_doctor_child.jpg') }}" alt="Pediatric Healthcare Care" class="hero-slide">
-            <img src="{{ url_for('static', filename='images/hero_doctor_elderly.jpg') }}" alt="Senior Geriatric Care" class="hero-slide">
-            <img src="{{ url_for('static', filename='images/hero_laboratory.jpg') }}" alt="Diagnostic Laboratory Testing" class="hero-slide">
-            <img src="{{ url_for('static', filename='images/hero_ultrasound.jpg') }}" alt="Modern Clinical Imaging" class="hero-slide">
+            <img src="{{ url_for('static', filename='images/hero_doctor_patient.jpg') }}"
+              alt="Doctor Patient Consultation" class="hero-slide active">
+            <img src="{{ url_for('static', filename='images/hero_doctor_child.jpg') }}" alt="Pediatric Healthcare Care"
+              class="hero-slide">
+            <img src="{{ url_for('static', filename='images/hero_doctor_elderly.jpg') }}" alt="Senior Geriatric Care"
+              class="hero-slide">
+            <img src="{{ url_for('static', filename='images/hero_laboratory.jpg') }}"
+              alt="Diagnostic Laboratory Testing" class="hero-slide">
+            <img src="{{ url_for('static', filename='images/hero_ultrasound.jpg') }}" alt="Modern Clinical Imaging"
+              class="hero-slide">
+
+            <!-- Floating Card Top -->
+            <div class="hero-floating-card hero-float-top">
+              <div class="hero-float-icon" style="background: #ECFDF5; color: #059669;">
+                <i class="bi bi-check-circle-fill"></i>
+              </div>
+              <div>
+                <div class="fw-bold text-dark" style="font-size: 0.85rem;">OPD Queue Active</div>
+                <div class="text-muted" style="font-size: 0.72rem;">Live TV Token Board</div>
+              </div>
+            </div>
+
+            <!-- Floating Card Bottom -->
+            <div class="hero-floating-card hero-float-bottom">
+              <div class="hero-float-icon" style="background: #EFF6FF; color: #2563EB;">
+                <i class="bi bi-shield-check"></i>
+              </div>
+              <div>
+                <div class="fw-bold text-dark" style="font-size: 0.85rem;">Instant Digital Rx</div>
+                <div class="text-muted" style="font-size: 0.72rem;">QR Authenticated</div>
+              </div>
+            </div>
+
             <!-- Indicators -->
             <div class="hero-dots-indicator" id="heroDots">
               <span class="hero-dot active" onclick="setHeroSlide(0)"></span>
@@ -1167,13 +1266,15 @@
         <!-- Left Video with Depth Badge -->
         <div class="col-lg-5">
           <div class="trust-photo-box">
-            <video autoplay loop muted playsinline poster="{{ url_for('static', filename='images/hero_doctor_elderly.jpg') }}">
+            <video autoplay loop muted playsinline
+              poster="{{ url_for('static', filename='images/hero_doctor_elderly.jpg') }}">
               <source src="{{ url_for('static', filename='videos/hero_video.mp4') }}" type="video/mp4">
               Your browser does not support the video tag.
             </video>
             <div class="trust-pill-badge">
               <div class="d-flex align-items-center gap-3">
-                <div style="width: 40px; height: 40px; border-radius: 10px; background: #EFF6FF; color: #1E40AF; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                <div
+                  style="width: 40px; height: 40px; border-radius: 10px; background: #EFF6FF; color: #1E40AF; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
                   <i class="bi bi-star-fill text-warning"></i>
                 </div>
                 <div>
@@ -1188,14 +1289,16 @@
         <!-- Right Value Propositions -->
         <div class="col-lg-7">
           <div class="ps-lg-3">
-            <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill fw-bold text-uppercase mb-2" style="font-size: 0.75rem;">
+            <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill fw-bold text-uppercase mb-2"
+              style="font-size: 0.75rem;">
               Why Choose MediCore+
             </span>
             <h2 class="fw-bold text-dark mb-3" style="font-size: 2.2rem; letter-spacing: -0.5px;">
               Compassionate Healthcare Powered by Clinical Precision
             </h2>
             <p class="text-muted mb-4" style="font-size: 1.02rem;">
-              We combine world-class medical specialists with state-of-the-art diagnostic technology to deliver personalized, dignifying care for every patient and family.
+              We combine world-class medical specialists with state-of-the-art diagnostic technology to deliver
+              personalized, dignifying care for every patient and family.
             </p>
 
             <div class="row g-3">
@@ -1206,7 +1309,8 @@
                   </div>
                   <div>
                     <h6 class="fw-bold text-dark mb-1">Patient-First Philosophy</h6>
-                    <p class="text-muted small mb-0">Empathetic doctor consultations tailored to your individual health journey.</p>
+                    <p class="text-muted small mb-0">Empathetic doctor consultations tailored to your individual health
+                      journey.</p>
                   </div>
                 </div>
               </div>
@@ -1218,7 +1322,8 @@
                   </div>
                   <div>
                     <h6 class="fw-bold text-dark mb-1">Integrated Digital Health</h6>
-                    <p class="text-muted small mb-0">Encrypted medical records, digital QR prescriptions, and online lab reports.</p>
+                    <p class="text-muted small mb-0">Encrypted medical records, digital QR prescriptions, and online lab
+                      reports.</p>
                   </div>
                 </div>
               </div>
@@ -1230,7 +1335,8 @@
                   </div>
                   <div>
                     <h6 class="fw-bold text-dark mb-1">Board-Certified Specialists</h6>
-                    <p class="text-muted small mb-0">Leading surgeons, physicians, and pediatric specialists under one roof.</p>
+                    <p class="text-muted small mb-0">Leading surgeons, physicians, and pediatric specialists under one
+                      roof.</p>
                   </div>
                 </div>
               </div>
@@ -1242,7 +1348,8 @@
                   </div>
                   <div>
                     <h6 class="fw-bold text-dark mb-1">24/7 Rapid Emergency</h6>
-                    <p class="text-muted small mb-0">Dedicated trauma resuscitation, ambulance dispatch, and critical care units.</p>
+                    <p class="text-muted small mb-0">Dedicated trauma resuscitation, ambulance dispatch, and critical
+                      care units.</p>
                   </div>
                 </div>
               </div>
@@ -1260,14 +1367,16 @@
   <section class="doctors-section scroll-reveal" id="doctors">
     <div class="container px-lg-4">
       <div class="text-center max-w-700 mx-auto mb-4">
-        <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill fw-bold text-uppercase mb-2" style="font-size: 0.75rem;">
+        <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill fw-bold text-uppercase mb-2"
+          style="font-size: 0.75rem;">
           Medical Faculty
         </span>
         <h2 class="fw-bold text-dark" style="font-size: 2.2rem; letter-spacing: -0.5px;">
           Meet Your Dedicated Care Specialists
         </h2>
         <p class="text-muted" style="font-size: 1rem; max-width: 620px; margin: 0 auto;">
-          From your first OPD consultation to ongoing wellness care, our specialists tailor treatment to your unique clinical profile.
+          From your first OPD consultation to ongoing wellness care, our specialists tailor treatment to your unique
+          clinical profile.
         </p>
       </div>
 
@@ -1299,14 +1408,16 @@
   <section class="services-section scroll-reveal" id="services">
     <div class="container px-lg-4">
       <div class="text-center max-w-700 mx-auto mb-5">
-        <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill fw-bold text-uppercase mb-2" style="font-size: 0.75rem;">
+        <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill fw-bold text-uppercase mb-2"
+          style="font-size: 0.75rem;">
           Clinical Excellence
         </span>
         <h2 class="fw-bold text-dark" style="font-size: 2.2rem; letter-spacing: -0.5px;">
           Comprehensive Healthcare Services
         </h2>
         <p class="text-muted" style="font-size: 1rem; max-width: 640px; margin: 0 auto;">
-          From routine preventive screenings to complex surgical interventions, our departments operate under rigorous clinical safety protocols.
+          From routine preventive screenings to complex surgical interventions, our departments operate under rigorous
+          clinical safety protocols.
         </p>
       </div>
 
@@ -1315,21 +1426,27 @@
         <div class="col-lg-6">
           <div class="service-card-featured">
             <div>
-              <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" style="background: rgba(255,255,255,0.15); font-size: 0.75rem; font-weight: 700;">
+              <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3"
+                style="background: rgba(255,255,255,0.15); font-size: 0.75rem; font-weight: 700;">
                 <i class="bi bi-award-fill text-warning"></i> NABL ACCREDITED
               </div>
               <h3 class="fw-bold mb-2" style="font-size: 1.7rem;">Advanced Pathology & Diagnostics</h3>
               <p class="opacity-90 mb-4" style="font-size: 0.95rem;">
-                State-of-the-art automated hematology, biochemistry, molecular testing, and ultrasound diagnostics with instant patient portal report delivery.
+                State-of-the-art automated hematology, biochemistry, molecular testing, and ultrasound diagnostics with
+                instant patient portal report delivery.
               </p>
               <ul class="list-unstyled mb-4 small opacity-90">
-                <li class="mb-2"><i class="bi bi-check-circle-fill text-teal me-2" style="color: #5EEAD4;"></i> Routine & Specialized Blood Panels (CBC, LFT, KFT, Lipid Profile)</li>
-                <li class="mb-2"><i class="bi bi-check-circle-fill text-teal me-2" style="color: #5EEAD4;"></i> Digital Radiology & High-Resolution Ultrasound Imaging</li>
-                <li><i class="bi bi-check-circle-fill text-teal me-2" style="color: #5EEAD4;"></i> Same-Day Verified Results with Secure Downloadable PDFs</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-teal me-2" style="color: #5EEAD4;"></i> Routine
+                  & Specialized Blood Panels (CBC, LFT, KFT, Lipid Profile)</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-teal me-2" style="color: #5EEAD4;"></i> Digital
+                  Radiology & High-Resolution Ultrasound Imaging</li>
+                <li><i class="bi bi-check-circle-fill text-teal me-2" style="color: #5EEAD4;"></i> Same-Day Verified
+                  Results with Secure Downloadable PDFs</li>
               </ul>
             </div>
 
-            <div class="d-flex align-items-center justify-content-between pt-3 border-top" style="border-color: rgba(255,255,255,0.15) !important;">
+            <div class="d-flex align-items-center justify-content-between pt-3 border-top"
+              style="border-color: rgba(255,255,255,0.15) !important;">
               <span class="small opacity-75">Available 24/7 for Emergency Diagnostics</span>
               <a href="#doctors" class="btn btn-sm btn-light rounded-pill px-3 py-1.5 fw-bold text-dark">
                 Book Test →
@@ -1348,7 +1465,8 @@
                   <i class="bi bi-heart-pulse-fill"></i>
                 </div>
                 <h5 class="fw-bold text-dark mb-1" style="font-size: 1.05rem;">Cardiology & Heart Care</h5>
-                <p class="text-muted small mb-0">Non-invasive cardiac evaluation, ECG, 2D Echo, and preventive hypertension management.</p>
+                <p class="text-muted small mb-0">Non-invasive cardiac evaluation, ECG, 2D Echo, and preventive
+                  hypertension management.</p>
               </div>
             </div>
 
@@ -1359,7 +1477,8 @@
                   <i class="bi bi-emoji-smile-fill"></i>
                 </div>
                 <h5 class="fw-bold text-dark mb-1" style="font-size: 1.05rem;">Pediatrics & Neonatology</h5>
-                <p class="text-muted small mb-0">Comprehensive well-baby checkups, childhood immunization, and acute illness treatment.</p>
+                <p class="text-muted small mb-0">Comprehensive well-baby checkups, childhood immunization, and acute
+                  illness treatment.</p>
               </div>
             </div>
 
@@ -1370,7 +1489,8 @@
                   <i class="bi bi-person-walking"></i>
                 </div>
                 <h5 class="fw-bold text-dark mb-1" style="font-size: 1.05rem;">Orthopedics & Joint Care</h5>
-                <p class="text-muted small mb-0">Arthroscopy, fracture management, joint rehabilitation, and spinal wellness therapy.</p>
+                <p class="text-muted small mb-0">Arthroscopy, fracture management, joint rehabilitation, and spinal
+                  wellness therapy.</p>
               </div>
             </div>
 
@@ -1381,7 +1501,8 @@
                   <i class="bi bi-truck-front-fill"></i>
                 </div>
                 <h5 class="fw-bold text-dark mb-1" style="font-size: 1.05rem;">24/7 Critical & Trauma Care</h5>
-                <p class="text-muted small mb-0">Rapid triage, resuscitation bays, dedicated ICU beds, and on-call trauma surgeons.</p>
+                <p class="text-muted small mb-0">Rapid triage, resuscitation bays, dedicated ICU beds, and on-call
+                  trauma surgeons.</p>
               </div>
             </div>
           </div>
@@ -1396,14 +1517,16 @@
   <section class="departments-section scroll-reveal" id="departments">
     <div class="container px-lg-4">
       <div class="text-center max-w-700 mx-auto mb-5">
-        <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill fw-bold text-uppercase mb-2" style="font-size: 0.75rem;">
+        <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill fw-bold text-uppercase mb-2"
+          style="font-size: 0.75rem;">
           Clinical Ecosystem
         </span>
         <h2 class="fw-bold text-dark" style="font-size: 2.2rem; letter-spacing: -0.5px;">
           Specialized Hospital Departments
         </h2>
         <p class="text-muted" style="font-size: 1rem; max-width: 640px; margin: 0 auto;">
-          Explore our seamlessly integrated hospital departments working in harmony to deliver compassionate patient care.
+          Explore our seamlessly integrated hospital departments working in harmony to deliver compassionate patient
+          care.
         </p>
       </div>
 
@@ -1414,7 +1537,8 @@
             <i class="bi bi-person-badge fs-5"></i>
             <div>
               <div>Outpatient Consultations (OPD)</div>
-              <small class="opacity-75 d-block fw-normal" style="font-size: 0.72rem;">Multi-specialty daily clinics</small>
+              <small class="opacity-75 d-block fw-normal" style="font-size: 0.72rem;">Multi-specialty daily
+                clinics</small>
             </div>
           </div>
 
@@ -1422,7 +1546,8 @@
             <i class="bi bi-hospital fs-5"></i>
             <div>
               <div>Inpatient & Ward Care (IPD)</div>
-              <small class="opacity-75 d-block fw-normal" style="font-size: 0.72rem;">General, ICU, & Pediatric wards</small>
+              <small class="opacity-75 d-block fw-normal" style="font-size: 0.72rem;">General, ICU, & Pediatric
+                wards</small>
             </div>
           </div>
 
@@ -1438,7 +1563,8 @@
             <i class="bi bi-capsule fs-5"></i>
             <div>
               <div>Digital Pharmacy & e-Rx</div>
-              <small class="opacity-75 d-block fw-normal" style="font-size: 0.72rem;">QR verified drug dispensing</small>
+              <small class="opacity-75 d-block fw-normal" style="font-size: 0.72rem;">QR verified drug
+                dispensing</small>
             </div>
           </div>
         </div>
@@ -1461,16 +1587,20 @@
       <div class="portal-cta-banner">
         <div class="row align-items-center g-4">
           <div class="col-lg-8">
-            <div class="badge px-3 py-1 rounded-pill mb-2" style="background: rgba(255,255,255,0.2); font-size: 0.75rem; font-weight: 700;">
+            <div class="badge px-3 py-1 rounded-pill mb-2"
+              style="background: rgba(255,255,255,0.2); font-size: 0.75rem; font-weight: 700;">
               <i class="bi bi-shield-check me-1"></i> SELF-SERVICE DIGITAL PASSPORT
             </div>
             <h2 class="fw-bold mb-2" style="font-size: 2rem;">Take Control of Your Health Journey</h2>
             <p class="mb-0 opacity-90" style="font-size: 1.02rem; max-width: 600px;">
-              Access your digital prescriptions, diagnostic lab reports, appointment bookings, and complete clinical timeline anytime, anywhere through the secure MediCore+ Patient Portal.
+              Access your digital prescriptions, diagnostic lab reports, appointment bookings, and complete clinical
+              timeline anytime, anywhere through the secure MediCore+ Patient Portal.
             </p>
           </div>
           <div class="col-lg-4 text-lg-end">
-            <button type="button" class="btn btn-light btn-lg rounded-pill px-4 py-3 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#patientPortalAuthModal" style="color: #1E40AF; font-size: 0.98rem;">
+            <button type="button" class="btn btn-light btn-lg rounded-pill px-4 py-3 fw-bold shadow-sm"
+              data-bs-toggle="modal" data-bs-target="#patientPortalAuthModal"
+              style="color: #1E40AF; font-size: 0.98rem;">
               <i class="bi bi-person-circle me-1"></i> Open Patient Portal
             </button>
           </div>
@@ -1494,7 +1624,8 @@
             <span class="footer-brand-title">MediCore+</span>
           </div>
           <p class="text-muted small mb-4" style="line-height: 1.7;">
-            MediCore+ Integrated Patient Care Management System provides world-class clinical excellence, ethical medicine, and seamless patient experience across outpatient, inpatient, and diagnostic services.
+            MediCore+ Integrated Patient Care Management System provides world-class clinical excellence, ethical
+            medicine, and seamless patient experience across outpatient, inpatient, and diagnostic services.
           </p>
           <div class="d-flex gap-3">
             <a href="#" class="text-muted fs-5"><i class="bi bi-facebook"></i></a>
@@ -1532,15 +1663,18 @@
         <div class="col-lg-3">
           <div class="footer-heading">24/7 Helpline</div>
           <div class="mb-3">
-            <div class="text-white fw-bold fs-6"><i class="bi bi-telephone-fill text-danger me-2"></i>1800-MEDICORE</div>
+            <div class="text-white fw-bold fs-6"><i class="bi bi-telephone-fill text-danger me-2"></i>1800-MEDICORE
+            </div>
             <div class="text-muted small">Toll-Free Emergency Dispatch</div>
           </div>
           <div class="mb-3">
-            <div class="text-white fw-bold fs-6"><i class="bi bi-envelope-fill text-primary me-2"></i>care@medicore.hospital</div>
+            <div class="text-white fw-bold fs-6"><i
+                class="bi bi-envelope-fill text-primary me-2"></i>care@medicore.hospital</div>
             <div class="text-muted small">Patient Support & Inquiries</div>
           </div>
           <div class="small text-muted">
-            <i class="bi bi-geo-alt-fill text-teal me-1"></i> Medical District, Central Healthcare Avenue, City Hospital Complex.
+            <i class="bi bi-geo-alt-fill text-teal me-1"></i> Medical District, Central Healthcare Avenue, City Hospital
+            Complex.
           </div>
         </div>
       </div>
@@ -1548,7 +1682,8 @@
       <!-- Bottom Bar -->
       <div class="footer-bottom-bar d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div>
-          &copy; 2026 <strong>MediCore+ Healthcare</strong>. Integrated Patient Care Management System. All rights reserved.
+          &copy; 2026 <strong>MediCore+ Healthcare</strong>. Integrated Patient Care Management System. All rights
+          reserved.
         </div>
         <div class="d-flex gap-3">
           <a href="#" class="text-muted text-decoration-none">Privacy Policy</a>
@@ -1567,44 +1702,54 @@
   <div class="modal fade" id="patientPortalAuthModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-        <div class="modal-header text-white border-0 py-3 px-4" style="background: linear-gradient(135deg, #1E40AF, #0D9488) !important;">
+        <div class="modal-header text-white border-0 py-3 px-4"
+          style="background: linear-gradient(135deg, #1E40AF, #0D9488) !important;">
           <div class="d-flex align-items-center gap-2">
-            <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">
+            <div
+              style="width: 34px; height: 34px; border-radius: 8px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">
               <i class="bi bi-shield-lock-fill text-white fs-6"></i>
             </div>
             <div>
               <h5 class="modal-title fw-bold mb-0" style="font-size: 1.15rem;">MediCore+ Access Portals</h5>
-              <div style="font-size: 0.72rem; opacity: 0.9; font-weight: 500;">Select your designated healthcare portal below</div>
+              <div style="font-size: 0.72rem; opacity: 0.9; font-weight: 500;">Select your designated healthcare portal
+                below</div>
             </div>
           </div>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body p-4 p-md-5">
           <div class="row g-4">
-            
+
             <!-- Patient Health Portal Card -->
             <div class="col-md-6">
-              <div class="h-100 p-4 rounded-4 border d-flex flex-column justify-content-between" style="background: #F8FAFC; border-color: #E2E8F0 !important;">
+              <div class="h-100 p-4 rounded-4 border d-flex flex-column justify-content-between"
+                style="background: #F8FAFC; border-color: #E2E8F0 !important;">
                 <div>
                   <div class="d-flex align-items-center gap-2.5 mb-3">
-                    <div style="width: 42px; height: 42px; border-radius: 12px; background: #EFF6FF; color: #1E40AF; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                    <div
+                      style="width: 42px; height: 42px; border-radius: 12px; background: #EFF6FF; color: #1E40AF; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
                       <i class="bi bi-person-heart"></i>
                     </div>
                     <div>
                       <h5 class="fw-bold text-dark mb-0" style="font-size: 1.05rem;">Patient Portal</h5>
-                      <span class="badge bg-primary-subtle text-primary fw-bold px-2 py-0.5 rounded-pill" style="font-size: 0.68rem;">Self-Service</span>
+                      <span class="badge bg-primary-subtle text-primary fw-bold px-2 py-0.5 rounded-pill"
+                        style="font-size: 0.68rem;">Self-Service</span>
                     </div>
                   </div>
                   <p class="text-muted small mb-4" style="font-size: 0.85rem; line-height: 1.5;">
-                    Access your personal health records, view doctor prescriptions, download lab reports, and manage appointment bookings.
+                    Access your personal health records, view doctor prescriptions, download lab reports, and manage
+                    appointment bookings.
                   </p>
                 </div>
 
                 <div class="d-grid gap-2">
-                  <a href="{{ url_for('auth.login', portal='patient') }}" class="btn btn-primary rounded-pill fw-bold py-2.5 shadow-sm" style="background-color: #1E40AF; font-size: 0.9rem;">
+                  <a href="{{ url_for('auth.login', portal='patient') }}"
+                    class="btn btn-primary rounded-pill fw-bold py-2.5 shadow-sm"
+                    style="background-color: #1E40AF; font-size: 0.9rem;">
                     <i class="bi bi-box-arrow-in-right me-1.5"></i> Sign In to Patient Portal
                   </a>
-                  <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary rounded-pill fw-bold py-2.5" style="border-width: 1.5px; font-size: 0.9rem;">
+                  <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary rounded-pill fw-bold py-2.5"
+                    style="border-width: 1.5px; font-size: 0.9rem;">
                     <i class="bi bi-person-plus-fill me-1.5"></i> Create Patient Account
                   </a>
                 </div>
@@ -1613,28 +1758,35 @@
 
             <!-- Hospital Staff & Clinical Portal Card -->
             <div class="col-md-6">
-              <div class="h-100 p-4 rounded-4 border d-flex flex-column justify-content-between" style="background: #F8FAFC; border-color: #E2E8F0 !important;">
+              <div class="h-100 p-4 rounded-4 border d-flex flex-column justify-content-between"
+                style="background: #F8FAFC; border-color: #E2E8F0 !important;">
                 <div>
                   <div class="d-flex align-items-center gap-2.5 mb-3">
-                    <div style="width: 42px; height: 42px; border-radius: 12px; background: #F0FDF4; color: #0D9488; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+                    <div
+                      style="width: 42px; height: 42px; border-radius: 12px; background: #F0FDF4; color: #0D9488; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
                       <i class="bi bi-hospital"></i>
                     </div>
                     <div>
                       <h5 class="fw-bold text-dark mb-0" style="font-size: 1.05rem;">Staff &amp; Clinical Portal</h5>
-                      <span class="badge bg-success-subtle text-success fw-bold px-2 py-0.5 rounded-pill" style="font-size: 0.68rem;">Institutional</span>
+                      <span class="badge bg-success-subtle text-success fw-bold px-2 py-0.5 rounded-pill"
+                        style="font-size: 0.68rem;">Institutional</span>
                     </div>
                   </div>
                   <p class="text-muted small mb-3" style="font-size: 0.85rem; line-height: 1.5;">
                     Secure workspace for Physicians, Receptionists, Lab Technicians, and Hospital System Administrators.
                   </p>
                   <div class="p-2.5 bg-white rounded-3 border mb-4">
-                    <div class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Institutional Policy</div>
-                    <div class="text-secondary" style="font-size: 0.76rem;">Staff accounts are provisioned exclusively by Hospital Administrators. Self-registration is disabled.</div>
+                    <div class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">
+                      Institutional Policy</div>
+                    <div class="text-secondary" style="font-size: 0.76rem;">Staff accounts are provisioned exclusively
+                      by Hospital Administrators. Self-registration is disabled.</div>
                   </div>
                 </div>
 
                 <div class="d-grid">
-                  <a href="{{ url_for('auth.login', portal='staff') }}" class="btn btn-dark rounded-pill fw-bold py-2.5 shadow-sm" style="background-color: #0F172A; font-size: 0.9rem;">
+                  <a href="{{ url_for('auth.login', portal='staff') }}"
+                    class="btn btn-dark rounded-pill fw-bold py-2.5 shadow-sm"
+                    style="background-color: #0F172A; font-size: 0.9rem;">
                     <i class="bi bi-shield-lock-fill me-1.5 text-warning"></i> Sign In to Staff Portal
                   </a>
                 </div>
@@ -1659,7 +1811,8 @@
         </div>
         <div class="modal-body p-4">
           <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-3 mb-4">
-            <img id="quickDocImage" src="" alt="Doctor" class="rounded-circle object-fit-cover" style="width: 60px; height: 60px; border: 2px solid #E2E8F0;">
+            <img id="quickDocImage" src="" alt="Doctor" class="rounded-circle object-fit-cover"
+              style="width: 60px; height: 60px; border: 2px solid #E2E8F0;">
             <div>
               <h5 class="fw-bold text-dark mb-0" id="quickDocName">Dr. Ananya Sharma</h5>
               <div class="text-primary fw-semibold small" id="quickDocSpec">Cardiologist</div>
@@ -1687,15 +1840,18 @@
             <div class="row g-3 mb-3">
               <div class="col-md-6">
                 <label for="quickPatName" class="form-label fw-semibold small">Patient Full Name *</label>
-                <input type="text" class="form-control rounded-3" id="quickPatName" value="{% if current_user.is_authenticated %}{{ current_user.name }}{% endif %}" required>
+                <input type="text" class="form-control rounded-3" id="quickPatName"
+                  value="{% if current_user.is_authenticated %}{{ current_user.name }}{% endif %}" required>
               </div>
               <div class="col-md-6">
                 <label for="quickPatEmail" class="form-label fw-semibold small">Email Address *</label>
-                <input type="email" class="form-control rounded-3" id="quickPatEmail" value="{% if current_user.is_authenticated %}{{ current_user.email }}{% endif %}" required>
+                <input type="email" class="form-control rounded-3" id="quickPatEmail"
+                  value="{% if current_user.is_authenticated %}{{ current_user.email }}{% endif %}" required>
               </div>
               <div class="col-md-6">
                 <label for="quickPatMobile" class="form-label fw-semibold small">Mobile Number *</label>
-                <input type="tel" class="form-control rounded-3" id="quickPatMobile" value="{% if current_user.is_authenticated %}{{ current_user.mobile or '' }}{% endif %}" required>
+                <input type="tel" class="form-control rounded-3" id="quickPatMobile"
+                  value="{% if current_user.is_authenticated %}{{ current_user.mobile or '' }}{% endif %}" required>
               </div>
               <div class="col-md-6">
                 <label for="quickReason" class="form-label fw-semibold small">Reason for Visit (Optional)</label>
@@ -2134,20 +2290,20 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
-      .then(res => res.json())
-      .then(data => {
-        if (!data.success) {
-          alertBox.className = 'alert alert-danger py-2 mb-3';
-          alertBox.innerText = data.message || 'Booking failed.';
-          alertBox.classList.remove('d-none');
-        } else {
-          alertBox.className = 'alert alert-success py-2 mb-3';
-          alertBox.innerText = `🎉 Appointment ${data.appointment_code} booked successfully for ${data.appointment_date} at ${data.slot_time}!`;
-          alertBox.classList.remove('d-none');
-          document.getElementById('quickConfirmBtn').disabled = true;
-          fetchQuickSlots();
-        }
-      });
+        .then(res => res.json())
+        .then(data => {
+          if (!data.success) {
+            alertBox.className = 'alert alert-danger py-2 mb-3';
+            alertBox.innerText = data.message || 'Booking failed.';
+            alertBox.classList.remove('d-none');
+          } else {
+            alertBox.className = 'alert alert-success py-2 mb-3';
+            alertBox.innerText = `🎉 Appointment ${data.appointment_code} booked successfully for ${data.appointment_date} at ${data.slot_time}!`;
+            alertBox.classList.remove('d-none');
+            document.getElementById('quickConfirmBtn').disabled = true;
+            fetchQuickSlots();
+          }
+        });
     }
 
     /* ============================================================

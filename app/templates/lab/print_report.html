@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,6 +13,7 @@
       color: #000000;
       font-family: Arial, sans-serif;
     }
+
     .report-box {
       max-width: 850px;
       margin: 20px auto;
@@ -19,17 +21,27 @@
       padding: 30px;
       border-radius: 8px;
     }
+
     .letterhead {
       border-bottom: 2px solid #000;
       padding-bottom: 15px;
       margin-bottom: 20px;
     }
+
     @media print {
-      .no-print { display: none !important; }
-      .report-box { border: none; padding: 0; margin: 0; }
+      .no-print {
+        display: none !important;
+      }
+
+      .report-box {
+        border: none;
+        padding: 0;
+        margin: 0;
+      }
     }
   </style>
 </head>
+
 <body onload="window.print()">
 
   <div class="container no-print my-3 text-center">
@@ -55,7 +67,8 @@
       <div class="col-6">
         <div><strong>Patient Name:</strong> {{ lab_req.patient.full_name }}</div>
         <div><strong>Patient Code:</strong> {{ lab_req.patient.patient_code }}</div>
-        <div><strong>Gender / Age:</strong> {{ lab_req.patient.gender }} (DOB: {{ lab_req.patient.dob.strftime('%Y-%m-%d') }})</div>
+        <div><strong>Gender / Age:</strong> {{ lab_req.patient.gender }} (DOB: {{
+          lab_req.patient.dob.strftime('%Y-%m-%d') }})</div>
       </div>
       <div class="col-6 text-end">
         <div><strong>Ordering Doctor:</strong> {{ lab_req.doctor.name }}</div>
@@ -82,14 +95,15 @@
           <td>{{ loop.index }}</td>
           <td><strong>{{ res.test_type.test_name }}</strong> ({{ res.test_type.test_code }})</td>
           <td><strong>{{ res.result_value }}</strong> {{ res.test_type.unit or '' }}</td>
-          <td>{{ res.test_type.min_normal_val or '0' }} - {{ res.test_type.max_normal_val or 'N/A' }} {{ res.test_type.unit }}</td>
+          <td>{{ res.test_type.min_normal_val or '0' }} - {{ res.test_type.max_normal_val or 'N/A' }} {{
+            res.test_type.unit }}</td>
           <td>
             {% if res.abnormal_flag == 'ABNORMAL_HIGH' %}
-              <strong class="text-danger">HIGH</strong>
+            <strong class="text-danger">HIGH</strong>
             {% elif res.abnormal_flag == 'ABNORMAL_LOW' %}
-              <strong class="text-warning">LOW</strong>
+            <strong class="text-warning">LOW</strong>
             {% else %}
-              <span class="text-success">NORMAL</span>
+            <span class="text-success">NORMAL</span>
             {% endif %}
           </td>
         </tr>
@@ -112,4 +126,5 @@
   </div>
 
 </body>
+
 </html>
