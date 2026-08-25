@@ -78,7 +78,11 @@ def generate_doctor_slots(doctor_id: int, target_date: date, allow_emergency: bo
     # 4. Generate Slot Objects
     slots = []
     current_dt = datetime.combine(target_date, shift_start)
-    end_dt = datetime.combine(target_date, shift_end)
+    if shift_end <= shift_start or shift_end == time(0, 0):
+        # Shift extends to midnight or overnight (e.g. 06:00 to 00:00 / 24:00)
+        end_dt = datetime.combine(target_date + timedelta(days=1), shift_end)
+    else:
+        end_dt = datetime.combine(target_date, shift_end)
     step = timedelta(minutes=slot_minutes)
 
     slot_count = 0

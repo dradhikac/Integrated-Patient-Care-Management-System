@@ -87,22 +87,22 @@
         </span>
       </div>
 
-      <div class="text-muted small mb-2">{{ ev.description }}</div>
+      <div class="text-muted small mb-2">{{ ev.description or ev.summary or '' }}</div>
 
       <!-- Action if applicable -->
-      {% if ev.event_type == 'CONSULTATION' %}
+      {% if ev.event_type == 'CONSULTATION' and ev.ref_id %}
       <div class="mt-2 pt-2 border-top">
         <a href="{{ url_for('portal.consultation_detail', consultation_id=ev.ref_id) }}" class="small fw-semibold text-primary text-decoration-none">
           Open Consultation Record →
         </a>
       </div>
-      {% elif ev.event_type == 'PRESCRIPTION' %}
+      {% elif ev.event_type == 'PRESCRIPTION' and ev.ref_id %}
       <div class="mt-2 pt-2 border-top">
         <a href="{{ url_for('portal.prescription_detail', prescription_id=ev.ref_id) }}" class="small fw-semibold text-success text-decoration-none">
-          View Digital Prescription & QR →
+          View Digital Prescription &amp; QR →
         </a>
       </div>
-      {% elif ev.event_type == 'LAB_REQUEST' %}
+      {% elif ev.event_type in ['LAB_REQUEST', 'LAB_TEST'] and ev.ref_id %}
       <div class="mt-2 pt-2 border-top">
         <a href="{{ url_for('portal.lab_report_detail', request_id=ev.ref_id) }}" class="small fw-semibold text-teal text-decoration-none" style="color: #0D9488;">
           View Diagnostic Results →

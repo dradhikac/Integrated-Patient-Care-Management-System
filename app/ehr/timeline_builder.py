@@ -19,6 +19,7 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
     # 1. Registration Event
     events.append({
         'event_type': 'REGISTRATION',
+        'ref_id': patient.id,
         'title': 'Initial Patient Intake & Registration',
         'timestamp': patient.created_at or datetime.utcnow(),
         'date_str': (patient.created_at or datetime.utcnow()).strftime('%d %b %Y, %I:%M %p'),
@@ -26,6 +27,7 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
         'icon_class': 'bi-person-plus-fill',
         'actor': patient.registered_by.name if patient.registered_by else 'Front Desk',
         'summary': f"Registered with Code {patient.patient_code}. Baseline BMI: {patient.bmi or 'N/A'} ({patient.get_bmi_category()}).",
+        'description': f"Registered with Code {patient.patient_code}. Baseline BMI: {patient.bmi or 'N/A'} ({patient.get_bmi_category()}).",
         'details': {
             'Blood Group': patient.blood_group or 'N/A',
             'Aadhaar Masked': patient.aadhaar_masked or 'N/A',
@@ -39,6 +41,7 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
     for c in check_ins:
         events.append({
             'event_type': 'CHECK_IN',
+            'ref_id': c.id,
             'title': f"OPD Check-In — Token {c.token_no}",
             'timestamp': c.check_in_time,
             'date_str': c.check_in_time.strftime('%d %b %Y, %I:%M %p'),
@@ -46,6 +49,7 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
             'icon_class': 'bi-person-check-fill',
             'actor': c.checked_in_by.name if c.checked_in_by else 'Receptionist',
             'summary': f"Department: {c.department} | Assigned Doctor: {c.doctor.name} | Status: {c.status}",
+            'description': f"Department: {c.department} | Assigned Doctor: {c.doctor.name} | Status: {c.status}",
             'details': {
                 'Token No': c.token_no,
                 'Department': c.department,
@@ -62,6 +66,7 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
         apt_dt = datetime.combine(apt.appointment_date, apt.slot_time)
         events.append({
             'event_type': 'APPOINTMENT',
+            'ref_id': apt.id,
             'title': f"Appointment Scheduled — {apt.appointment_code}",
             'timestamp': apt_dt,
             'date_str': apt_dt.strftime('%d %b %Y, %I:%M %p'),
@@ -69,6 +74,7 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
             'icon_class': 'bi-calendar-event-fill',
             'actor': apt.doctor.name if apt.doctor else 'Doctor',
             'summary': f"Doctor: {apt.doctor.name} | Booking Channel: {apt.booking_type} | Status: {apt.status}",
+            'description': f"Doctor: {apt.doctor.name} | Booking Channel: {apt.booking_type} | Status: {apt.status}",
             'details': {
                 'Appointment Code': apt.appointment_code,
                 'Doctor': apt.doctor.name,
@@ -85,6 +91,7 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
         vitals_summary = cns.vital.get_vitals_summary() if cns.vital else "Vitals not recorded"
         events.append({
             'event_type': 'CONSULTATION',
+            'ref_id': cns.id,
             'title': f"Clinical Consultation — {cns.consultation_code}",
             'timestamp': cns.created_at,
             'date_str': cns.created_at.strftime('%d %b %Y, %I:%M %p'),
@@ -92,6 +99,7 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
             'icon_class': 'bi-stethoscope',
             'actor': cns.doctor.name,
             'summary': f"Diagnosis: {cns.diagnosis} | Symptoms: {cns.symptoms[:60]}...",
+            'description': f"Diagnosis: {cns.diagnosis} | Symptoms: {cns.symptoms[:60]}...",
             'details': {
                 'Consultation Code': cns.consultation_code,
                 'Doctor': cns.doctor.name,
@@ -109,6 +117,7 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
         med_summary = ", ".join([f"{item.medicine_name} ({item.frequency})" for item in rx.items])
         events.append({
             'event_type': 'PRESCRIPTION',
+            'ref_id': rx.id,
             'title': f"Digital Prescription Issued — {rx.prescription_code}",
             'timestamp': rx.created_at,
             'date_str': rx.created_at.strftime('%d %b %Y, %I:%M %p'),
@@ -116,6 +125,7 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
             'icon_class': 'bi-capsule',
             'actor': rx.doctor.name,
             'summary': f"Prescribed ({len(rx.items)} meds): {med_summary[:80]}...",
+            'description': f"Prescribed ({len(rx.items)} meds): {med_summary[:80]}...",
             'details': {
                 'Prescription Code': rx.prescription_code,
                 'Doctor': rx.doctor.name,
@@ -130,7 +140,8 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
     for lreq in lab_requests:
         test_names = ", ".join([res.test_type.test_name for res in lreq.results])
         events.append({
-            'event_type': 'LAB_TEST',
+            'event_type': 'LAB_REQUEST',
+            'ref_id': lreq.id,
             'title': f"Laboratory Investigation — {lreq.request_code}",
             'timestamp': lreq.created_at,
             'date_str': lreq.created_at.strftime('%d %b %Y, %I:%M %p'),
@@ -138,6 +149,7 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
             'icon_class': 'bi-flask',
             'actor': lreq.doctor.name,
             'summary': f"Tests ({len(lreq.results)}): {test_names} | Status: {lreq.status}",
+            'description': f"Tests ({len(lreq.results)}): {test_names} | Status: {lreq.status}",
             'details': {
                 'Lab Request Code': lreq.request_code,
                 'Ordering Doctor': lreq.doctor.name,
@@ -153,6 +165,7 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
     for b in bills:
         events.append({
             'event_type': 'BILLING',
+            'ref_id': b.id,
             'title': f"Hospital Tax Invoice Generated — {b.invoice_code}",
             'timestamp': b.created_at,
             'date_str': b.created_at.strftime('%d %b %Y, %I:%M %p'),
@@ -160,6 +173,7 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
             'icon_class': 'bi-receipt',
             'actor': 'Hospital Billing Desk',
             'summary': f"Grand Total: ₹{b.grand_total:.2f} | Paid: ₹{b.paid_amount:.2f} | Status: {b.status}",
+            'description': f"Grand Total: ₹{b.grand_total:.2f} | Paid: ₹{b.paid_amount:.2f} | Status: {b.status}",
             'details': {
                 'Invoice Code': b.invoice_code,
                 'Grand Total': f"₹{b.grand_total:.2f}",
@@ -175,6 +189,7 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
     for adm in admissions:
         events.append({
             'event_type': 'INPATIENT',
+            'ref_id': adm.id,
             'title': f"Inpatient Admission (IPD) — {adm.admission_code}",
             'timestamp': adm.admitted_at,
             'date_str': adm.admitted_at.strftime('%d %b %Y, %I:%M %p'),
@@ -182,6 +197,7 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
             'icon_class': 'bi-hospital',
             'actor': adm.doctor.name,
             'summary': f"Admitted to {adm.bed.ward.ward_name} ({adm.bed.bed_code}) | Diagnosis: {adm.diagnosis[:60]}...",
+            'description': f"Admitted to {adm.bed.ward.ward_name} ({adm.bed.bed_code}) | Diagnosis: {adm.diagnosis[:60]}...",
             'details': {
                 'Admission Code': adm.admission_code,
                 'Admitting Doctor': adm.doctor.name,
@@ -197,6 +213,7 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
     for n in notifications:
         events.append({
             'event_type': 'NOTIFICATION',
+            'ref_id': n.id,
             'title': f"Notification Dispatched — {n.title}",
             'timestamp': n.created_at,
             'date_str': n.created_at.strftime('%d %b %Y, %I:%M %p'),
@@ -204,6 +221,7 @@ def build_patient_ehr_timeline(patient_id: int, search_term: str = None, event_f
             'icon_class': 'bi-bell-fill',
             'actor': 'Notification Dispatcher System',
             'summary': f"Category: {n.type} | Channel: {n.channel} | Status: {n.status}",
+            'description': f"Category: {n.type} | Channel: {n.channel} | Status: {n.status}",
             'details': {
                 'Subject': n.title,
                 'Message Body': n.message,
