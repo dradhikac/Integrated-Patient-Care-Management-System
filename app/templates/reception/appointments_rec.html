@@ -114,6 +114,22 @@
                 <i class="bi bi-box-arrow-in-right me-1"></i>Check In
               </button>
             </form>
+            {% elif apt.status == 'COMPLETED' %}
+              {% set pinfo = apt.payment_info %}
+              {% if pinfo.is_paid %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1" style="font-size:.73rem;">
+                  <i class="bi bi-check-circle-fill me-1"></i>Paid
+                </span>
+                {% if pinfo.bill %}
+                <a href="{{ url_for('billing.view_bill', bill_id=pinfo.bill.id) }}" target="_blank" class="btn btn-sm btn-light border rounded-pill px-2 ms-1" title="View / Print Receipt">
+                  <i class="bi bi-receipt text-primary"></i>
+                </a>
+                {% endif %}
+              {% else %}
+                <button type="button" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 fw-bold shadow-sm" onclick="openPaymentModal({{ apt.id }})" style="background:#059669;border-color:#059669;font-size:.76rem;">
+                  <i class="bi bi-currency-rupee me-0.5"></i>Collect Payment
+                </button>
+              {% endif %}
             {% endif %}
             <a href="{{ url_for('reception.patient_profile_rec', patient_id=apt.patient_id) }}"
                class="btn btn-sm btn-light border rounded-pill px-2 ms-1" title="View Patient Profile">

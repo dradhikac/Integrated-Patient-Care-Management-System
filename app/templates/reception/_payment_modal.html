@@ -1,0 +1,317 @@
+<!-- ══════════════════════════════════════════════════════════════
+     COLLECT PAYMENT MODAL (Receptionist Billing Action)
+══════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="collectPaymentModal" tabindex="-1" aria-labelledby="cpmLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="modal-header border-bottom p-4" style="background:#F8FAFC;">
+        <div>
+          <h5 class="modal-title fw-bold text-dark mb-0" id="cpmLabel">
+            <i class="bi bi-cash-coin text-success me-2"></i> Collect Consultation Payment
+          </h5>
+          <p class="text-muted small mb-0 mt-0.5">Record patient settlement for completed doctor consultation &amp; clinical orders</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Loading State -->
+      <div id="cpmLoading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <div class="text-muted small mt-2">Fetching patient consultation &amp; invoice details...</div>
+      </div>
+
+      <!-- Main Payment Body -->
+      <div id="cpmBody" style="display:none;">
+        <form id="cpmForm" onsubmit="submitPaymentForm(event)">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="appointment_id" id="cpm_appointment_id">
+          <input type="hidden" name="consultation_id" id="cpm_consultation_id">
+          <input type="hidden" name="bill_id" id="cpm_bill_id">
+          <input type="hidden" name="is_ajax" value="1">
+
+          <div class="modal-body p-4">
+            
+            <!-- Patient & Consultation Info Card -->
+            <div class="p-3 rounded-3 mb-3" style="background:#EFF6FF;border:1px solid #BFDBFE;">
+              <div class="row g-2">
+                <div class="col-md-6">
+                  <div class="text-muted fw-bold text-uppercase" style="font-size:0.68rem;letter-spacing:0.5px;">Patient Details</div>
+                  <div class="fw-bold text-dark" id="cpm_patient_name" style="font-size:0.95rem;">—</div>
+                  <div class="text-muted small" style="font-size:0.78rem;">
+                    ID: <strong id="cpm_patient_code">—</strong> &bull; Mobile: <span id="cpm_patient_mobile">—</span>
+                  </div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                  <div class="text-muted fw-bold text-uppercase" style="font-size:0.68rem;letter-spacing:0.5px;">Consultation Details</div>
+                  <div class="fw-bold text-dark" style="font-size:0.92rem;">Dr. <span id="cpm_doctor_name">—</span></div>
+                  <div class="text-muted small" style="font-size:0.78rem;">
+                    <span id="cpm_doctor_dept">—</span> &bull; <span id="cpm_cns_date">—</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Itemized Charges Table -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="fw-bold text-dark" style="font-size:0.85rem;text-transform:uppercase;letter-spacing:0.5px;">
+                  <i class="bi bi-receipt me-1 text-primary"></i> Itemized Hospital Billable Services
+                </div>
+                <span class="badge bg-light text-dark border font-monospace" id="cpm_invoice_code" style="font-size:0.75rem;">—</span>
+              </div>
+              <div class="table-responsive rounded-3 border" style="max-height:180px;overflow-y:auto;">
+                <table class="table table-sm table-borderless mb-0 align-middle" style="font-size:0.83rem;">
+                  <thead class="table-light border-bottom">
+                    <tr>
+                      <th class="ps-3 py-1.5 text-muted">Service / Item</th>
+                      <th class="text-center py-1.5 text-muted">Qty</th>
+                      <th class="text-end pe-3 py-1.5 text-muted">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cpm_items_tbody">
+                    <!-- populated via js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Financial Summary Box -->
+            <div class="p-3 rounded-3 mb-3" style="background:#F8FAFC;border:1px solid #E2E8F0;">
+              <div class="d-flex justify-content-between mb-1" style="font-size:0.83rem;">
+                <span class="text-muted">Subtotal:</span>
+                <span class="fw-semibold text-dark">₹<span id="cpm_subtotal">0.00</span></span>
+              </div>
+              <div class="d-flex justify-content-between mb-1" style="font-size:0.83rem;">
+                <span class="text-muted">Taxes &amp; Hospital Surcharge:</span>
+                <span class="fw-semibold text-dark">₹<span id="cpm_tax">0.00</span></span>
+              </div>
+              <div class="d-flex justify-content-between pt-2 border-top fw-bold" style="font-size:0.95rem;">
+                <span class="text-dark">Grand Total:</span>
+                <span class="text-primary">₹<span id="cpm_grand_total">0.00</span></span>
+              </div>
+              <div class="d-flex justify-content-between pt-1" style="font-size:0.83rem;">
+                <span class="text-muted">Amount Previously Paid:</span>
+                <span class="text-success fw-bold">₹<span id="cpm_paid_amount">0.00</span></span>
+              </div>
+              <div class="d-flex justify-content-between pt-1 border-top mt-1" style="font-size:0.92rem;">
+                <span class="fw-bold text-dark">Balance Due:</span>
+                <span class="fw-bold text-danger">₹<span id="cpm_balance_due">0.00</span></span>
+              </div>
+            </div>
+
+            <!-- Payment Input Row -->
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold small text-muted text-uppercase">Payment Method <span class="text-danger">*</span></label>
+                <select name="payment_method" id="cpm_payment_method" class="form-select rounded-3" required>
+                  <option value="Cash" selected>Cash Payment</option>
+                  <option value="UPI">UPI / QR Code Scan</option>
+                  <option value="Card">Credit / Debit Card</option>
+                  <option value="Online Payment">Online Payment</option>
+                  <option value="Insurance Claim">Insurance Claim / TPA</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-bold small text-muted text-uppercase">Amount to Collect (₹) <span class="text-danger">*</span></label>
+                <input type="number" step="0.01" name="amount_paid" id="cpm_amount_paid" class="form-control rounded-3 fw-bold" style="color:#059669;font-size:1rem;" required>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label fw-bold small text-muted text-uppercase">Transaction / Reference ID <span class="text-muted font-normal">(Optional)</span></label>
+                <input type="text" name="transaction_ref" id="cpm_transaction_ref" class="form-control rounded-3" placeholder="e.g. UPI Ref / Card Last 4 / Bank Auth Code">
+              </div>
+            </div>
+
+            <div id="cpmAlert" class="alert alert-danger rounded-3 mt-3 mb-0 py-2 small" style="display:none;"></div>
+
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="modal-footer border-top p-3" style="background:#F8FAFC;">
+            <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" id="cpmSubmitBtn" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" style="background:#059669;border-color:#059669;">
+              <i class="bi bi-check2-circle me-1"></i> Record &amp; Confirm Payment
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Success Confirmation State (shown after payment) -->
+      <div id="cpmSuccess" style="display:none;" class="p-5 text-center">
+        <div class="mb-3">
+          <div style="width:72px;height:72px;border-radius:50%;background:#ECFDF5;color:#059669;display:inline-flex;align-items:center;justify-content:center;font-size:2.4rem;">
+            <i class="bi bi-check-lg"></i>
+          </div>
+        </div>
+        <h4 class="fw-bold text-dark mb-1">Payment Successful</h4>
+        <p class="text-muted small mb-3">Settlement recorded and patient invoice updated successfully.</p>
+
+        <div class="p-3 rounded-3 text-start mb-4 mx-auto" style="max-width:440px;background:#F8FAFC;border:1px solid #E2E8F0;font-size:0.85rem;">
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Receipt Code:</span>
+            <span class="fw-bold text-dark font-monospace" id="cpm_succ_receipt">—</span>
+          </div>
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Patient:</span>
+            <span class="fw-semibold text-dark" id="cpm_succ_patient">—</span>
+          </div>
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Amount Collected:</span>
+            <span class="fw-bold text-success">₹<span id="cpm_succ_amount">0.00</span></span>
+          </div>
+          <div class="d-flex justify-content-between py-1 border-bottom">
+            <span class="text-muted">Payment Mode:</span>
+            <span class="fw-semibold text-dark" id="cpm_succ_method">—</span>
+          </div>
+          <div class="d-flex justify-content-between py-1">
+            <span class="text-muted">Date &amp; Time:</span>
+            <span class="text-dark" id="cpm_succ_time">—</span>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+          <a href="#" id="cpm_receipt_link" target="_blank" class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm" style="background:#0F172A;">
+            <i class="bi bi-printer me-1.5"></i> View / Print Official Receipt
+          </a>
+          <button type="button" class="btn btn-light border rounded-pill px-4 fw-semibold" onclick="location.reload()">
+            Done &amp; Refresh
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+let cpmModalInstance = null;
+
+function openPaymentModal(appointmentId) {
+  const modalEl = document.getElementById('collectPaymentModal');
+  if (!cpmModalInstance) {
+    cpmModalInstance = new bootstrap.Modal(modalEl);
+  }
+  
+  // Reset state
+  document.getElementById('cpmLoading').style.display = 'block';
+  document.getElementById('cpmBody').style.display = 'none';
+  document.getElementById('cpmSuccess').style.display = 'none';
+  document.getElementById('cpmAlert').style.display = 'none';
+  cpmModalInstance.show();
+
+  // Fetch appointment payment data
+  fetch(`/reception/payment-modal-data/${appointmentId}`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) {
+        alert(data.message || 'Unable to load payment information.');
+        cpmModalInstance.hide();
+        return;
+      }
+
+      // Populate Data
+      document.getElementById('cpm_appointment_id').value = data.appointment_id || '';
+      document.getElementById('cpm_consultation_id').value = data.consultation_id || '';
+      document.getElementById('cpm_bill_id').value = data.bill.id || '';
+
+      document.getElementById('cpm_patient_name').innerText = data.patient.name;
+      document.getElementById('cpm_patient_code').innerText = data.patient.code;
+      document.getElementById('cpm_patient_mobile').innerText = data.patient.mobile;
+      document.getElementById('cpm_doctor_name').innerText = data.doctor.name;
+      document.getElementById('cpm_doctor_dept').innerText = data.doctor.department;
+      document.getElementById('cpm_cns_date').innerText = data.consultation_date;
+
+      document.getElementById('cpm_invoice_code').innerText = data.bill.invoice_code;
+      document.getElementById('cpm_subtotal').innerText = parseFloat(data.bill.subtotal).toFixed(2);
+      document.getElementById('cpm_tax').innerText = parseFloat(data.bill.tax_amount).toFixed(2);
+      document.getElementById('cpm_grand_total').innerText = parseFloat(data.bill.grand_total).toFixed(2);
+      document.getElementById('cpm_paid_amount').innerText = parseFloat(data.bill.paid_amount).toFixed(2);
+      document.getElementById('cpm_balance_due').innerText = parseFloat(data.bill.balance_due).toFixed(2);
+
+      // Populate Items Table
+      const tbody = document.getElementById('cpm_items_tbody');
+      tbody.innerHTML = '';
+      if (data.bill.items && data.bill.items.length > 0) {
+        data.bill.items.forEach(itm => {
+          const tr = document.createElement('tr');
+          tr.className = 'border-bottom';
+          tr.innerHTML = `
+            <td class="ps-3 py-1.5"><span class="fw-semibold text-dark">${itm.description}</span></td>
+            <td class="text-center py-1.5 text-muted">${itm.quantity}</td>
+            <td class="text-end pe-3 py-1.5 fw-bold text-dark">₹${parseFloat(itm.total_price).toFixed(2)}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } else {
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-2">No charges listed</td></tr>`;
+      }
+
+      // Default amount to pay
+      const balance = parseFloat(data.bill.balance_due);
+      document.getElementById('cpm_amount_paid').value = balance > 0 ? balance.toFixed(2) : '0.00';
+      document.getElementById('cpm_amount_paid').max = (balance + 0.01).toFixed(2);
+
+      // Show body
+      document.getElementById('cpmLoading').style.display = 'none';
+      document.getElementById('cpmBody').style.display = 'block';
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Error fetching payment details.');
+      cpmModalInstance.hide();
+    });
+}
+
+function submitPaymentForm(e) {
+  e.preventDefault();
+  const form = document.getElementById('cpmForm');
+  const btn = document.getElementById('cpmSubmitBtn');
+  const alertEl = document.getElementById('cpmAlert');
+  alertEl.style.display = 'none';
+
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Processing...`;
+
+  const formData = new FormData(form);
+
+  fetch('/reception/collect-payment', {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    btn.disabled = false;
+    btn.innerHTML = `<i class="bi bi-check2-circle me-1"></i> Record &amp; Confirm Payment`;
+
+    if (data.success) {
+      // Show Success State
+      document.getElementById('cpm_succ_receipt').innerText = data.payment_code;
+      document.getElementById('cpm_succ_patient').innerText = data.patient_name;
+      document.getElementById('cpm_succ_amount').innerText = parseFloat(data.amount_paid).toFixed(2);
+      document.getElementById('cpm_succ_method').innerText = data.payment_method;
+      document.getElementById('cpm_succ_time').innerText = data.paid_at;
+      document.getElementById('cpm_receipt_link').href = data.receipt_url;
+
+      document.getElementById('cpmBody').style.display = 'none';
+      document.getElementById('cpmSuccess').style.display = 'block';
+    } else {
+      alertEl.innerText = data.message || 'Payment recording failed.';
+      alertEl.style.display = 'block';
+    }
+  })
+  .catch(err => {
+    btn.disabled = false;
+    btn.innerHTML = `<i class="bi bi-check2-circle me-1"></i> Record &amp; Confirm Payment`;
+    alertEl.innerText = 'Network error while processing payment.';
+    alertEl.style.display = 'block';
+  });
+}
+</script>

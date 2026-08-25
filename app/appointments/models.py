@@ -53,6 +53,57 @@ class Appointment(db.Model):
         new_num = (last_apt.id + 1) if last_apt else 1
         return f"APT-{year}-{new_num:06d}"
 
+    @property
+    def payment_info(self):
+        cns = self.consultation
+        if not cns:
+            from app.consultations.models import Consultation
+            cns = Consultation.query.filter_by(appointment_id=self.id).first()
+        
+        if not cns:
+            from app.consultations.models import Consultation
+            cns = Consultation.query.filter(
+                Consultation.patient_id == self.patient_id,
+                Consultation.doctor_id == self.doctor_id,
+                Consultation.created_at >= datetime.combine(self.appointment_date, datetime.min.time()),
+                Consultation.created_at <= datetime.combine(self.appointment_date, datetime.max.time())
+            ).first()
+
+        if not cns:
+            return {'has_consultation': False, 'status': 'NO_CONSULTATION', 'is_paid': False, 'bill': None, 'cns': None, 'balance_due': 500.0, 'grand_total': 500.0}
+
+        from app.billing.models import Bill
+        bill = Bill.query.filter_by(consultation_id=cns.id).first()
+        if not bill:
+            bill = Bill.query.filter(
+                Bill.patient_id == cns.patient_id,
+                Bill.created_at >= datetime.combine(self.appointment_date, datetime.min.time()),
+                Bill.created_at <= datetime.combine(self.appointment_date, datetime.max.time())
+            ).first()
+
+        if bill:
+            return {
+                'has_consultation': True,
+                'status': bill.status,
+                'is_paid': (bill.status == 'PAID'),
+                'bill': bill,
+                'cns': cns,
+                'grand_total': bill.grand_total,
+                'paid_amount': bill.paid_amount,
+                'balance_due': bill.balance_due
+            }
+        else:
+            return {
+                'has_consultation': True,
+                'status': 'UNPAID',
+                'is_paid': False,
+                'bill': None,
+                'cns': cns,
+                'grand_total': 500.0,
+                'paid_amount': 0.0,
+                'balance_due': 500.0
+            }
+
     def __repr__(self):
         return f"<Appointment {self.appointment_code} - {self.appointment_date} {self.slot_time}>"
 

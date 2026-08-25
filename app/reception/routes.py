@@ -622,3 +622,200 @@ def appointments_rec():
                            q=q,
                            status_filter=status_filter,
                            today=today)
+
+
+# ───────────────────────────────────────────────────────────────────────────────
+#  PAYMENT & BILLING AFTER CONSULTATION — Receptionist Action
+# ───────────────────────────────────────────────────────────────────────────────
+
+@reception_bp.route('/payment-modal-data/<int:appointment_id>', methods=['GET'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def payment_modal_data(appointment_id):
+    """Returns JSON data with billable items and payment status for an appointment."""
+    from app.appointments.models import Appointment
+    from app.consultations.models import Consultation
+    from app.billing.models import Bill, Payment
+    from app.billing.aggregator import generate_auto_bill_for_patient
+
+    apt = Appointment.query.get_or_404(appointment_id)
+    
+    # 1. Find linked consultation
+    cns = apt.consultation
+    if not cns:
+        cns = Consultation.query.filter_by(appointment_id=apt.id).first()
+    if not cns:
+        cns = Consultation.query.filter(
+            Consultation.patient_id == apt.patient_id,
+            Consultation.doctor_id == apt.doctor_id,
+            Consultation.created_at >= datetime.combine(apt.appointment_date, datetime.min.time()),
+            Consultation.created_at <= datetime.combine(apt.appointment_date, datetime.max.time())
+        ).first()
+
+    # 2. Find or generate bill
+    bill = None
+    if cns:
+        bill = Bill.query.filter_by(consultation_id=cns.id).first()
+        if not bill:
+            bill = generate_auto_bill_for_patient(patient_id=apt.patient_id, consultation_id=cns.id)
+    else:
+        bill = Bill.query.filter(
+            Bill.patient_id == apt.patient_id,
+            Bill.created_at >= datetime.combine(apt.appointment_date, datetime.min.time()),
+            Bill.created_at <= datetime.combine(apt.appointment_date, datetime.max.time())
+        ).first()
+        if not bill:
+            bill = generate_auto_bill_for_patient(patient_id=apt.patient_id)
+
+    # 3. Format items
+    items_data = []
+    for itm in bill.items:
+        items_data.append({
+            'type': itm.item_type,
+            'description': itm.item_description,
+            'unit_price': itm.unit_price,
+            'quantity': itm.quantity,
+            'total_price': itm.total_price
+        })
+
+    # Recent payments
+    payments_data = []
+    for p in bill.payments:
+        payments_data.append({
+            'code': p.payment_code,
+            'amount': p.amount_paid,
+            'method': p.payment_method,
+            'ref': p.transaction_ref or '—',
+            'date': p.paid_at.strftime('%d %b %Y, %I:%M %p')
+        })
+
+    doc_dept = apt.doctor.department or (apt.doctor.doctor_profile.department if (hasattr(apt.doctor, 'doctor_profile') and apt.doctor.doctor_profile) else 'General OPD')
+
+    return jsonify({
+        'success': True,
+        'appointment_id': apt.id,
+        'appointment_code': apt.appointment_code,
+        'consultation_id': cns.id if cns else None,
+        'consultation_code': cns.consultation_code if cns else 'CNS-OPD',
+        'consultation_date': (cns.created_at if cns else apt.created_at).strftime('%d %B %Y, %I:%M %p'),
+        'patient': {
+            'id': apt.patient.id,
+            'name': apt.patient.full_name,
+            'code': apt.patient.patient_code,
+            'mobile': apt.patient.mobile,
+            'gender': apt.patient.gender
+        },
+        'doctor': {
+            'id': apt.doctor.id,
+            'name': apt.doctor.name,
+            'department': doc_dept
+        },
+        'bill': {
+            'id': bill.id,
+            'invoice_code': bill.invoice_code,
+            'subtotal': bill.subtotal,
+            'discount': bill.discount,
+            'tax_amount': bill.tax_amount,
+            'grand_total': bill.grand_total,
+            'paid_amount': bill.paid_amount,
+            'balance_due': bill.balance_due,
+            'status': bill.status,
+            'items': items_data,
+            'payments': payments_data
+        }
+    })
+
+
+@reception_bp.route('/collect-payment', methods=['POST'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def collect_payment():
+    """Records patient consultation payment and updates bill status."""
+    from app.appointments.models import Appointment
+    from app.consultations.models import Consultation
+    from app.billing.models import Bill, Payment
+    from app.billing.aggregator import generate_auto_bill_for_patient
+
+    bill_id = request.form.get('bill_id', type=int)
+    appointment_id = request.form.get('appointment_id', type=int)
+    consultation_id = request.form.get('consultation_id', type=int)
+    amount_paid = request.form.get('amount_paid', type=float)
+    payment_method = request.form.get('payment_method', 'Cash')
+    transaction_ref = request.form.get('transaction_ref', '').strip() or None
+
+    bill = None
+    if bill_id:
+        bill = Bill.query.get(bill_id)
+    elif consultation_id:
+        bill = Bill.query.filter_by(consultation_id=consultation_id).first()
+        if not bill:
+            cns = Consultation.query.get(consultation_id)
+            if cns:
+                bill = generate_auto_bill_for_patient(patient_id=cns.patient_id, consultation_id=cns.id)
+    elif appointment_id:
+        apt = Appointment.query.get(appointment_id)
+        if apt:
+            cns = apt.consultation or Consultation.query.filter_by(appointment_id=apt.id).first()
+            if cns:
+                bill = Bill.query.filter_by(consultation_id=cns.id).first() or generate_auto_bill_for_patient(patient_id=apt.patient_id, consultation_id=cns.id)
+            else:
+                bill = generate_auto_bill_for_patient(patient_id=apt.patient_id)
+
+    if not bill:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or request.form.get('is_ajax') == '1':
+            return jsonify({'success': False, 'message': 'Invoice / Bill record could not be located.'}), 404
+        flash('Bill record could not be located.', 'danger')
+        return redirect(url_for('reception.dashboard'))
+
+    if not amount_paid or amount_paid <= 0:
+        msg = 'Payment amount must be greater than zero.'
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or request.form.get('is_ajax') == '1':
+            return jsonify({'success': False, 'message': msg}), 400
+        flash(msg, 'danger')
+        return redirect(url_for('reception.dashboard'))
+
+    if amount_paid > bill.balance_due + 0.01:
+        msg = f"Payment amount (₹{amount_paid:.2f}) cannot exceed balance due (₹{bill.balance_due:.2f})."
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or request.form.get('is_ajax') == '1':
+            return jsonify({'success': False, 'message': msg}), 400
+        flash(msg, 'warning')
+        return redirect(url_for('reception.dashboard'))
+
+    payment_code = Payment.generate_payment_code()
+    payment = Payment(
+        bill_id=bill.id,
+        payment_code=payment_code,
+        payment_method=payment_method,
+        amount_paid=amount_paid,
+        transaction_ref=transaction_ref,
+        recorded_by_id=current_user.id
+    )
+    db.session.add(payment)
+
+    bill.paid_amount += amount_paid
+    if bill.paid_amount >= bill.grand_total - 0.01:
+        bill.status = 'PAID'
+    else:
+        bill.status = 'PARTIALLY_PAID'
+
+    db.session.commit()
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json or request.form.get('is_ajax') == '1':
+        return jsonify({
+            'success': True,
+            'message': f"Payment of ₹{amount_paid:.2f} recorded successfully ({payment_method})!",
+            'payment_code': payment_code,
+            'bill_id': bill.id,
+            'invoice_code': bill.invoice_code,
+            'amount_paid': amount_paid,
+            'payment_method': payment_method,
+            'transaction_ref': transaction_ref or '—',
+            'status': bill.status,
+            'balance_due': bill.balance_due,
+            'paid_at': payment.paid_at.strftime('%d %b %Y, %I:%M %p'),
+            'patient_name': bill.patient.full_name,
+            'receipt_url': url_for('billing.view_bill', bill_id=bill.id)
+        })
+
+    flash(f"Payment of ₹{amount_paid:.2f} recorded successfully! Receipt: {payment_code}", 'success')
+    return redirect(url_for('billing.view_bill', bill_id=bill.id))

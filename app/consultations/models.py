@@ -21,6 +21,7 @@ class Consultation(db.Model):
     patient = db.relationship('Patient', backref='consultations', lazy=True)
     doctor = db.relationship('User', foreign_keys=[doctor_id], backref='doctor_consultations', lazy=True)
     check_in = db.relationship('CheckIn', backref='consultation', uselist=False, lazy=True)
+    appointment = db.relationship('Appointment', foreign_keys=[appointment_id], backref=db.backref('consultation', uselist=False), lazy=True)
     vital = db.relationship('Vital', backref='consultation', uselist=False, cascade='all, delete-orphan', lazy=True)
 
     @staticmethod
