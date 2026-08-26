@@ -183,6 +183,16 @@ def book_appointment():
 
     slot_info = generate_doctor_slots(selected_doc_id, selected_date) if selected_doc_id else {'slots': []}
 
+    # Check if patient already has an active appointment on this date with this doctor
+    patient_existing_apt = None
+    if selected_doc_id:
+        patient_existing_apt = Appointment.query.filter(
+            Appointment.patient_id == patient.id,
+            Appointment.doctor_id == selected_doc_id,
+            Appointment.appointment_date == selected_date,
+            Appointment.status.in_(['BOOKED', 'CHECKED_IN', 'IN_CONSULTATION'])
+        ).first()
+
     if request.method == 'POST':
         doctor_id = request.form.get('doctor_id', type=int)
         apt_date_str = request.form.get('appointment_date')
@@ -190,7 +200,7 @@ def book_appointment():
         notes = request.form.get('notes', '').strip()
 
         if not doctor_id or not apt_date_str or not slot_time_str:
-            flash('Please select a doctor, date, and time slot.', 'danger')
+            flash('Please select a doctor, date, and arrival time window.', 'danger')
             return redirect(url_for('portal.book_appointment'))
 
         try:
@@ -198,6 +208,17 @@ def book_appointment():
         except ValueError:
             flash('Invalid date.', 'danger')
             return redirect(url_for('portal.book_appointment'))
+
+        # Check for existing patient active appointment with same doctor on same date
+        dup_patient_apt = Appointment.query.filter(
+            Appointment.patient_id == patient.id,
+            Appointment.doctor_id == doctor_id,
+            Appointment.appointment_date == apt_date,
+            Appointment.status.in_(['BOOKED', 'CHECKED_IN', 'IN_CONSULTATION'])
+        ).first()
+        if dup_patient_apt:
+            flash(f'You already have an active appointment ({dup_patient_apt.appointment_code}) with this doctor on {apt_date.strftime("%d %b %Y")} at {dup_patient_apt.slot_time.strftime("%I:%M %p")}. Concurrent bookings are not permitted.', 'warning')
+            return redirect(url_for('portal.appointments'))
 
         slot_t = None
         for fmt in ('%H:%M:%S', '%H:%M', '%I:%M %p', '%I:%M%p'):
@@ -211,7 +232,7 @@ def book_appointment():
             flash('Invalid arrival time window.', 'danger')
             return redirect(url_for('portal.book_appointment', doctor_id=doctor_id, date=apt_date_str))
 
-        # Double-booking prevention
+        # Double-booking prevention (specific slot taken)
         existing = Appointment.query.filter(
             Appointment.doctor_id == doctor_id,
             Appointment.appointment_date == apt_date,
@@ -219,7 +240,7 @@ def book_appointment():
             Appointment.status != 'CANCELLED'
         ).first()
         if existing:
-            flash('This slot is no longer available. Please choose another.', 'danger')
+            flash('This arrival window is already reserved. Please choose another.', 'danger')
             return redirect(url_for('portal.book_appointment', doctor_id=doctor_id, date=apt_date_str))
 
         apt = Appointment(
@@ -236,7 +257,7 @@ def book_appointment():
         db.session.add(apt)
         db.session.commit()
 
-        flash(f'Appointment booked! {apt.appointment_code} — {apt.appointment_date.strftime("%d %b %Y")} at {apt.slot_time.strftime("%I:%M %p")}', 'success')
+        flash(f'Appointment booked successfully! {apt.appointment_code} — {apt.appointment_date.strftime("%d %b %Y")} at {apt.slot_time.strftime("%I:%M %p")}', 'success')
         return redirect(url_for('portal.appointments'))
 
     notif_count = Notification.query.filter_by(patient_id=patient.id, status='PENDING').count()
@@ -245,6 +266,7 @@ def book_appointment():
                            selected_doc_id=selected_doc_id,
                            selected_date=selected_date,
                            slot_info=slot_info,
+                           patient_existing_apt=patient_existing_apt,
                            notif_count=notif_count)
 
 
