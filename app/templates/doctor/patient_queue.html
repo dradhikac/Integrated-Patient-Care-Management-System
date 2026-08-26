@@ -1,74 +1,137 @@
 {% extends "doctor/base_doctor.html" %}
-{% block title %}Patient Queue — Doctor Portal | MediCore+{% endblock %}
-{% block page_title %}Patient Queue{% endblock %}
-{% block page_subtitle %}Live waiting queue — {{ today.strftime('%A, %d %B %Y') }}{% endblock %}
+{% block title %}Dynamic Patient Queue — Doctor Portal | MediCore+{% endblock %}
+{% block page_title %}Live Patient Queue{% endblock %}
+{% block page_subtitle %}Real-time consultation flow &amp; live operational queue — {{ today.strftime('%A, %d %B %Y') }}{% endblock %}
 
 {% block content %}
 
-{% if queue %}
-<div class="doc-card">
+<!-- Active Consultation Card (If Doctor is Currently Attending a Patient) -->
+{% if live_queue.in_consultation %}
+{% set active = live_queue.in_consultation %}
+<div class="doc-card mb-4" style="border: 2px solid #2563EB; background: linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 100%); box-shadow: 0 8px 24px rgba(37,99,235,0.12);">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 border-bottom" style="border-color: #DBEAFE !important;">
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge bg-primary px-3 py-1.5 rounded-pill fw-bold" style="letter-spacing: 0.5px;">
+        <i class="bi bi-circle-fill text-danger me-1" style="font-size: 0.55rem; animation: pulse 1.5s infinite;"></i> CURRENTLY IN CONSULTATION
+      </span>
+      <span class="text-muted small font-monospace">Started at: <strong>{{ active.start_time_str }}</strong></span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge bg-white text-primary border border-primary-subtle px-3 py-1.5 rounded-pill fw-bold font-monospace" id="liveTimerBadge" style="font-size: 0.85rem;">
+        <i class="bi bi-stopwatch me-1"></i> Elapsed: {{ active.elapsed_str }}
+      </span>
+    </div>
+  </div>
+
+  <div class="p-4">
+    <div class="row align-items-center g-3">
+      <!-- Token & Patient Details -->
+      <div class="col-md-6">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width: 56px; height: 56px; border-radius: 16px; background: #2563EB; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 800; box-shadow: 0 4px 12px rgba(37,99,235,0.3);">
+            {{ active.token_no.replace('TK-','') }}
+          </div>
+          <div>
+            <h4 class="fw-bold text-dark mb-0">{{ active.patient.full_name }}</h4>
+            <div class="text-muted small">
+              <span class="font-monospace fw-semibold">{{ active.patient.patient_code }}</span> · 
+              {{ active.patient.gender }}, {{ active.patient.age_display or 'Adult' }} · 
+              <span class="badge bg-light text-dark border rounded-pill">{{ active.priority }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="col-md-6 text-md-end">
+        <div class="d-flex flex-wrap justify-content-md-end gap-2">
+          <a href="{{ url_for('doctor_portal.create_consultation', checkin_id=active.check_in.id, patient_id=active.patient.id) }}" class="btn-doc-primary px-4 py-2 fw-bold" style="background:#059669; border-color:#059669; font-size:0.92rem; box-shadow:0 4px 12px rgba(5,150,105,0.25);">
+            <i class="bi bi-check-circle-fill me-1"></i> Complete Consultation &amp; Write Rx
+          </a>
+          <a href="{{ url_for('doctor_portal.patient_detail', patient_id=active.patient.id) }}" target="_blank" class="btn-doc-secondary px-3 py-2" title="View Patient Medical History">
+            <i class="bi bi-folder2-open me-1"></i> Patient EHR
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Waiting Queue Section -->
+<div class="doc-card mb-4">
   <div class="doc-card-header">
     <div class="doc-card-title">
       <i class="bi bi-people-fill text-warning"></i> 
-      Waiting &amp; In-Consultation
-      <span style="background:#FFFBEB;color:#B45309;border:1px solid #FDE68A;border-radius:20px;padding:2px 10px;font-size:0.75rem;font-weight:700;">{{ queue|length }} patient{{ 's' if queue|length != 1 }}</span>
+      Waiting in Queue
+      <span style="background:#FFFBEB;color:#B45309;border:1px solid #FDE68A;border-radius:20px;padding:2px 10px;font-size:0.75rem;font-weight:700;">
+        {{ live_queue.waiting_queue|length }} waiting
+      </span>
+      <span class="text-muted fw-normal small ms-2">Avg. consult: ~{{ live_queue.stats.avg_duration_minutes }} min</span>
     </div>
-    <button onclick="window.location.reload()" class="btn-doc-secondary"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+    <div class="d-flex align-items-center gap-2">
+      <button onclick="window.location.reload()" class="btn-doc-secondary"><i class="bi bi-arrow-clockwise"></i> Refresh Live Queue</button>
+    </div>
   </div>
+
+  {% if live_queue.waiting_queue %}
   <div class="table-responsive">
-    <table class="doc-table">
+    <table class="doc-table align-middle">
       <thead>
         <tr>
+          <th>QUEUE #</th>
           <th>TOKEN</th>
           <th>PATIENT</th>
-          <th>APT TIME</th>
-          <th>WAITING</th>
+          <th>CHECKED IN</th>
+          <th>WAIT TIME</th>
+          <th>EST. WAIT</th>
           <th>PRIORITY</th>
-          <th>STATUS</th>
-          <th>ACTION</th>
+          <th class="text-end pe-4">ACTION</th>
         </tr>
       </thead>
       <tbody>
-        {% for ci in queue %}
-        {% set wait_h = ci._wait_minutes // 60 %}
-        {% set wait_m = ci._wait_minutes % 60 %}
-        <tr>
+        {% for item in live_queue.waiting_queue %}
+        {% set is_top = (loop.first and not live_queue.in_consultation) %}
+        <tr {% if is_top %}style="background: #F0FDF4; font-weight: 500;"{% endif %}>
           <td>
-            <div style="width:38px;height:38px;border-radius:50%;background:#EFF6FF;color:#1E40AF;display:flex;align-items:center;justify-content:center;font-size:0.82rem;font-weight:800;">
-              {{ ci.token_no.replace('TK-','') }}
+            <span class="badge {% if loop.first %}bg-success{% else %}bg-secondary-subtle text-secondary{% endif %} rounded-pill px-2.5 py-1 fw-bold font-monospace">
+              #{{ item.position }}
+            </span>
+          </td>
+          <td>
+            <div style="width:38px;height:38px;border-radius:10px;background:#EFF6FF;color:#1E40AF;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:800;">
+              {{ item.token_no.replace('TK-','') }}
             </div>
           </td>
           <td>
-            <div class="fw-semibold" style="font-size:0.88rem;">{{ ci.patient.full_name }}</div>
-            <div class="text-muted" style="font-size:0.73rem;">{{ ci.patient.patient_code }}</div>
+            <div class="fw-semibold text-dark" style="font-size:0.9rem;">{{ item.patient.full_name }}</div>
+            <div class="text-muted" style="font-size:0.73rem;">{{ item.patient.patient_code }} · {{ item.patient.gender }}</div>
           </td>
           <td>
-            <span style="font-size:0.85rem;">{{ ci.check_in_time.strftime('%I:%M %p') }}</span>
+            <span style="font-size:0.85rem;" class="font-monospace text-muted">{{ item.check_in_time_str }}</span>
           </td>
           <td>
-            <span style="font-size:0.85rem; font-weight:600;
-              {% if ci._wait_minutes > 30 %}color:#EF4444{% elif ci._wait_minutes > 15 %}color:#F59E0B{% else %}color:#10B981{% endif %};">
-              {% if wait_h > 0 %}{{ wait_h }}h {% endif %}{{ wait_m }}m
+            <span style="font-size:0.85rem; font-weight:700;
+              {% if item.waited_minutes > 30 %}color:#EF4444{% elif item.waited_minutes > 15 %}color:#F59E0B{% else %}color:#10B981{% endif %};">
+              {{ item.waited_minutes }}m
+            </span>
+          </td>
+          <td>
+            <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1 small">
+              {{ item.estimated_wait_str }}
             </span>
           </td>
           <td>
             {% set p_colors = {'Emergency': ('#FEF2F2','#991B1B'), 'Senior Citizen': ('#F5F3FF','#6D28D9'), 'Pregnant Woman': ('#FDF4FF','#86198F'), 'Child': ('#F0FDF4','#15803D'), 'Regular': ('#F8FAFC','#64748B')} %}
-            {% set pc = p_colors.get(ci.priority, ('#F8FAFC','#64748B')) %}
-            <span style="background:{{ pc[0] }};color:{{ pc[1] }};border-radius:6px;padding:2px 8px;font-size:0.75rem;font-weight:600;">{{ ci.priority }}</span>
+            {% set pc = p_colors.get(item.priority, ('#F8FAFC','#64748B')) %}
+            <span style="background:{{ pc[0] }};color:{{ pc[1] }};border-radius:6px;padding:3px 8px;font-size:0.74rem;font-weight:700;">{{ item.priority }}</span>
           </td>
-          <td>
-            {% if ci.status == 'WAITING' %}
-              <span class="status-badge badge-waiting"><i class="bi bi-hourglass-split"></i> Waiting</span>
-            {% else %}
-              <span class="status-badge badge-in-consult"><i class="bi bi-clipboard2-pulse"></i> In Consultation</span>
-            {% endif %}
-          </td>
-          <td>
-            <div class="d-flex gap-1">
-              <a href="{{ url_for('doctor_portal.create_consultation', patient_id=ci.patient_id) }}" class="btn-doc-primary" style="padding:5px 12px; font-size:0.8rem;">
-                <i class="bi bi-play-fill"></i> Start
+          <td class="text-end pe-4">
+            <div class="d-flex justify-content-end gap-1.5">
+              <a href="{{ url_for('doctor_portal.start_consultation', checkin_id=item.check_in.id) }}" class="btn-doc-primary px-3 py-1.5 fw-bold" style="font-size:0.8rem; {% if loop.first and not live_queue.in_consultation %}background:#059669; border-color:#059669;{% endif %}">
+                <i class="bi bi-play-fill me-0.5"></i> Start Consultation
               </a>
-              <a href="{{ url_for('doctor_portal.patient_detail', patient_id=ci.patient_id) }}" class="btn-doc-secondary" style="padding:5px 10px; font-size:0.8rem;">
+              <a href="{{ url_for('doctor_portal.patient_detail', patient_id=item.patient.id) }}" class="btn-doc-secondary px-2.5 py-1.5" title="Patient EHR">
                 <i class="bi bi-person"></i>
               </a>
             </div>
@@ -78,13 +141,61 @@
       </tbody>
     </table>
   </div>
+  {% else %}
+  <div class="p-4 text-center text-muted">
+    <i class="bi bi-check2-circle fs-2 text-success d-block mb-2"></i>
+    <div class="fw-semibold">No patients currently waiting in queue.</div>
+    <div class="small">Next scheduled patients will appear here as soon as they check in at the reception desk.</div>
+  </div>
+  {% endif %}
 </div>
-{% else %}
+
+<!-- Upcoming Expected Arrivals Today -->
+{% if live_queue.expected_arrivals %}
 <div class="doc-card">
-  <div class="doc-empty">
-    <i class="bi bi-people doc-empty-icon"></i>
-    <div class="doc-empty-title">No patients in queue</div>
-    <div class="doc-empty-text">Patients will appear here once they are checked in by the receptionist.</div>
+  <div class="doc-card-header">
+    <div class="doc-card-title">
+      <i class="bi bi-clock-history text-primary"></i> 
+      Upcoming Scheduled Arrivals Today
+      <span style="background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;border-radius:20px;padding:2px 10px;font-size:0.75rem;font-weight:700;">
+        {{ live_queue.expected_arrivals|length }} expected
+      </span>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="doc-table">
+      <thead>
+        <tr>
+          <th>PATIENT</th>
+          <th>EXPECTED ARRIVAL</th>
+          <th>REC. CHECK-IN</th>
+          <th>PRIORITY</th>
+          <th>CHANNEL</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for exp in live_queue.expected_arrivals %}
+        <tr>
+          <td>
+            <div class="fw-semibold">{{ exp.patient.full_name }}</div>
+            <div class="text-muted small">{{ exp.patient.patient_code }}</div>
+          </td>
+          <td>
+            <span class="fw-bold font-monospace text-dark">{{ exp.expected_arrival_str }}</span>
+          </td>
+          <td>
+            <span class="text-muted font-monospace small">{{ exp.recommended_checkin_str }}</span>
+          </td>
+          <td>
+            <span class="badge bg-light text-dark border">{{ exp.priority }}</span>
+          </td>
+          <td>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ exp.booking_type }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
 {% endif %}
@@ -92,8 +203,15 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<style>
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
+}
+</style>
 <script>
-  // Auto-refresh queue every 30 seconds
-  setTimeout(() => window.location.reload(), 30000);
+  // Auto-refresh queue every 25 seconds
+  setTimeout(() => window.location.reload(), 25000);
 </script>
 {% endblock %}

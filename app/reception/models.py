@@ -30,15 +30,49 @@ class CheckIn(db.Model):
         ).count()
         return f"TK-{(today_count + 1):03d}"
 
+    @property
+    def actual_duration_minutes(self):
+        """Calculates actual consultation duration in minutes."""
+        if self.called_time and self.completed_time:
+            return max(1.0, round((self.completed_time - self.called_time).total_seconds() / 60.0, 1))
+        return None
+
+    @property
+    def waiting_duration_minutes(self):
+        """Calculates actual waiting time from check-in to consultation call."""
+        if self.check_in_time and self.called_time:
+            return max(0.0, round((self.called_time - self.check_in_time).total_seconds() / 60.0, 1))
+        elif self.check_in_time and self.status == 'WAITING':
+            return max(0.0, round((datetime.utcnow() - self.check_in_time).total_seconds() / 60.0, 1))
+        return None
+
     def estimated_wait_minutes(self):
-        """Calculates estimated wait time in minutes based on patients ahead in queue for the same doctor"""
-        patients_ahead = CheckIn.query.filter(
+        """Calculates dynamic estimated wait time in minutes based on patients ahead in queue."""
+        if self.status != 'WAITING':
+            return 0
+        priority_weights = {'Emergency': 0, 'Senior Citizen': 1, 'Pregnant Woman': 2, 'Child': 3, 'Regular': 4}
+        my_weight = priority_weights.get(self.priority, 4)
+
+        # Count higher priority or earlier checked-in patients
+        all_waiting = CheckIn.query.filter(
             CheckIn.doctor_id == self.doctor_id,
-            CheckIn.status == 'WAITING',
-            CheckIn.id < self.id
-        ).count()
-        avg_consult_minutes = 10
-        return max(5, patients_ahead * avg_consult_minutes)
+            CheckIn.status == 'WAITING'
+        ).all()
+        
+        ahead_count = 0
+        for other in all_waiting:
+            if other.id == self.id:
+                continue
+            other_weight = priority_weights.get(other.priority, 4)
+            if (other_weight < my_weight) or (other_weight == my_weight and other.id < self.id):
+                ahead_count += 1
+
+        # Check if someone is in consultation right now
+        in_consult = CheckIn.query.filter_by(doctor_id=self.doctor_id, status='IN_CONSULTATION').first()
+        base_rem = 6 if in_consult else 0
+
+        avg_consult_minutes = 12
+        return max(5, int((ahead_count * avg_consult_minutes) + base_rem))
 
     def __repr__(self):
         return f"<CheckIn {self.token_no} - Patient {self.patient_id} -> Doctor {self.doctor_id}>"

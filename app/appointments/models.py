@@ -104,6 +104,27 @@ class Appointment(db.Model):
                 'balance_due': 500.0
             }
 
+    @property
+    def recommended_arrival_time(self):
+        """Recommended reporting time (10 mins prior to expected arrival slot)."""
+        if self.slot_time and self.appointment_date:
+            dt = datetime.combine(self.appointment_date, self.slot_time) - timedelta(minutes=10)
+            return dt.strftime('%I:%M %p')
+        return None
+
+    @property
+    def arrival_window_str(self):
+        """Expected arrival time window description."""
+        if self.slot_time:
+            return f"{self.slot_time.strftime('%I:%M %p')} (Expected Arrival)"
+        return "Expected Arrival"
+
+    @property
+    def queue_info(self):
+        """Dynamic queue position and wait estimation for this appointment."""
+        from app.queue.queue_engine import get_doctor_live_queue
+        return get_doctor_live_queue(self.doctor_id, self.appointment_date)
+
     def __repr__(self):
         return f"<Appointment {self.appointment_code} - {self.appointment_date} {self.slot_time}>"
 

@@ -126,27 +126,45 @@
     <!-- Patient Queue -->
     <div class="doc-card mb-4">
       <div class="doc-card-header">
-        <div class="doc-card-title"><i class="bi bi-people-fill text-warning"></i> Waiting Queue</div>
+        <div class="doc-card-title"><i class="bi bi-people-fill text-warning"></i> Live Queue</div>
         <a href="{{ url_for('doctor_portal.patient_queue') }}" class="btn-doc-secondary" style="padding:5px 12px; font-size:0.78rem;">Full Queue</a>
       </div>
-      {% if active_checkins %}
-        <div style="padding: 8px 0;">
-          {% for ci in active_checkins %}
-          <div style="padding: 10px 18px; border-bottom: 1px solid #F1F5F9; display:flex; align-items:center; gap:12px;">
+
+      {% if live_queue and live_queue.in_consultation %}
+      {% set active = live_queue.in_consultation %}
+      <div style="padding: 12px 18px; background: #EFF6FF; border-bottom: 1px solid #DBEAFE;">
+        <div class="d-flex align-items-center justify-content-between mb-1">
+          <span class="badge bg-primary rounded-pill px-2 py-0.5" style="font-size:0.68rem;">IN CONSULTATION</span>
+          <span class="text-muted small font-monospace" style="font-size:0.72rem;">{{ active.elapsed_str }}</span>
+        </div>
+        <div class="fw-bold text-dark" style="font-size:0.88rem;">{{ active.patient.full_name }}</div>
+        <div class="text-muted" style="font-size:0.72rem;">Token {{ active.token_no }} · Started {{ active.start_time_str }}</div>
+        <div class="mt-2">
+          <a href="{{ url_for('doctor_portal.create_consultation', checkin_id=active.check_in.id, patient_id=active.patient.id) }}" class="btn btn-sm btn-success w-100 rounded-pill fw-bold" style="font-size:0.78rem; background:#059669; border-color:#059669;">
+            <i class="bi bi-check-circle-fill me-1"></i> Complete &amp; Write Rx
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if live_queue and live_queue.waiting_queue %}
+        <div style="padding: 4px 0;">
+          {% for item in live_queue.waiting_queue %}
+          <div style="padding: 10px 18px; border-bottom: 1px solid #F1F5F9; display:flex; align-items:center; gap:12px; {% if loop.first and not live_queue.in_consultation %}background:#F0FDF4;{% endif %}">
             <div style="width:32px;height:32px;border-radius:50%;background:#EFF6FF;color:#1E40AF;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;flex-shrink:0;">
-              {{ ci.token_no.replace('TK-','') }}
+              {{ item.token_no.replace('TK-','') }}
             </div>
             <div style="flex:1;min-width:0;">
-              <div class="fw-semibold text-truncate" style="font-size:0.84rem;">{{ ci.patient.full_name }}</div>
-              <div class="text-muted" style="font-size:0.72rem;">{{ ci.priority }} &bull; {{ ci.status.replace('_',' ').title() }}</div>
+              <div class="fw-semibold text-truncate" style="font-size:0.84rem;">{{ item.patient.full_name }}</div>
+              <div class="text-muted" style="font-size:0.72rem;">{{ item.priority }} · Est: {{ item.estimated_wait_str }}</div>
             </div>
-            <a href="{{ url_for('doctor_portal.create_consultation', patient_id=ci.patient_id) }}" class="btn-doc-teal" style="padding:4px 10px; font-size:0.75rem;">
-              <i class="bi bi-play-fill"></i>
+            <a href="{{ url_for('doctor_portal.start_consultation', checkin_id=item.check_in.id) }}" class="btn btn-sm btn-primary rounded-pill px-2.5 py-1" style="font-size:0.75rem; {% if loop.first and not live_queue.in_consultation %}background:#059669;border-color:#059669;{% endif %}" title="Start Consultation">
+              <i class="bi bi-play-fill"></i> Start
             </a>
           </div>
           {% endfor %}
         </div>
-      {% else %}
+      {% elif not (live_queue and live_queue.in_consultation) %}
         <div class="doc-empty" style="padding:30px 20px;">
           <i class="bi bi-people doc-empty-icon" style="font-size:1.8rem;"></i>
           <div class="doc-empty-title" style="font-size:0.9rem;">Queue is empty</div>

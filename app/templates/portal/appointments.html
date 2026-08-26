@@ -85,15 +85,20 @@
                 <span style="font-size: 0.65rem; text-transform: uppercase;">{{ apt.appointment_date.strftime('%b') }}</span>
               </div>
               <div>
-                <div class="fw-bold text-dark font-monospace" style="font-size: 1rem;">
+                <div class="fw-bold text-dark font-monospace" style="font-size: 0.96rem;">
                   {{ apt.slot_time.strftime('%I:%M %p') }}
                 </div>
-                <div class="text-muted small">
+                <div class="text-muted" style="font-size: 0.73rem;">
                   {{ apt.appointment_date.strftime('%A, %Y') }}
                   {% if apt.appointment_date == today %}
                   <span class="badge bg-primary rounded-pill ms-1" style="font-size: 0.65rem;">TODAY</span>
                   {% endif %}
                 </div>
+                {% if apt.status == 'BOOKED' and apt.recommended_arrival_time %}
+                <div class="text-primary font-monospace fw-semibold" style="font-size: 0.72rem;">
+                  <i class="bi bi-box-arrow-in-right me-0.5"></i> Check-in: {{ apt.recommended_arrival_time }}
+                </div>
+                {% endif %}
               </div>
             </div>
           </div>
@@ -104,18 +109,22 @@
             <div class="text-muted small">
               <i class="bi bi-hospital me-1 text-primary"></i> {{ apt.doctor.department or 'Outpatient Department (OPD)' }}
             </div>
-            <div class="text-muted small font-monospace">Token: {{ apt.appointment_code }}</div>
+            <div class="text-muted small font-monospace">Ref: {{ apt.appointment_code }}</div>
           </div>
 
           <!-- Type & Status -->
           <div class="col-md-3">
             <div class="mb-1">
               {% if apt.status == 'BOOKED' %}
-                <span class="status-pill status-booked"><i class="bi bi-calendar-check-fill"></i> Scheduled</span>
+                <span class="status-pill status-booked"><i class="bi bi-calendar-check-fill"></i> Scheduled (Arrival Window)</span>
               {% elif apt.status in ('CHECKED_IN', 'WAITING') %}
-                <span class="status-pill status-checked-in"><i class="bi bi-door-open-fill"></i> Arrived / Waiting</span>
+                <span class="status-pill status-checked-in"><i class="bi bi-hourglass-split"></i> Checked In · In Live Queue</span>
+              {% elif apt.status == 'IN_CONSULTATION' %}
+                <span class="status-pill" style="background:#FEF3C7; color:#B45309; border:1px solid #FDE68A;"><i class="bi bi-clipboard2-pulse-fill"></i> In Consultation</span>
               {% elif apt.status == 'COMPLETED' %}
-                <span class="status-pill status-completed"><i class="bi bi-check2-all"></i> Completed</span>
+                <span class="status-pill status-completed"><i class="bi bi-check2-all"></i> Consultation Completed</span>
+              {% elif apt.status == 'NO_SHOW' %}
+                <span class="status-pill status-cancelled"><i class="bi bi-person-x"></i> No Show</span>
               {% elif apt.status == 'CANCELLED' %}
                 <span class="status-pill status-cancelled"><i class="bi bi-x-circle-fill"></i> Cancelled</span>
               {% else %}
@@ -123,7 +132,7 @@
               {% endif %}
             </div>
             <div class="small text-muted">
-              Booking Type: <strong>{{ apt.booking_type or 'Online' }}</strong>
+              Priority: <strong>{{ apt.priority or 'Regular' }}</strong> · Channel: {{ apt.booking_type or 'Online' }}
             </div>
           </div>
 

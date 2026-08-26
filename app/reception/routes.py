@@ -256,10 +256,30 @@ def update_status(check_in_id):
             check_in_obj.called_time = datetime.utcnow()
         elif new_status == 'COMPLETED':
             check_in_obj.completed_time = datetime.utcnow()
+
+        today = date.today()
+        apt = Appointment.query.filter(
+            Appointment.patient_id == check_in_obj.patient_id,
+            Appointment.doctor_id == check_in_obj.doctor_id,
+            Appointment.appointment_date == today
+        ).first()
+        if apt and new_status in ['IN_CONSULTATION', 'COMPLETED', 'NO_SHOW', 'CANCELLED']:
+            apt.status = new_status
             
         db.session.commit()
         flash(f'Token {check_in_obj.token_no} status updated to {new_status}.', 'info')
         
+    return redirect(url_for('reception.dashboard'))
+
+
+@reception_bp.route('/mark-noshow-apt/<int:appointment_id>', methods=['POST'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def mark_noshow_apt(appointment_id):
+    apt = Appointment.query.get_or_404(appointment_id)
+    apt.status = 'NO_SHOW'
+    db.session.commit()
+    flash(f'Appointment {apt.appointment_code} for {apt.patient.full_name} marked as No Show.', 'warning')
     return redirect(url_for('reception.dashboard'))
 
 

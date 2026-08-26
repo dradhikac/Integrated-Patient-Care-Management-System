@@ -15,6 +15,8 @@ class Consultation(db.Model):
     diagnosis = db.Column(db.Text, nullable=False)
     treatment_plan = db.Column(db.Text, nullable=True)
     notes = db.Column(db.Text, nullable=True)
+    started_at = db.Column(db.DateTime, nullable=True)
+    completed_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -23,6 +25,17 @@ class Consultation(db.Model):
     check_in = db.relationship('CheckIn', backref='consultation', uselist=False, lazy=True)
     appointment = db.relationship('Appointment', foreign_keys=[appointment_id], backref=db.backref('consultation', uselist=False), lazy=True)
     vital = db.relationship('Vital', backref='consultation', uselist=False, cascade='all, delete-orphan', lazy=True)
+
+    @property
+    def actual_duration_minutes(self):
+        """Calculates actual consultation duration in minutes from real timestamps."""
+        st = self.started_at
+        et = self.completed_at or self.created_at
+        if not st and self.check_in and self.check_in.called_time:
+            st = self.check_in.called_time
+        if st and et:
+            return max(1.0, round((et - st).total_seconds() / 60.0, 1))
+        return None
 
     @staticmethod
     def generate_consultation_code():

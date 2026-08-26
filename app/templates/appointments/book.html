@@ -86,9 +86,14 @@
     <div class="col-md-7">
       <div class="card border-0 shadow-sm rounded-4 h-100">
         <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-          <h5 class="card-title fw-bold mb-0 text-teal" style="color: var(--primary-color);">
-            <i class="bi bi-grid-3x3-gap-fill me-2"></i> Available Time Slot Pool
-          </h5>
+          <div>
+            <h5 class="card-title fw-bold mb-0 text-teal" style="color: var(--primary-color);">
+              <i class="bi bi-clock-history me-2"></i> Doctor Clinic Windows &amp; Arrival Checkpoints
+            </h5>
+            {% if slot_info.clinic_hours_str %}
+            <small class="text-muted">Doctor Clinic Hours: <strong>{{ slot_info.clinic_hours_str }}</strong></small>
+            {% endif %}
+          </div>
           <span class="badge bg-dark">{{ selected_date.strftime('%d %b %Y') }}</span>
         </div>
         <div class="card-body p-4">
@@ -106,11 +111,14 @@
           </div>
           {% else %}
           
-          <div class="d-flex flex-wrap gap-2 mb-4">
-            <small class="me-3"><span class="badge bg-success-subtle text-success border border-success me-1">Available</span> Available</small>
-            <small class="me-3"><span class="badge bg-secondary me-1">Booked</span> Booked</small>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <small class="me-3"><span class="badge bg-success-subtle text-success border border-success me-1">Available</span> Available Window</small>
+            <small class="me-3"><span class="badge bg-secondary me-1">Reserved</span> Reserved</small>
             <small class="me-3"><span class="badge bg-warning-subtle text-dark border border-warning me-1">Emergency</span> Emergency Reserved</small>
             <small><span class="badge bg-light text-muted border me-1">Past</span> Past</small>
+          </div>
+          <div class="alert alert-info py-2 px-3 mb-3 small" style="font-size: 0.8rem;">
+            <i class="bi bi-info-circle me-1"></i> Selection represents patient's <strong>expected arrival checkpoint</strong>. Doctor attends via live dynamic queue.
           </div>
 
           <div class="row g-2">

@@ -108,12 +108,27 @@
           </td>
           <td class="pe-4 text-end">
             {% if apt.status == 'BOOKED' and apt.appointment_date == today %}
-            <form action="{{ url_for('reception.quick_checkin_apt', appointment_id=apt.id) }}" method="POST" class="d-inline">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" style="background:#2563EB;font-size:.78rem;">
-                <i class="bi bi-box-arrow-in-right me-1"></i>Check In
-              </button>
-            </form>
+            <div class="d-inline-flex gap-1">
+              <form action="{{ url_for('reception.quick_checkin_apt', appointment_id=apt.id) }}" method="POST" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" style="background:#2563EB;font-size:.78rem;">
+                  <i class="bi bi-box-arrow-in-right me-1"></i>Check In
+                </button>
+              </form>
+              <div class="dropdown d-inline">
+                <button class="btn btn-sm btn-light border rounded-circle p-0" style="width:26px;height:26px;" type="button" data-bs-toggle="dropdown">
+                  <i class="bi bi-three-dots-vertical" style="font-size:.7rem;"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3" style="font-size:.8rem;">
+                  <li>
+                    <form action="{{ url_for('reception.mark_noshow_apt', appointment_id=apt.id) }}" method="POST">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button class="dropdown-item text-danger"><i class="bi bi-person-x me-2"></i>Mark No Show</button>
+                    </form>
+                  </li>
+                </ul>
+              </div>
+            </div>
             {% elif apt.status == 'COMPLETED' %}
               {% set pinfo = apt.payment_info %}
               {% if pinfo.is_paid %}

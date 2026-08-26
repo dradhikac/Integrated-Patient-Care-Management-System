@@ -60,11 +60,9 @@ def dashboard():
         LabRequest.status.in_(['REQUESTED', 'SAMPLE_COLLECTED', 'IN_TESTING'])
     ).count()
 
-    # Pending consultations (checked-in patients without a consultation record)
-    active_checkins = CheckIn.query.filter(
-        CheckIn.doctor_id == current_user.id,
-        CheckIn.status.in_(['WAITING', 'IN_CONSULTATION'])
-    ).order_by(CheckIn.check_in_time).limit(10).all()
+    # Live Queue from Queue Engine
+    from app.queue.queue_engine import get_doctor_live_queue
+    live_queue_data = get_doctor_live_queue(current_user.id, today)
 
     return render_template(
         'doctor/dashboard.html',
@@ -77,7 +75,8 @@ def dashboard():
         completed_today=completed_today,
         upcoming=upcoming,
         pending_labs=pending_labs,
-        active_checkins=active_checkins
+        live_queue=live_queue_data,
+        active_checkins=live_queue_data.get('waiting_queue', [])
     )
 
 
@@ -106,29 +105,49 @@ def today_appointments():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# PATIENT QUEUE
+# PATIENT QUEUE (DYNAMIC LIVE CLINIC QUEUE)
 # ─────────────────────────────────────────────────────────────────────────────
 @doctor_portal_bp.route('/queue')
 @role_required('Doctor')
 def patient_queue():
     doctor = get_doctor_record()
     today = date.today()
-    queue = CheckIn.query.filter(
-        CheckIn.doctor_id == current_user.id,
-        CheckIn.status.in_(['WAITING', 'IN_CONSULTATION']),
-        db.cast(CheckIn.check_in_time, db.Date) == today
-    ).order_by(CheckIn.check_in_time).all()
+    from app.queue.queue_engine import get_doctor_live_queue
+    live_queue_data = get_doctor_live_queue(current_user.id, today)
 
-    # Calculate wait times
-    now = datetime.now()
-    for item in queue:
-        if item.check_in_time:
-            delta = now - item.check_in_time
-            item._wait_minutes = int(delta.total_seconds() // 60)
-        else:
-            item._wait_minutes = 0
+    return render_template(
+        'doctor/patient_queue.html',
+        doctor=doctor,
+        live_queue=live_queue_data,
+        today=today
+    )
 
-    return render_template('doctor/patient_queue.html', doctor=doctor, queue=queue, today=today)
+
+@doctor_portal_bp.route('/queue/start/<int:checkin_id>', methods=['GET', 'POST'])
+@role_required('Doctor')
+def start_consultation(checkin_id):
+    """Starts consultation for patient at top of queue, recording real start timestamp."""
+    checkin = CheckIn.query.get_or_404(checkin_id)
+    if checkin.doctor_id != current_user.id:
+        abort(403)
+
+    checkin.status = 'IN_CONSULTATION'
+    checkin.called_time = datetime.utcnow()
+
+    # Match appointment if any
+    today = date.today()
+    apt = Appointment.query.filter(
+        Appointment.patient_id == checkin.patient_id,
+        Appointment.doctor_id == current_user.id,
+        Appointment.appointment_date == today,
+        Appointment.status.in_(['BOOKED', 'CHECKED_IN'])
+    ).first()
+    if apt:
+        apt.status = 'IN_CONSULTATION'
+
+    db.session.commit()
+    flash(f'Consultation started for {checkin.patient.full_name} (Token {checkin.token_no}).', 'info')
+    return redirect(url_for('doctor_portal.create_consultation', checkin_id=checkin.id, patient_id=checkin.patient_id))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -299,15 +318,34 @@ def create_consultation():
         pulse = request.form.get('pulse_bpm', type=int)
         spo2 = request.form.get('spo2_percent', type=int)
 
+        # Check for active checkin
+        checkin = None
+        checkin_id_val = request.form.get('checkin_id', type=int) or request.args.get('checkin_id', type=int)
+        if checkin_id_val:
+            checkin = CheckIn.query.get(checkin_id_val)
+        if not checkin:
+            checkin = CheckIn.query.filter(
+                CheckIn.patient_id == patient_id,
+                CheckIn.doctor_id == current_user.id,
+                CheckIn.status.in_(['WAITING', 'IN_CONSULTATION']),
+                db.cast(CheckIn.check_in_time, db.Date) == today
+            ).order_by(CheckIn.id.desc()).first()
+
+        now_time = datetime.utcnow()
+        start_time = checkin.called_time if (checkin and checkin.called_time) else now_time
+
         consultation = Consultation(
             consultation_code=Consultation.generate_consultation_code(),
             patient_id=patient_id,
             doctor_id=current_user.id,
             appointment_id=appointment_id,
+            check_in_id=checkin.id if checkin else None,
             symptoms=request.form.get('symptoms', '').strip(),
             diagnosis=request.form.get('diagnosis', '').strip(),
             treatment_plan=request.form.get('treatment_plan', '').strip(),
-            notes=request.form.get('notes', '').strip()
+            notes=request.form.get('notes', '').strip(),
+            started_at=start_time,
+            completed_at=now_time
         )
         db.session.add(consultation)
         db.session.flush()
@@ -324,12 +362,35 @@ def create_consultation():
             )
             db.session.add(vital)
 
+        # Update checkin status
+        if checkin:
+            checkin.status = 'COMPLETED'
+            checkin.completed_time = now_time
+
         # Update appointment status
         if appointment_id and appointment:
             appointment.status = 'COMPLETED'
+        else:
+            # Also find appointment for today if any
+            apt_today = Appointment.query.filter(
+                Appointment.patient_id == patient_id,
+                Appointment.doctor_id == current_user.id,
+                Appointment.appointment_date == today,
+                Appointment.status.in_(['BOOKED', 'CHECKED_IN', 'IN_CONSULTATION'])
+            ).first()
+            if apt_today:
+                apt_today.status = 'COMPLETED'
+                consultation.appointment_id = apt_today.id
+
+        # Auto generate billing invoice
+        try:
+            from app.billing.aggregator import generate_auto_bill_for_patient
+            generate_auto_bill_for_patient(patient_id=patient_id, consultation_id=consultation.id)
+        except Exception:
+            pass
 
         db.session.commit()
-        flash(f'Consultation {consultation.consultation_code} recorded successfully.', 'success')
+        flash(f'Consultation {consultation.consultation_code} completed successfully. Duration: {consultation.actual_duration_minutes} min.', 'success')
         return redirect(url_for('doctor_portal.consultation_detail', consultation_id=consultation.id))
 
     # GET: get today's checked-in patients for selection

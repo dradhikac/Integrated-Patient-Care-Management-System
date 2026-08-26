@@ -1,42 +1,56 @@
 {% extends 'portal/base_patient.html' %}
 
 {% block title %}Book Appointment — MediCore+ Health Portal{% endblock %}
-{% block header_title %}Book an Appointment{% endblock %}
-{% block header_subtitle %}Select your preferred doctor, appointment date, and available time slot{% endblock %}
+{% block header_title %}Schedule a Consultation{% endblock %}
+{% block header_subtitle %}Choose your consulting doctor, visit date, and expected arrival window{% endblock %}
 
 {% block extra_css %}
 <style>
-  .slot-chip {
-    display: inline-block;
-    padding: 8px 16px;
+  .window-chip {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
     border-radius: 12px;
     font-size: 0.88rem;
-    font-weight: 600;
-    font-family: monospace;
+    font-weight: 700;
+    font-family: inherit;
     cursor: pointer;
     border: 1.5px solid #E2E8F0;
     background-color: #FFFFFF;
     color: #0F172A;
     transition: all 0.18s ease;
     user-select: none;
+    min-width: 110px;
+    text-align: center;
   }
-  .slot-chip:hover {
+  .window-chip:hover {
     border-color: #2563EB;
     background-color: #EFF6FF;
     color: #2563EB;
   }
-  .slot-chip.selected {
+  .window-chip.selected {
     background-color: #2563EB !important;
     color: #FFFFFF !important;
     border-color: #2563EB !important;
-    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.28);
   }
-  .slot-chip.disabled {
+  .window-chip.selected .rec-text {
+    color: #DBEAFE !important;
+  }
+  .window-chip.disabled {
     background-color: #F8FAFC;
     color: #94A3B8;
     border-color: #E2E8F0;
     cursor: not-allowed;
     text-decoration: line-through;
+  }
+  .rec-text {
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: #64748B;
+    margin-top: 2px;
   }
 </style>
 {% endblock %}
@@ -49,11 +63,11 @@
       <div class="p-4 border-bottom" style="border-color: #F1F5F9 !important;">
         <div class="d-flex align-items-center gap-3">
           <div style="width: 44px; height: 44px; border-radius: 12px; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
-            <i class="bi bi-calendar2-plus-fill"></i>
+            <i class="bi bi-calendar2-check-fill"></i>
           </div>
           <div>
-            <h5 class="fw-bold text-dark mb-0">Schedule a Doctor Consultation</h5>
-            <p class="text-muted small mb-0">Appointments booked online receive immediate token confirmation</p>
+            <h5 class="fw-bold text-dark mb-0">Dynamic Clinic Scheduling &amp; Arrival Windows</h5>
+            <p class="text-muted small mb-0">Appointments represent expected arrival checkpoints. The live queue advances seamlessly with real consultation flow.</p>
           </div>
         </div>
       </div>
@@ -81,6 +95,32 @@
           </div>
         </form>
 
+        <!-- Doctor Clinic Availability & Live Queue Summary Banner -->
+        {% if selected_doc_id and slot_info.get('has_availability') %}
+        <div class="card border-0 rounded-3 p-3 mb-4" style="background: #F8FAFC; border: 1px solid #E2E8F0 !important;">
+          <div class="row align-items-center g-3">
+            <div class="col-md-4">
+              <div class="text-muted small">Doctor's Clinic Hours:</div>
+              <strong class="text-dark"><i class="bi bi-clock me-1 text-primary"></i> {{ slot_info.clinic_hours_str }}</strong>
+            </div>
+            <div class="col-md-4">
+              <div class="text-muted small">Live Queue Status:</div>
+              {% if slot_info.is_clinic_live_now %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1 fw-bold">
+                  <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i> Clinic Active Now
+                </span>
+              {% else %}
+                <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1">Scheduled for {{ selected_date.strftime('%d %b') }}</span>
+              {% endif %}
+            </div>
+            <div class="col-md-4">
+              <div class="text-muted small">Estimated Waiting Time:</div>
+              <strong class="text-teal font-monospace" style="color: #0D9488;">{{ slot_info.estimated_wait_str }}</strong>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
         <hr class="my-4" style="border-color: #F1F5F9;">
 
         <!-- Step 3: Booking Confirmation Form (POST) -->
@@ -90,15 +130,22 @@
           <input type="hidden" name="appointment_date" value="{{ selected_date.strftime('%Y-%m-%d') }}">
           <input type="hidden" name="slot_time" id="selectedSlotInput" value="">
 
-          <!-- Available Time Slots Display -->
+          <!-- Available Arrival Windows Display -->
           <div class="mb-4">
-            <label class="form-label small fw-bold text-muted d-block">
-              3. Available Time Slots for {{ selected_date.strftime('%A, %d %B %Y') }} <span class="text-danger">*</span>
-            </label>
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <label class="form-label small fw-bold text-muted mb-0">
+                3. Choose Expected Arrival Time on {{ selected_date.strftime('%A, %d %B %Y') }} <span class="text-danger">*</span>
+              </label>
+            </div>
+
+            <div class="alert alert-info border-0 rounded-3 p-3 mb-3 small" style="background: #EFF6FF; color: #1E40AF;">
+              <i class="bi bi-info-circle-fill me-1.5"></i>
+              <strong>Dynamic Queue Model:</strong> Consultations are not restricted to artificial 15-minute boxes. Select your expected arrival checkpoint. We recommend arriving 10 minutes prior for token verification.
+            </div>
 
             {% if not selected_doc_id %}
               <div class="alert alert-light border rounded-3 text-muted small p-3">
-                <i class="bi bi-arrow-up-circle me-1"></i> Please select a consulting doctor above to see available time slots.
+                <i class="bi bi-arrow-up-circle me-1"></i> Please select a consulting doctor above to see available arrival windows.
               </div>
             {% elif slot_info.get('is_holiday') %}
               <div class="alert alert-warning border rounded-3 small p-3">
@@ -112,20 +159,35 @@
               <div class="d-flex flex-wrap gap-2 pt-1">
                 {% for s in slot_info.get('slots') %}
                   {% if not s.is_available %}
-                    <span class="slot-chip disabled" title="{{ s.reason }}">
-                      {{ s.time_str }} ({{ s.reason }})
-                    </span>
+                    <div class="window-chip disabled" title="{{ s.reason }}">
+                      <div>{{ s.time_str }}</div>
+                      <div class="rec-text">{{ s.reason }}</div>
+                    </div>
                   {% else %}
-                    <span class="slot-chip" onclick="selectSlot('{{ s.time_raw }}', this)">
-                      <i class="bi bi-clock me-1"></i> {{ s.time_str }}
-                    </span>
+                    <div class="window-chip" onclick="selectWindow('{{ s.time_raw }}', '{{ s.time_str }}', '{{ s.recommended_arrival }}', this)">
+                      <div>{{ s.time_str }}</div>
+                      <div class="rec-text">Arrive: {{ s.recommended_arrival }}</div>
+                    </div>
                   {% endif %}
                 {% endfor %}
               </div>
-              <div class="form-text mt-2 small text-muted">Click a time chip above to select your preferred consultation slot.</div>
+
+              <!-- Selected Window Summary Card -->
+              <div id="selectionSummaryCard" class="card border-0 rounded-3 p-3 mt-3 d-none" style="background: #F0FDF4; border: 1px solid #BBF7D0 !important;">
+                <div class="d-flex align-items-center gap-3">
+                  <div style="width: 40px; height: 40px; border-radius: 10px; background: #059669; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                    <i class="bi bi-check2"></i>
+                  </div>
+                  <div>
+                    <div class="fw-bold text-dark" id="summaryArrivalText">Expected Arrival: —</div>
+                    <div class="text-success small" id="summaryReportingText">Recommended Check-in: —</div>
+                  </div>
+                </div>
+              </div>
+
             {% else %}
               <div class="alert alert-warning border rounded-3 small p-3">
-                <i class="bi bi-exclamation-triangle me-1"></i> All slots for this date are fully booked or unavailable.
+                <i class="bi bi-exclamation-triangle me-1"></i> All arrival checkpoints for this date are fully reserved.
               </div>
             {% endif %}
           </div>
@@ -142,7 +204,7 @@
               <i class="bi bi-arrow-left me-1"></i> Back to Appointments
             </a>
             <button type="submit" id="submitBookingBtn" class="btn btn-primary rounded-pill px-5 fw-bold" style="background-color: #2563EB;" disabled>
-              <i class="bi bi-check2-circle me-1"></i> Confirm & Book Appointment
+              <i class="bi bi-check2-circle me-1"></i> Confirm Appointment
             </button>
           </div>
         </form>
@@ -151,13 +213,23 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block extra_scripts %}
 <script>
-  function selectSlot(timeRaw, el) {
-    document.querySelectorAll('.slot-chip').forEach(c => c.classList.remove('selected'));
+  function selectWindow(timeRaw, timeStr, recArrival, el) {
+    document.querySelectorAll('.window-chip').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
     document.getElementById('selectedSlotInput').value = timeRaw;
     document.getElementById('submitBookingBtn').disabled = false;
+
+    // Update Summary Card
+    const summaryCard = document.getElementById('selectionSummaryCard');
+    if (summaryCard) {
+      summaryCard.classList.remove('d-none');
+      document.getElementById('summaryArrivalText').innerText = `Selected Expected Arrival: ${timeStr}`;
+      document.getElementById('summaryReportingText').innerText = `Recommended Check-in Time: ${recArrival} (Please report at reception for instant token)`;
+    }
   }
 </script>
-
 {% endblock %}
