@@ -1,4 +1,4 @@
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 from app.extensions import db
 
 class DoctorAvailability(db.Model):

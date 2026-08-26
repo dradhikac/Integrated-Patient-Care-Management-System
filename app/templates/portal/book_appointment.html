@@ -215,20 +215,28 @@
 
 {% endblock %}
 
-{% block extra_scripts %}
+{% block extra_js %}
 <script>
   function selectWindow(timeRaw, timeStr, recArrival, el) {
     document.querySelectorAll('.window-chip').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
-    document.getElementById('selectedSlotInput').value = timeRaw;
-    document.getElementById('submitBookingBtn').disabled = false;
+    var inputEl = document.getElementById('selectedSlotInput');
+    if (inputEl) {
+      inputEl.value = timeRaw;
+    }
+    var btn = document.getElementById('submitBookingBtn');
+    if (btn) {
+      btn.disabled = false;
+    }
 
     // Update Summary Card
     const summaryCard = document.getElementById('selectionSummaryCard');
     if (summaryCard) {
       summaryCard.classList.remove('d-none');
-      document.getElementById('summaryArrivalText').innerText = `Selected Expected Arrival: ${timeStr}`;
-      document.getElementById('summaryReportingText').innerText = `Recommended Check-in Time: ${recArrival} (Please report at reception for instant token)`;
+      var arrEl = document.getElementById('summaryArrivalText');
+      if (arrEl) arrEl.innerText = `Selected Expected Arrival: ${timeStr}`;
+      var repEl = document.getElementById('summaryReportingText');
+      if (repEl) repEl.innerText = `Recommended Check-in Time: ${recArrival} (Please report at reception for instant token)`;
     }
   }
 </script>

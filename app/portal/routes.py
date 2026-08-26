@@ -199,14 +199,17 @@ def book_appointment():
             flash('Invalid date.', 'danger')
             return redirect(url_for('portal.book_appointment'))
 
-        try:
-            slot_t = datetime.strptime(slot_time_str, '%H:%M:%S').time()
-        except ValueError:
+        slot_t = None
+        for fmt in ('%H:%M:%S', '%H:%M', '%I:%M %p', '%I:%M%p'):
             try:
-                slot_t = datetime.strptime(slot_time_str, '%H:%M').time()
+                slot_t = datetime.strptime(slot_time_str, fmt).time()
+                break
             except ValueError:
-                flash('Invalid time slot.', 'danger')
-                return redirect(url_for('portal.book_appointment', doctor_id=doctor_id, date=apt_date_str))
+                pass
+
+        if not slot_t:
+            flash('Invalid arrival time window.', 'danger')
+            return redirect(url_for('portal.book_appointment', doctor_id=doctor_id, date=apt_date_str))
 
         # Double-booking prevention
         existing = Appointment.query.filter(
