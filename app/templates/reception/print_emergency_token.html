@@ -1,0 +1,127 @@
+{% extends 'reception/base_reception.html' %}
+
+{% block title %}Emergency Token Slip — {{ encounter.token_no }}{% endblock %}
+{% block header_title %}Emergency Token & Routing Slip{% endblock %}
+{% block header_subtitle %}High-Priority Emergency Intake & Triage Routing Slip{% endblock %}
+
+{% block extra_css %}
+<style>
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    #printableToken, #printableToken * {
+      visibility: visible;
+    }
+    #printableToken {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      box-shadow: none !important;
+      border: 2px solid #DC2626 !important;
+    }
+    .no-print {
+      display: none !important;
+    }
+  }
+
+  .token-receipt-card {
+    max-width: 460px;
+    margin: 0 auto;
+    border: 2px dashed #DC2626;
+    background: #FFFFFF;
+    border-radius: 1.25rem;
+  }
+</style>
+{% endblock %}
+
+{% block reception_content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="text-center mb-4 no-print d-flex justify-content-center gap-2">
+      <button onclick="window.print()" class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-sm">
+        <i class="bi bi-printer-fill me-2"></i> Print Emergency Slip
+      </button>
+      <a href="{{ url_for('reception.emergency_desk') }}" class="btn btn-light border rounded-pill px-4 py-2 fw-bold">
+        <i class="bi bi-arrow-left me-1"></i> Return to Emergency Desk
+      </a>
+    </div>
+
+    <!-- Printable Receipt Slip Card -->
+    <div id="printableToken" class="token-receipt-card shadow-sm p-4 text-center">
+      <div class="mb-2">
+        <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+          <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+            <i class="bi bi-ambulance"></i>
+          </div>
+          <h4 class="fw-bold mb-0 text-slate-900">MediCore+ Hospital</h4>
+        </div>
+        <div class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1 rounded-pill fw-bold text-uppercase" style="font-size: 0.75rem;">
+          Emergency & Trauma Unit · Priority 1
+        </div>
+      </div>
+      
+      <hr class="my-3 border-danger-subtle">
+      
+      <div class="py-1">
+        <small class="text-muted text-uppercase fw-bold letter-spacing-1 d-block">EMERGENCY TOKEN</small>
+        <div class="display-3 fw-800 my-1 text-danger" style="font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: -1px;">
+          {{ encounter.token_no }}
+        </div>
+        <span class="badge bg-danger text-white px-3 py-1.5 rounded-pill fs-6 fw-bold">
+          {{ encounter.priority }}
+        </span>
+      </div>
+
+      <hr class="my-3 border-danger-subtle">
+
+      <div class="text-start bg-light p-3 rounded-3 mb-3 small">
+        <div class="d-flex justify-content-between mb-1.5">
+          <span class="text-muted">Tracking ID:</span>
+          <strong class="font-monospace text-danger fw-bold">{{ encounter.temp_id }}</strong>
+        </div>
+        <div class="d-flex justify-content-between mb-1.5">
+          <span class="text-muted">Patient Identity:</span>
+          {% if encounter.patient %}
+            <strong class="fw-bold text-slate-900">{{ encounter.patient.full_name }} ({{ encounter.patient.patient_code }})</strong>
+          {% else %}
+            <span class="badge bg-warning text-dark fw-bold">Unknown Emergency Patient</span>
+          {% endif %}
+        </div>
+        <div class="d-flex justify-content-between mb-1.5">
+          <span class="text-muted">Emergency Type:</span>
+          <strong class="fw-semibold text-slate-900">{{ encounter.emergency_type }}</strong>
+        </div>
+        <div class="d-flex justify-content-between mb-1.5">
+          <span class="text-muted">Arrival Source:</span>
+          <span class="fw-medium text-slate-800">{{ encounter.arrival_source }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-1.5">
+          <span class="text-muted">Doctor / Triage:</span>
+          <strong class="fw-bold text-primary">{{ encounter.assigned_doctor.name if encounter.assigned_doctor else 'ER Duty Physician / Triage' }}</strong>
+        </div>
+        <div class="d-flex justify-content-between mb-1.5">
+          <span class="text-muted">Arrival Time:</span>
+          <span class="font-monospace text-slate-900">{{ encounter.arrival_time.strftime('%d-%b-%Y at %I:%M %p') }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-1.5">
+          <span class="text-muted">Current Status:</span>
+          <span class="fw-bold text-danger">{{ encounter.status }}</span>
+        </div>
+        {% if encounter.notes %}
+        <div class="mt-2 pt-2 border-top">
+          <span class="text-muted d-block small">Intake Notes:</span>
+          <span class="fst-italic text-slate-700">{{ encounter.notes }}</span>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="small text-muted text-center pt-1" style="font-size: 0.75rem;">
+        Intake Registered by: <span class="fw-semibold">{{ encounter.registered_by.name if encounter.registered_by else 'Front Desk' }}</span><br>
+        <span class="text-danger fw-semibold">IMMEDIATE ATTENTION: Direct patient to Emergency Room / Triage Area.</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

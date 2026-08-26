@@ -6,7 +6,7 @@ from app.auth.utils import role_required
 from app.auth.models import User, Role
 from app.patients.models import Patient
 from app.appointments.models import Appointment, DoctorAvailability
-from app.reception.models import CheckIn
+from app.reception.models import CheckIn, EmergencyEncounter
 from app.reception.forms import CheckInForm
 
 reception_bp = Blueprint('reception', __name__, template_folder='templates', url_prefix='/reception')
@@ -301,23 +301,333 @@ def schedules():
                            today_weekday=date.today().weekday())
 
 
-@reception_bp.route('/emergency-desk', methods=['GET', 'POST'])
+@reception_bp.route('/emergency-desk', methods=['GET'])
 @login_required
 @role_required('Admin', 'Receptionist')
 def emergency_desk():
     today_start = datetime.combine(date.today(), datetime.min.time())
     
-    emergency_checkins = CheckIn.query.filter(
+    # 1. Today's Emergency Encounters
+    encounters = EmergencyEncounter.query.filter(
+        EmergencyEncounter.arrival_time >= today_start
+    ).order_by(EmergencyEncounter.id.desc()).all()
+
+    # 2. Backwards compatibility for raw CheckIns with priority == 'Emergency' not yet linked
+    linked_checkin_ids = {e.check_in_id for e in encounters if e.check_in_id}
+    legacy_checkins = CheckIn.query.filter(
         CheckIn.check_in_time >= today_start,
-        CheckIn.priority == 'Emergency'
+        CheckIn.priority == 'Emergency',
+        ~CheckIn.id.in_(linked_checkin_ids) if linked_checkin_ids else True
     ).order_by(CheckIn.id.desc()).all()
 
     doctor_role = Role.query.filter_by(name='Doctor').first()
     doctors = User.query.filter_by(role_id=doctor_role.id, is_active=True).all() if doctor_role else []
 
+    next_temp_id = EmergencyEncounter.generate_temp_id()
+    next_token_no = EmergencyEncounter.generate_token_no()
+
     return render_template('reception/emergency.html',
-                           emergency_checkins=emergency_checkins,
-                           doctors=doctors)
+                           encounters=encounters,
+                           legacy_checkins=legacy_checkins,
+                           emergency_checkins=encounters,
+                           doctors=doctors,
+                           next_temp_id=next_temp_id,
+                           next_token_no=next_token_no,
+                           now=datetime.now())
+
+
+@reception_bp.route('/emergency/register-unknown', methods=['POST'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def emergency_register_unknown():
+    """Option A: Register an unidentified / unknown emergency patient with minimum information."""
+    emergency_type = request.form.get('emergency_type', 'Medical Emergency').strip()
+    priority = request.form.get('priority', 'Emergency / Critical').strip()
+    arrival_source = request.form.get('arrival_source', 'Walk-In').strip()
+    doctor_id = request.form.get('doctor_id', type=int)
+    notes = request.form.get('notes', '').strip() or None
+
+    temp_id = EmergencyEncounter.generate_temp_id()
+    token_no = EmergencyEncounter.generate_token_no()
+
+    encounter = EmergencyEncounter(
+        temp_id=temp_id,
+        token_no=token_no,
+        patient_id=None,
+        is_identified=False,
+        emergency_type=emergency_type,
+        priority=priority,
+        status='Registered',
+        arrival_source=arrival_source,
+        assigned_doctor_id=doctor_id if doctor_id and doctor_id > 0 else None,
+        notes=notes,
+        registered_by_id=current_user.id,
+        arrival_time=datetime.now()
+    )
+    db.session.add(encounter)
+    db.session.commit()
+
+    flash(f"Emergency Temporary Record created: {temp_id} with Token {token_no}. Patient routed to Emergency Care!", "success")
+    return redirect(url_for('reception.emergency_desk'))
+
+
+@reception_bp.route('/emergency/register-existing', methods=['POST'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def emergency_register_existing():
+    """Option B: Register an emergency encounter attached to an existing patient."""
+    patient_id = request.form.get('patient_id', type=int)
+    if not patient_id:
+        flash("Please select an existing patient from the directory.", "warning")
+        return redirect(url_for('reception.emergency_desk'))
+
+    patient = Patient.query.get_or_404(patient_id)
+    emergency_type = request.form.get('emergency_type', 'Medical Emergency').strip()
+    priority = request.form.get('priority', 'Emergency / Critical').strip()
+    arrival_source = request.form.get('arrival_source', 'Walk-In').strip()
+    doctor_id = request.form.get('doctor_id', type=int)
+    notes = request.form.get('notes', '').strip() or None
+
+    temp_id = EmergencyEncounter.generate_temp_id()
+    token_no = EmergencyEncounter.generate_token_no()
+
+    encounter = EmergencyEncounter(
+        temp_id=temp_id,
+        token_no=token_no,
+        patient_id=patient.id,
+        is_identified=True,
+        identified_at=datetime.now(),
+        identified_by_id=current_user.id,
+        emergency_type=emergency_type,
+        priority=priority,
+        status='Registered',
+        arrival_source=arrival_source,
+        assigned_doctor_id=doctor_id if doctor_id and doctor_id > 0 else None,
+        notes=notes,
+        registered_by_id=current_user.id,
+        arrival_time=datetime.now()
+    )
+    db.session.add(encounter)
+
+    # If doctor is assigned, also link to queue check-in
+    if doctor_id and doctor_id > 0:
+        chk = CheckIn(
+            patient_id=patient.id,
+            doctor_id=doctor_id,
+            token_no=token_no,
+            department='Emergency / Trauma',
+            priority='Emergency',
+            status='WAITING',
+            checked_in_by_id=current_user.id
+        )
+        db.session.add(chk)
+        db.session.flush()
+        encounter.check_in_id = chk.id
+
+    db.session.commit()
+
+    flash(f"Emergency encounter registered for {patient.full_name} ({patient.patient_code}) with Token {token_no}!", "success")
+    return redirect(url_for('reception.emergency_desk'))
+
+
+@reception_bp.route('/emergency/<int:encounter_id>/update', methods=['POST'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def emergency_update(encounter_id):
+    """Update emergency encounter status, triage, assigned doctor, or operational notes."""
+    encounter = EmergencyEncounter.query.get_or_404(encounter_id)
+    
+    new_status = request.form.get('status')
+    new_doctor_id = request.form.get('doctor_id', type=int)
+    new_priority = request.form.get('priority')
+    new_notes = request.form.get('notes')
+
+    if new_status:
+        encounter.status = new_status
+    if new_doctor_id is not None:
+        encounter.assigned_doctor_id = new_doctor_id if new_doctor_id > 0 else None
+    if new_priority:
+        encounter.priority = new_priority
+    if new_notes is not None:
+        encounter.notes = new_notes.strip() or None
+
+    # Sync check_in status if linked
+    if encounter.check_in:
+        if new_status in ('Under Treatment', 'In Cabin'):
+            encounter.check_in.status = 'IN_CONSULTATION'
+            if not encounter.check_in.called_time:
+                encounter.check_in.called_time = datetime.now()
+        elif new_status in ('Stabilized', 'Completed', 'Discharged'):
+            encounter.check_in.status = 'COMPLETED'
+            if not encounter.check_in.completed_time:
+                encounter.check_in.completed_time = datetime.now()
+
+    db.session.commit()
+    flash(f"Emergency Case {encounter.token_no} updated successfully.", "info")
+    return redirect(url_for('reception.emergency_desk'))
+
+
+@reception_bp.route('/emergency/<int:encounter_id>/link-existing', methods=['POST'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def emergency_link_existing(encounter_id):
+    """Link an unidentified temporary emergency record to an existing patient found in the directory."""
+    encounter = EmergencyEncounter.query.get_or_404(encounter_id)
+    target_patient_id = request.form.get('patient_id', type=int)
+    
+    if not target_patient_id:
+        flash("Please select a valid patient to link.", "warning")
+        return redirect(url_for('reception.emergency_desk'))
+
+    patient = Patient.query.get_or_404(target_patient_id)
+    
+    # Update encounter while preserving temp_id for audit history
+    encounter.patient_id = patient.id
+    encounter.is_identified = True
+    encounter.identified_at = datetime.now()
+    encounter.identified_by_id = current_user.id
+
+    # If doctor is assigned and no check_in exists yet, create check_in
+    if encounter.assigned_doctor_id and not encounter.check_in_id:
+        chk = CheckIn(
+            patient_id=patient.id,
+            doctor_id=encounter.assigned_doctor_id,
+            token_no=encounter.token_no,
+            department='Emergency / Trauma',
+            priority='Emergency',
+            status='WAITING',
+            checked_in_by_id=current_user.id
+        )
+        db.session.add(chk)
+        db.session.flush()
+        encounter.check_in_id = chk.id
+
+    db.session.commit()
+    flash(f"Temporary Record {encounter.temp_id} successfully linked to verified patient {patient.full_name} ({patient.patient_code})!", "success")
+    return redirect(url_for('reception.emergency_desk'))
+
+
+@reception_bp.route('/emergency/<int:encounter_id>/convert-new-patient', methods=['POST'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def emergency_convert_new_patient(encounter_id):
+    """Convert an unidentified emergency record to a newly registered permanent patient."""
+    encounter = EmergencyEncounter.query.get_or_404(encounter_id)
+    
+    first_name = request.form.get('first_name', '').strip()
+    last_name = request.form.get('last_name', '').strip()
+    dob_str = request.form.get('dob', '').strip()
+    age_str = request.form.get('age', '').strip()
+    gender = request.form.get('gender', 'Other').strip()
+    mobile = request.form.get('mobile', '').strip() or None
+    aadhaar_raw = request.form.get('aadhaar_number', '').strip() or None
+    blood_group = request.form.get('blood_group', '').strip() or None
+    emergency_contact_name = request.form.get('emergency_contact_name', '').strip() or None
+    emergency_contact_mobile = request.form.get('emergency_contact_mobile', '').strip() or None
+    address = request.form.get('address', '').strip() or None
+
+    if not first_name or not last_name:
+        flash("First Name and Last Name are required to create a patient profile.", "danger")
+        return redirect(url_for('reception.emergency_desk'))
+
+    # Parse or compute DOB
+    dob = None
+    if dob_str:
+        try:
+            dob = datetime.strptime(dob_str, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    if not dob and age_str and age_str.isdigit():
+        dob = date(date.today().year - int(age_str), 1, 1)
+    if not dob:
+        dob = date(2000, 1, 1)
+
+    patient = Patient(
+        patient_code=Patient.generate_patient_code(),
+        first_name=first_name,
+        last_name=last_name,
+        full_name=f"{first_name} {last_name}",
+        dob=dob,
+        gender=gender,
+        mobile=mobile or '—',
+        blood_group=blood_group,
+        emergency_contact_name=emergency_contact_name,
+        emergency_contact_mobile=emergency_contact_mobile,
+        address=address,
+        registered_by_id=current_user.id,
+        portal_status='NOT_ACTIVATED',
+    )
+    if aadhaar_raw:
+        patient.set_aadhaar(aadhaar_raw)
+
+    db.session.add(patient)
+    db.session.flush()
+
+    # Link encounter to this new permanent patient, keeping temp_id in history
+    encounter.patient_id = patient.id
+    encounter.is_identified = True
+    encounter.identified_at = datetime.now()
+    encounter.identified_by_id = current_user.id
+
+    if encounter.assigned_doctor_id and not encounter.check_in_id:
+        chk = CheckIn(
+            patient_id=patient.id,
+            doctor_id=encounter.assigned_doctor_id,
+            token_no=encounter.token_no,
+            department='Emergency / Trauma',
+            priority='Emergency',
+            status='WAITING',
+            checked_in_by_id=current_user.id
+        )
+        db.session.add(chk)
+        db.session.flush()
+        encounter.check_in_id = chk.id
+
+    db.session.commit()
+    flash(f"New patient profile created ({patient.patient_code}: {patient.full_name}) and linked to emergency record {encounter.temp_id}!", "success")
+    return redirect(url_for('reception.emergency_desk'))
+
+
+@reception_bp.route('/emergency/print-token/<int:encounter_id>', methods=['GET'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def emergency_print_token(encounter_id):
+    """Printable emergency routing and token slip."""
+    encounter = EmergencyEncounter.query.get_or_404(encounter_id)
+    return render_template('reception/print_emergency_token.html', encounter=encounter)
+
+
+@reception_bp.route('/api/emergency/search-patients', methods=['GET'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def api_emergency_search_patients():
+    """Fast AJAX patient search for emergency desk modals."""
+    q = request.args.get('q', '').strip()
+    if not q or len(q) < 2:
+        return jsonify({'success': True, 'patients': []})
+
+    sf = f"%{q}%"
+    patients = Patient.query.filter(
+        (Patient.patient_code.ilike(sf)) |
+        (Patient.full_name.ilike(sf)) |
+        (Patient.mobile.ilike(sf)) |
+        (Patient.aadhaar_masked.ilike(sf))
+    ).limit(10).all()
+
+    results = []
+    for p in patients:
+        results.append({
+            'id': p.id,
+            'patient_code': p.patient_code,
+            'full_name': p.full_name,
+            'mobile': p.mobile or '—',
+            'gender': p.gender,
+            'blood_group': p.blood_group or '—',
+            'dob': p.dob.strftime('%d-%b-%Y') if p.dob else '—',
+            'masked_aadhaar': p.aadhaar_masked or '—'
+        })
+
+    return jsonify({'success': True, 'patients': results})
 
 
 # ───────────────────────────────────────────────────────────────────────────────

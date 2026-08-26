@@ -76,3 +76,78 @@ class CheckIn(db.Model):
 
     def __repr__(self):
         return f"<CheckIn {self.token_no} - Patient {self.patient_id} -> Doctor {self.doctor_id}>"
+
+
+class EmergencyEncounter(db.Model):
+    __tablename__ = 'emergency_encounters'
+
+    id = db.Column(db.Integer, primary_key=True)
+    temp_id = db.Column(db.String(40), unique=True, nullable=False, index=True)  # e.g. TEMP-ER-2026-0001
+    token_no = db.Column(db.String(20), nullable=False, index=True)             # e.g. ER-001
+    
+    # Patient identity link (nullable for unknown / unidentified emergency patients)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=True)
+    is_identified = db.Column(db.Boolean, default=False)
+    
+    # Clinical & operational encounter details
+    emergency_type = db.Column(db.String(80), default='Medical Emergency') 
+    # e.g., Accident / Trauma, Unidentified Patient, Unconscious Patient, Pregnancy-related Emergency, Medical Emergency, Pediatric Emergency, Other Emergency
+    priority = db.Column(db.String(40), default='Emergency / Critical') 
+    # Emergency / Critical, Urgent, Priority
+    status = db.Column(db.String(40), default='Registered')
+    # Emergency Arrival, Registered, Triage, Doctor Assigned, Under Treatment, Stabilized, Admitted, Discharged, Transferred
+    
+    arrival_source = db.Column(db.String(60), default='Walk-In')  # Ambulance, Walk-In, Police Referral, Bystander, Other
+    assigned_doctor_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    department = db.Column(db.String(60), default='Emergency / Trauma')
+    
+    notes = db.Column(db.Text, nullable=True)
+    
+    arrival_time = db.Column(db.DateTime, default=datetime.now)
+    registered_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    identified_at = db.Column(db.DateTime, nullable=True)
+    identified_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    
+    # Optional linked checkin_id if synced with reception check-in queue
+    check_in_id = db.Column(db.Integer, db.ForeignKey('check_ins.id'), nullable=True)
+
+    # Relationships
+    patient = db.relationship('Patient', backref='emergency_encounters', lazy=True)
+    assigned_doctor = db.relationship('User', foreign_keys=[assigned_doctor_id], backref='assigned_emergency_encounters', lazy=True)
+    registered_by = db.relationship('User', foreign_keys=[registered_by_id], backref='registered_emergency_encounters', lazy=True)
+    identified_by = db.relationship('User', foreign_keys=[identified_by_id], lazy=True)
+    check_in = db.relationship('CheckIn', backref=db.backref('emergency_encounter', uselist=False), lazy=True)
+
+    @staticmethod
+    def generate_temp_id():
+        """Generates sequential temporary emergency ID e.g. TEMP-ER-2026-0001"""
+        current_year = datetime.now().year
+        prefix = f"TEMP-ER-{current_year}-"
+        count = EmergencyEncounter.query.filter(
+            EmergencyEncounter.temp_id.like(f"{prefix}%")
+        ).count()
+        return f"{prefix}{(count + 1):04d}"
+
+    @staticmethod
+    def generate_token_no():
+        """Generates sequential emergency token for today e.g. ER-001, ER-002"""
+        today_start = datetime.combine(date.today(), datetime.min.time())
+        count = EmergencyEncounter.query.filter(
+            EmergencyEncounter.arrival_time >= today_start
+        ).count()
+        return f"ER-{(count + 1):03d}"
+
+    @property
+    def display_name(self):
+        if self.patient:
+            return self.patient.full_name
+        return "Unknown Emergency Patient"
+
+    @property
+    def display_code(self):
+        if self.patient:
+            return self.patient.patient_code
+        return self.temp_id
+
+    def __repr__(self):
+        return f"<EmergencyEncounter {self.token_no} ({self.temp_id}) - Patient {self.patient_id}>"

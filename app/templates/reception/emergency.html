@@ -2,14 +2,15 @@
 
 {% block title %}Emergency Desk & Triage — MediCore+ Desk{% endblock %}
 {% block header_title %}Emergency Walk-In & Triage Desk{% endblock %}
-{% block header_subtitle %}Rapid check-in and priority routing for critical and emergency patient cases{% endblock %}
+{% block header_subtitle %}Rapid intake, identification, and priority routing for critical and emergency patient cases{% endblock %}
 
 {% block reception_content %}
 <div class="row g-4">
   <div class="col-12">
+    <!-- Top Emergency Banner -->
     <div class="alert alert-danger border-0 rounded-4 shadow-sm p-4 d-flex align-items-center justify-content-between mb-4" style="background: #FEF2F2; border-left: 5px solid #DC2626 !important;">
       <div class="d-flex align-items-center gap-3">
-        <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center" style="width: 46px; height: 46px; font-size: 1.4rem;">
+        <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; font-size: 1.4rem;">
           <i class="bi bi-ambulance"></i>
         </div>
         <div>
@@ -17,18 +18,25 @@
           <div class="text-muted small">Emergency cases bypass standard queues and are routed immediately to the Emergency Room / On-Duty Physician.</div>
         </div>
       </div>
-      <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#quickCheckInModal">
-        <i class="bi bi-plus-circle me-1"></i> Rapid Emergency Intake
+      <button type="button" class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#intakeChoiceModal">
+        <i class="bi bi-plus-circle fs-5"></i> Rapid Emergency Intake
       </button>
     </div>
 
     <!-- Active Emergency Cases Table -->
     <div class="user-table-card">
-      <div class="p-4 border-bottom d-flex align-items-center justify-content-between">
-        <h5 class="fw-bold mb-0 text-slate-900">
-          <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i> Today's Emergency Cases ({{ emergency_checkins|length }})
-        </h5>
-        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 font-monospace">Priority 1: Urgent</span>
+      <div class="p-4 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <h5 class="fw-bold mb-0 text-slate-900">
+            <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i> Today's Emergency Cases ({{ encounters|length + legacy_checkins|length }})
+          </h5>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-danger text-white rounded-pill px-3 py-1.5 font-monospace fw-bold">Priority 1: Urgent</span>
+          <span class="badge bg-warning-subtle text-dark border rounded-pill px-3 py-1.5 fw-bold">
+            <i class="bi bi-clock-history me-1"></i> Auto-Sequenced
+          </span>
+        </div>
       </div>
 
       <div class="table-responsive">
@@ -36,57 +44,869 @@
           <thead>
             <tr>
               <th class="ps-4">Token #</th>
-              <th>Patient</th>
+              <th>Patient / Identity</th>
+              <th>Emergency Type & Priority</th>
               <th>Assigned Doctor / Triage</th>
-              <th>Check-In Time</th>
+              <th>Arrival Time</th>
               <th>Current Status</th>
-              <th class="text-end pe-4">Desk Action</th>
+              <th class="text-end pe-4">Desk Actions</th>
             </tr>
           </thead>
           <tbody>
-            {% for em in emergency_checkins %}
+            {% for em in encounters %}
             <tr>
               <td class="ps-4">
-                <span class="badge bg-danger text-white rounded-pill px-3 py-1 font-monospace fw-bold">{{ em.token_no }}</span>
+                <span class="badge bg-danger text-white rounded-pill px-3 py-1.5 font-monospace fw-bold fs-6">{{ em.token_no }}</span>
               </td>
               <td>
-                <div class="fw-bold text-slate-900">{{ em.patient.full_name }}</div>
-                <div class="text-muted font-monospace small" style="font-size: 0.75rem;">{{ em.patient.patient_code }} · {{ em.patient.mobile }}</div>
+                {% if em.patient %}
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold text-slate-900">{{ em.patient.full_name }}</span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5" style="font-size:0.7rem;">
+                      <i class="bi bi-check-circle-fill me-1"></i>Verified
+                    </span>
+                  </div>
+                  <div class="text-muted font-monospace small" style="font-size: 0.75rem;">
+                    <span class="badge bg-primary-subtle text-primary border me-1">{{ em.patient.patient_code }}</span>
+                    {{ em.patient.mobile or 'No phone' }}
+                    <span class="text-secondary ms-1">· {{ em.temp_id }}</span>
+                  </div>
+                {% else %}
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold text-slate-900">Unknown Emergency Patient</span>
+                    <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5" style="font-size:0.7rem;">
+                      <i class="bi bi-question-circle-fill me-1"></i>Unidentified
+                    </span>
+                  </div>
+                  <div class="text-muted font-monospace small" style="font-size: 0.75rem;">
+                    <span class="badge bg-warning-subtle text-dark border border-warning">{{ em.temp_id }}</span>
+                    <span class="text-muted ms-1">Identity Pending</span>
+                  </div>
+                {% endif %}
               </td>
               <td>
-                <div class="fw-semibold text-slate-900">{{ em.doctor.name }}</div>
-                <div class="text-muted small" style="font-size: 0.75rem;">{{ em.department }}</div>
+                <div class="fw-semibold text-slate-900">{{ em.emergency_type }}</div>
+                <div class="small">
+                  {% if em.priority in ('Emergency / Critical', 'Emergency', 'Critical') %}
+                    <span class="badge bg-danger text-white rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">Critical</span>
+                  {% elif em.priority == 'Urgent' %}
+                    <span class="badge bg-warning text-dark rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">Urgent</span>
+                  {% else %}
+                    <span class="badge bg-info text-dark rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">Priority</span>
+                  {% endif %}
+                  <span class="text-muted ms-1" style="font-size: 0.72rem;">Via {{ em.arrival_source }}</span>
+                </div>
               </td>
               <td>
-                <span class="text-muted font-monospace small">{{ em.check_in_time.strftime('%I:%M %p') }}</span>
+                {% if em.assigned_doctor %}
+                  <div class="fw-semibold text-slate-900">{{ em.assigned_doctor.name }}</div>
+                  <div class="text-muted small" style="font-size: 0.75rem;">{{ em.assigned_doctor.department or 'Emergency / Trauma' }}</div>
+                {% else %}
+                  <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1">
+                    <i class="bi bi-person-x me-1"></i> ER Triage Duty
+                  </span>
+                {% endif %}
               </td>
               <td>
-                {% if em.status == 'IN_CONSULTATION' %}
+                <span class="text-slate-800 font-monospace fw-semibold small">{{ em.arrival_time.strftime('%I:%M %p') }}</span>
+                <div class="text-muted" style="font-size: 0.7rem;">{{ em.arrival_time.strftime('%d %b') }}</div>
+              </td>
+              <td>
+                {% if em.status == 'Registered' or em.status == 'Emergency Arrival' %}
+                  <span class="badge bg-danger text-white rounded-pill px-2.5 py-1 pulse-dot-red">
+                    <i class="bi bi-exclamation-circle me-1"></i> Immediate Attention
+                  </span>
+                {% elif em.status == 'Triage' %}
+                  <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1">
+                    <i class="bi bi-activity me-1"></i> In Triage
+                  </span>
+                {% elif em.status == 'Doctor Assigned' %}
+                  <span class="badge bg-purple text-white rounded-pill px-2.5 py-1" style="background:#7C3AED;">
+                    <i class="bi bi-person-badge me-1"></i> Doctor Assigned
+                  </span>
+                {% elif em.status in ('Under Treatment', 'In Cabin') %}
+                  <span class="badge bg-info text-white rounded-pill px-2.5 py-1">
+                    <i class="bi bi-heart-pulse me-1"></i> Under Treatment
+                  </span>
+                {% elif em.status == 'Stabilized' %}
+                  <span class="badge bg-teal text-white rounded-pill px-2.5 py-1" style="background:#0D9488;">
+                    <i class="bi bi-shield-check me-1"></i> Stabilized
+                  </span>
+                {% elif em.status == 'Admitted' %}
+                  <span class="badge bg-primary text-white rounded-pill px-2.5 py-1">
+                    <i class="bi bi-hospital me-1"></i> Admitted
+                  </span>
+                {% elif em.status == 'Discharged' or em.status == 'Completed' %}
+                  <span class="badge bg-success text-white rounded-pill px-2.5 py-1">
+                    <i class="bi bi-check2-circle me-1"></i> Discharged
+                  </span>
+                {% elif em.status == 'Transferred' %}
+                  <span class="badge bg-secondary text-white rounded-pill px-2.5 py-1">
+                    <i class="bi bi-arrow-right-circle me-1"></i> Transferred
+                  </span>
+                {% else %}
+                  <span class="badge bg-secondary text-white rounded-pill px-2.5 py-1">{{ em.status }}</span>
+                {% endif %}
+              </td>
+              <td class="text-end pe-4">
+                <div class="btn-group gap-1">
+                  {% if not em.patient %}
+                  <!-- Identify / Link Patient Button -->
+                  <button type="button" class="btn btn-sm btn-warning rounded-pill px-2.5 py-1 fw-bold shadow-sm" 
+                          data-bs-toggle="modal" data-bs-target="#linkPatientModal{{ em.id }}" title="Identify or link patient">
+                    <i class="bi bi-person-check-fill me-1"></i> Identify Patient
+                  </button>
+                  {% endif %}
+
+                  <!-- Manage / Update Case Button -->
+                  <button type="button" class="btn btn-sm btn-outline-dark rounded-pill px-2.5 py-1 fw-semibold"
+                          data-bs-toggle="modal" data-bs-target="#updateCaseModal{{ em.id }}" title="Update clinical / triage status">
+                    <i class="bi bi-sliders me-1"></i> Manage
+                  </button>
+
+                  <!-- Print Slip Button -->
+                  <a href="{{ url_for('reception.emergency_print_token', encounter_id=em.id) }}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1 fw-bold" title="Print Emergency Slip">
+                    <i class="bi bi-printer"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Modal: Update Emergency Case -->
+            <div class="modal fade" id="updateCaseModal{{ em.id }}" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-4 border-0 shadow">
+                  <div class="modal-header border-bottom p-3.5 bg-light rounded-top-4">
+                    <h6 class="modal-title fw-bold text-slate-900">
+                      <i class="bi bi-sliders text-danger me-2"></i> Manage Emergency Case — {{ em.token_no }}
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <form method="POST" action="{{ url_for('reception.emergency_update', encounter_id=em.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="modal-body p-4">
+                      <div class="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light mb-3">
+                        <div>
+                          <div class="fw-bold text-slate-900">{{ em.display_name }}</div>
+                          <div class="text-muted small font-monospace">{{ em.display_code }}</div>
+                        </div>
+                        <span class="badge bg-danger text-white rounded-pill px-3 py-1 font-monospace fw-bold">{{ em.token_no }}</span>
+                      </div>
+
+                      <div class="mb-3">
+                        <label class="form-label fw-semibold small text-muted">Current Workflow Status</label>
+                        <select name="status" class="form-select rounded-3">
+                          <option value="Emergency Arrival" {% if em.status == 'Emergency Arrival' %}selected{% endif %}>Emergency Arrival</option>
+                          <option value="Registered" {% if em.status == 'Registered' %}selected{% endif %}>Registered</option>
+                          <option value="Triage" {% if em.status == 'Triage' %}selected{% endif %}>Triage</option>
+                          <option value="Doctor Assigned" {% if em.status == 'Doctor Assigned' %}selected{% endif %}>Doctor Assigned</option>
+                          <option value="Under Treatment" {% if em.status == 'Under Treatment' %}selected{% endif %}>Under Treatment</option>
+                          <option value="Stabilized" {% if em.status == 'Stabilized' %}selected{% endif %}>Stabilized</option>
+                          <option value="Admitted" {% if em.status == 'Admitted' %}selected{% endif %}>Admitted to Ward / ICU</option>
+                          <option value="Discharged" {% if em.status == 'Discharged' %}selected{% endif %}>Discharged / Completed</option>
+                          <option value="Transferred" {% if em.status == 'Transferred' %}selected{% endif %}>Transferred to External Center</option>
+                        </select>
+                      </div>
+
+                      <div class="mb-3">
+                        <label class="form-label fw-semibold small text-muted">Assigned Doctor / Triage Lead</label>
+                        <select name="doctor_id" class="form-select rounded-3">
+                          <option value="0">-- On-Duty ER Triage Team --</option>
+                          {% for doc in doctors %}
+                          <option value="{{ doc.id }}" {% if em.assigned_doctor_id == doc.id %}selected{% endif %}>
+                            {{ doc.name }} ({{ doc.department or 'OPD' }})
+                          </option>
+                          {% endfor %}
+                        </select>
+                      </div>
+
+                      <div class="mb-3">
+                        <label class="form-label fw-semibold small text-muted">Priority Level</label>
+                        <select name="priority" class="form-select rounded-3">
+                          <option value="Emergency / Critical" {% if em.priority == 'Emergency / Critical' %}selected{% endif %}>Emergency / Critical (Immediate)</option>
+                          <option value="Urgent" {% if em.priority == 'Urgent' %}selected{% endif %}>Urgent (&lt; 15 mins)</option>
+                          <option value="Priority" {% if em.priority == 'Priority' %}selected{% endif %}>Priority (&lt; 30 mins)</option>
+                        </select>
+                      </div>
+
+                      <div class="mb-2">
+                        <label class="form-label fw-semibold small text-muted">Operational / Clinical Notes</label>
+                        <textarea name="notes" rows="3" class="form-control rounded-3" placeholder="Condition details, immediate orders, vitals summary...">{{ em.notes or '' }}</textarea>
+                      </div>
+                    </div>
+                    <div class="modal-footer border-top p-3 bg-light rounded-bottom-4">
+                      <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                      <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Update Case</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            {% if not em.patient %}
+            <!-- Modal: Identify / Link Patient -->
+            <div class="modal fade" id="linkPatientModal{{ em.id }}" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content rounded-4 border-0 shadow">
+                  <div class="modal-header border-bottom p-3.5 bg-light rounded-top-4">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="rounded-circle bg-warning-subtle text-dark d-flex align-items-center justify-content-center" style="width:34px; height:34px;">
+                        <i class="bi bi-person-check-fill text-warning fs-5"></i>
+                      </div>
+                      <div>
+                        <h6 class="modal-title fw-bold text-slate-900 mb-0">Identify & Link Patient — {{ em.token_no }}</h6>
+                        <small class="text-muted">Temporary ID: <span class="font-monospace fw-bold text-danger">{{ em.temp_id }}</span></small>
+                      </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                  </div>
+                  <div class="modal-body p-4">
+                    <!-- Instruction note -->
+                    <div class="alert alert-info border-0 rounded-3 p-3 mb-4 d-flex align-items-center gap-3" style="background:#EFF6FF; border-left: 4px solid #3B82F6 !important;">
+                      <i class="bi bi-info-circle-fill text-primary fs-4"></i>
+                      <div class="small text-slate-800">
+                        Always <strong>Search Existing Patient First</strong> to avoid duplicate hospital profiles. The temporary emergency record <code class="fw-bold">{{ em.temp_id }}</code> will be preserved in the audit trail.
+                      </div>
+                    </div>
+
+                    <!-- Navigation Tabs -->
+                    <ul class="nav nav-pills nav-fill mb-4 p-1 bg-light rounded-pill" id="identifyTab{{ em.id }}" role="tablist">
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link active rounded-pill fw-bold" id="link-existing-tab{{ em.id }}" data-bs-toggle="pill" data-bs-target="#link-existing-pane{{ em.id }}" type="button" role="tab">
+                          <i class="bi bi-search me-1.5"></i> 1. Link to Existing Patient
+                        </button>
+                      </li>
+                      <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill fw-bold" id="create-new-tab{{ em.id }}" data-bs-toggle="pill" data-bs-target="#create-new-pane{{ em.id }}" type="button" role="tab">
+                          <i class="bi bi-person-plus-fill me-1.5"></i> 2. Create New Permanent Profile
+                        </button>
+                      </li>
+                    </ul>
+
+                    <div class="tab-content" id="identifyTabContent{{ em.id }}">
+                      <!-- Tab 1: Search and Link Existing Patient -->
+                      <div class="tab-pane fade show active" id="link-existing-pane{{ em.id }}" role="tabpanel">
+                        <div class="mb-3">
+                          <label class="form-label fw-semibold small text-muted">Search Patient Directory (Name, Patient ID, Mobile, or Aadhaar)</label>
+                          <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 rounded-start-pill"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" id="patientSearchInput{{ em.id }}" class="form-control border-start-0 rounded-end-pill" placeholder="e.g. Radhika, PAT-317524, 9876543210..." onkeyup="searchPatientsLive({{ em.id }})">
+                          </div>
+                        </div>
+
+                        <!-- Live Search Results Box -->
+                        <div id="patientSearchResults{{ em.id }}" class="border rounded-3 p-3 mb-3 bg-light" style="max-height: 250px; overflow-y: auto;">
+                          <div class="text-center text-muted py-4 small">
+                            <i class="bi bi-search fs-3 d-block mb-1 opacity-50"></i>
+                            Type at least 2 characters to search existing patients in the database...
+                          </div>
+                        </div>
+
+                        <!-- Selected Patient Form -->
+                        <form method="POST" action="{{ url_for('reception.emergency_link_existing', encounter_id=em.id) }}" id="linkExistingForm{{ em.id }}">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          <input type="hidden" name="patient_id" id="selectedPatientId{{ em.id }}" value="">
+
+                          <div id="selectedPatientPreview{{ em.id }}" class="alert alert-success border-0 rounded-3 p-3 d-none align-items-center justify-content-between mb-3" style="background:#F0FDF4; border: 1px solid #86EFAC !important;">
+                            <div>
+                              <div class="fw-bold text-success-emphasis" id="selectedPatientName{{ em.id }}">—</div>
+                              <div class="small font-monospace text-muted" id="selectedPatientDetails{{ em.id }}">—</div>
+                            </div>
+                            <span class="badge bg-success text-white rounded-pill px-3 py-1">Selected</span>
+                          </div>
+
+                          <div class="text-end">
+                            <button type="submit" id="confirmLinkBtn{{ em.id }}" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" disabled>
+                              <i class="bi bi-link-45deg me-1"></i> Confirm & Link Emergency Record
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+
+                      <!-- Tab 2: Convert to New Permanent Patient -->
+                      <div class="tab-pane fade" id="create-new-pane{{ em.id }}" role="tabpanel">
+                        <form method="POST" action="{{ url_for('reception.emergency_convert_new_patient', encounter_id=em.id) }}">
+                          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                          
+                          <div class="row g-3">
+                            <div class="col-md-6">
+                              <label class="form-label fw-semibold small text-muted">First Name <span class="text-danger">*</span></label>
+                              <input type="text" name="first_name" class="form-control rounded-3" required placeholder="First name">
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label fw-semibold small text-muted">Last Name <span class="text-danger">*</span></label>
+                              <input type="text" name="last_name" class="form-control rounded-3" required placeholder="Last name">
+                            </div>
+                            <div class="col-md-4">
+                              <label class="form-label fw-semibold small text-muted">Date of Birth</label>
+                              <input type="date" name="dob" class="form-control rounded-3">
+                            </div>
+                            <div class="col-md-2">
+                              <label class="form-label fw-semibold small text-muted">Approx Age</label>
+                              <input type="number" name="age" class="form-control rounded-3" placeholder="Yrs" min="0" max="130">
+                            </div>
+                            <div class="col-md-3">
+                              <label class="form-label fw-semibold small text-muted">Gender <span class="text-danger">*</span></label>
+                              <select name="gender" class="form-select rounded-3" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                              </select>
+                            </div>
+                            <div class="col-md-3">
+                              <label class="form-label fw-semibold small text-muted">Blood Group</label>
+                              <select name="blood_group" class="form-select rounded-3">
+                                <option value="">Unknown</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                              </select>
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label fw-semibold small text-muted">Mobile Number</label>
+                              <input type="tel" name="mobile" class="form-control rounded-3" placeholder="+91 98765 43210">
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label fw-semibold small text-muted">Aadhaar Number (Optional)</label>
+                              <input type="text" name="aadhaar_number" class="form-control rounded-3" placeholder="12-digit Aadhaar" maxlength="12">
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label fw-semibold small text-muted">Emergency Contact Name</label>
+                              <input type="text" name="emergency_contact_name" class="form-control rounded-3" placeholder="Kin / Guardian Name">
+                            </div>
+                            <div class="col-md-6">
+                              <label class="form-label fw-semibold small text-muted">Emergency Contact Mobile</label>
+                              <input type="tel" name="emergency_contact_mobile" class="form-control rounded-3" placeholder="+91 98765 00000">
+                            </div>
+                            <div class="col-12">
+                              <label class="form-label fw-semibold small text-muted">Residential Address</label>
+                              <input type="text" name="address" class="form-control rounded-3" placeholder="Current address / locality">
+                            </div>
+                          </div>
+
+                          <div class="text-end mt-4">
+                            <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
+                              <i class="bi bi-person-plus-fill me-1"></i> Create Profile & Link Encounter
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+
+            {% endfor %}
+
+            <!-- Legacy CheckIns with Priority Emergency (if any) -->
+            {% for chk in legacy_checkins %}
+            <tr>
+              <td class="ps-4">
+                <span class="badge bg-danger text-white rounded-pill px-3 py-1.5 font-monospace fw-bold fs-6">{{ chk.token_no }}</span>
+              </td>
+              <td>
+                <div class="fw-bold text-slate-900">{{ chk.patient.full_name }}</div>
+                <div class="text-muted font-monospace small" style="font-size: 0.75rem;">{{ chk.patient.patient_code }} · {{ chk.patient.mobile }}</div>
+              </td>
+              <td>
+                <div class="fw-semibold text-slate-900">Emergency Walk-In</div>
+                <span class="badge bg-danger text-white rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">Critical</span>
+              </td>
+              <td>
+                <div class="fw-semibold text-slate-900">{{ chk.doctor.name }}</div>
+                <div class="text-muted small" style="font-size: 0.75rem;">{{ chk.department }}</div>
+              </td>
+              <td>
+                <span class="text-slate-800 font-monospace fw-semibold small">{{ chk.check_in_time.strftime('%I:%M %p') }}</span>
+              </td>
+              <td>
+                {% if chk.status == 'IN_CONSULTATION' %}
                   <span class="badge bg-info text-white rounded-pill px-2.5 py-1">In Cabin</span>
-                {% elif em.status == 'COMPLETED' %}
+                {% elif chk.status == 'COMPLETED' %}
                   <span class="badge bg-success text-white rounded-pill px-2.5 py-1">Completed</span>
                 {% else %}
                   <span class="badge bg-danger text-white rounded-pill px-2.5 py-1 pulse-dot-red">Immediate Attention</span>
                 {% endif %}
               </td>
               <td class="text-end pe-4">
-                <a href="{{ url_for('reception.print_token', check_in_id=em.id) }}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold">
+                <a href="{{ url_for('reception.print_token', check_in_id=chk.id) }}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-bold">
                   <i class="bi bi-printer me-1"></i> Print Token
                 </a>
               </td>
             </tr>
-            {% else %}
+            {% endfor %}
+
+            {% if encounters|length == 0 and legacy_checkins|length == 0 %}
             <tr>
-              <td colspan="6" class="text-center text-muted py-5">
-                <i class="bi bi-shield-check fs-1 text-success d-block mb-2 opacity-50"></i>
-                No active emergency walk-ins today. All clinical services operating normally.
+              <td colspan="7" class="text-center text-muted py-5">
+                <div class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
+                  <i class="bi bi-shield-check fs-2"></i>
+                </div>
+                <h6 class="fw-bold text-slate-800 mb-1">No active emergency walk-ins today</h6>
+                <div class="small text-muted">All emergency desks and trauma services operating normally.</div>
               </td>
             </tr>
-            {% endfor %}
+            {% endif %}
           </tbody>
         </table>
       </div>
     </div>
   </div>
 </div>
+
+<!-- ========================================================================= -->
+<!-- 1. RAPID EMERGENCY INTAKE CHOICE MODAL                                    -->
+<!-- ========================================================================= -->
+<div class="modal fade" id="intakeChoiceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-bottom p-4 bg-light rounded-top-4">
+        <div class="d-flex align-items-center gap-2.5">
+          <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+            <i class="bi bi-ambulance fs-5"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold text-slate-900 mb-0">Rapid Emergency Intake</h5>
+            <small class="text-muted">How would you like to register this emergency?</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body p-4">
+        <div class="d-flex flex-column gap-3">
+          <!-- Option A: Unknown / Unidentified Patient -->
+          <div class="card border border-2 border-danger-subtle rounded-4 p-3.5 shadow-sm hover-elevate transition-all" style="background:#FFFBFB; cursor:pointer;"
+               data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#unknownIntakeModal">
+            <div class="d-flex align-items-start gap-3">
+              <div class="rounded-circle bg-danger text-white d-flex align-items-center justify-content-center mt-1 flex-shrink-0" style="width: 42px; height: 42px; font-size: 1.2rem;">
+                <i class="bi bi-question-diamond-fill"></i>
+              </div>
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <h6 class="fw-bold text-danger mb-0">Option A: Register Emergency / Unknown Patient</h6>
+                  <span class="badge bg-danger text-white rounded-pill px-2.5 py-1" style="font-size:0.7rem;">Immediate</span>
+                </div>
+                <p class="text-muted small mb-2.5">
+                  For unconscious patients, accident victims, unidentified pregnant cases, or patients who cannot provide demographic details.
+                </p>
+                <div class="d-flex align-items-center gap-2 small text-danger fw-semibold">
+                  <span>Register Temporary Emergency &rarr;</span>
+                  <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill font-monospace" style="font-size:0.7rem;">{{ next_temp_id }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Option B: Add Existing Patient -->
+          <div class="card border border-2 border-primary-subtle rounded-4 p-3.5 shadow-sm hover-elevate transition-all" style="background:#FBFDFF; cursor:pointer;"
+               data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#existingIntakeModal">
+            <div class="d-flex align-items-start gap-3">
+              <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mt-1 flex-shrink-0" style="width: 42px; height: 42px; font-size: 1.2rem;">
+                <i class="bi bi-person-search"></i>
+              </div>
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <h6 class="fw-bold text-primary mb-0">Option B: Add Existing Patient</h6>
+                  <span class="badge bg-primary text-white rounded-pill px-2.5 py-1" style="font-size:0.7rem;">Directory</span>
+                </div>
+                <p class="text-muted small mb-2.5">
+                  Search the hospital's patient directory by name, ID, or mobile number to attach the emergency encounter to an existing record.
+                </p>
+                <div class="d-flex align-items-center gap-2 small text-primary fw-semibold">
+                  <span>Find Existing Patient &rarr;</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ========================================================================= -->
+<!-- 2. OPTION A: REGISTER UNKNOWN / UNIDENTIFIED EMERGENCY PATIENT MODAL     -->
+<!-- ========================================================================= -->
+<div class="modal fade" id="unknownIntakeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-bottom p-4 bg-danger text-white rounded-top-4">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-white text-danger d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+            <i class="bi bi-shield-exclamation fs-4"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold mb-0 text-white">Emergency Temporary Intake (Unknown Patient)</h5>
+            <small class="text-white-50">Zero-block emergency admission · Minimum operational data only</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form method="POST" action="{{ url_for('reception.emergency_register_unknown') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-body p-4">
+          <!-- Auto-generated identifiers summary card -->
+          <div class="alert alert-warning border-0 rounded-4 p-3.5 mb-4 shadow-sm" style="background:#FEFCE8; border-left: 5px solid #EAB308 !important;">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <div>
+                <span class="text-muted small text-uppercase fw-bold d-block">Generated Temporary Tracking ID</span>
+                <span class="fs-5 fw-800 font-monospace text-dark">{{ next_temp_id }}</span>
+              </div>
+              <div>
+                <span class="text-muted small text-uppercase fw-bold d-block">Expected Emergency Token</span>
+                <span class="fs-5 fw-800 font-monospace text-danger">{{ next_token_no }}</span>
+              </div>
+              <div>
+                <span class="text-muted small text-uppercase fw-bold d-block">Display Name</span>
+                <span class="badge bg-warning text-dark px-3 py-1.5 rounded-pill fw-bold">Unknown Emergency Patient</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Emergency Type <span class="text-danger">*</span></label>
+              <select name="emergency_type" class="form-select rounded-3 py-2" required>
+                <option value="Accident / Trauma">Accident / Trauma</option>
+                <option value="Unidentified Patient" selected>Unidentified Patient</option>
+                <option value="Unconscious Patient">Unconscious Patient</option>
+                <option value="Pregnancy-related Emergency">Pregnancy-related Emergency</option>
+                <option value="Medical Emergency">Medical Emergency</option>
+                <option value="Pediatric Emergency">Pediatric Emergency</option>
+                <option value="Other Emergency">Other Emergency</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Priority Level <span class="text-danger">*</span></label>
+              <select name="priority" class="form-select rounded-3 py-2" required>
+                <option value="Emergency / Critical" selected>Emergency / Critical (Immediate)</option>
+                <option value="Urgent">Urgent (&lt; 15 mins)</option>
+                <option value="Priority">Priority (&lt; 30 mins)</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Arrival Source</label>
+              <select name="arrival_source" class="form-select rounded-3 py-2">
+                <option value="Ambulance (108 / EMS)" selected>Ambulance (108 / EMS)</option>
+                <option value="Walk-In">Walk-In</option>
+                <option value="Police Referral">Police Referral</option>
+                <option value="Bystander / Good Samaritan">Bystander / Good Samaritan</option>
+                <option value="Transfer from Clinic">Transfer from Clinic</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small text-muted">Assign Doctor / Triage</label>
+              <select name="doctor_id" class="form-select rounded-3 py-2">
+                <option value="0">-- On-Duty ER Triage Team --</option>
+                {% for doc in doctors %}
+                <option value="{{ doc.id }}">{{ doc.name }} ({{ doc.department or 'OPD' }})</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-semibold small text-muted">Operational & Triage Notes (Optional)</label>
+              <textarea name="notes" rows="3" class="form-control rounded-3" placeholder="Condition observed on arrival, physical identifiers, belongings bag number, triage notes..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer border-top p-3.5 bg-light rounded-bottom-4 d-flex justify-content-between">
+          <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-sm">
+            <i class="bi bi-shield-fill-plus me-1.5"></i> Register Temporary Emergency Intake
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ========================================================================= -->
+<!-- 3. OPTION B: ADD EXISTING PATIENT EMERGENCY INTAKE MODAL                  -->
+<!-- ========================================================================= -->
+<div class="modal fade" id="existingIntakeModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-bottom p-4 bg-primary text-white rounded-top-4">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+            <i class="bi bi-person-search fs-4"></i>
+          </div>
+          <div>
+            <h5 class="modal-title fw-bold mb-0 text-white">Emergency Intake (Existing Patient)</h5>
+            <small class="text-white-50">Attach emergency encounter to verified hospital directory record</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form method="POST" action="{{ url_for('reception.emergency_register_existing') }}" id="existingEmergencyIntakeForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="patient_id" id="selectedExistingPatientId" value="">
+
+        <div class="modal-body p-4">
+          <!-- Step 1: Search and Select Patient -->
+          <div class="mb-4">
+            <label class="form-label fw-bold text-slate-900">
+              <span class="badge bg-primary rounded-circle me-1">1</span> Search Hospital Directory
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-white border-end-0 rounded-start-pill"><i class="bi bi-search text-muted"></i></span>
+              <input type="text" id="existingPatientSearchInput" class="form-control border-start-0 rounded-end-pill" placeholder="Search by Patient Name, ID (e.g. PAT-317524), Mobile (+91...), or Aadhaar..." onkeyup="searchExistingPatientsLive()">
+            </div>
+
+            <!-- Search results box -->
+            <div id="existingPatientSearchResults" class="border rounded-3 p-3 mt-2 bg-light" style="max-height: 220px; overflow-y: auto;">
+              <div class="text-center text-muted py-3 small">
+                <i class="bi bi-person-lines-fill fs-3 d-block mb-1 opacity-50"></i>
+                Enter patient name, phone number, or patient code to search...
+              </div>
+            </div>
+
+            <!-- Selected Patient Card -->
+            <div id="selectedExistingPatientCard" class="alert alert-primary border-0 rounded-4 p-3.5 mt-3 d-none align-items-center justify-content-between shadow-sm" style="background:#EFF6FF; border: 1px solid #BFDBFE !important;">
+              <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:42px; height:42px;">
+                  <i class="bi bi-person-check-fill fs-4"></i>
+                </div>
+                <div>
+                  <h6 class="fw-bold text-slate-900 mb-0" id="cardPatientName">—</h6>
+                  <div class="small font-monospace text-muted" id="cardPatientDetails">—</div>
+                </div>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="resetExistingPatientSelection()">
+                Change Patient
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 2: Emergency Clinical Details -->
+          <div class="border-top pt-3">
+            <label class="form-label fw-bold text-slate-900 mb-3">
+              <span class="badge bg-danger rounded-circle me-1">2</span> Emergency Encounter Details
+            </label>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small text-muted">Emergency Type <span class="text-danger">*</span></label>
+                <select name="emergency_type" class="form-select rounded-3 py-2" required>
+                  <option value="Accident / Trauma">Accident / Trauma</option>
+                  <option value="Medical Emergency" selected>Medical Emergency</option>
+                  <option value="Pregnancy-related Emergency">Pregnancy-related Emergency</option>
+                  <option value="Unconscious Patient">Unconscious Patient</option>
+                  <option value="Pediatric Emergency">Pediatric Emergency</option>
+                  <option value="Other Emergency">Other Emergency</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small text-muted">Priority Level <span class="text-danger">*</span></label>
+                <select name="priority" class="form-select rounded-3 py-2" required>
+                  <option value="Emergency / Critical" selected>Emergency / Critical (Immediate)</option>
+                  <option value="Urgent">Urgent (&lt; 15 mins)</option>
+                  <option value="Priority">Priority (&lt; 30 mins)</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small text-muted">Arrival Source</label>
+                <select name="arrival_source" class="form-select rounded-3 py-2">
+                  <option value="Walk-In" selected>Walk-In</option>
+                  <option value="Ambulance (108 / EMS)">Ambulance (108 / EMS)</option>
+                  <option value="Police Referral">Police Referral</option>
+                  <option value="Bystander / Kin">Bystander / Kin</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold small text-muted">Assign Doctor / Triage</label>
+                <select name="doctor_id" class="form-select rounded-3 py-2">
+                  <option value="0">-- On-Duty ER Triage Team --</option>
+                  {% for doc in doctors %}
+                  <option value="{{ doc.id }}">{{ doc.name }} ({{ doc.department or 'OPD' }})</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label fw-semibold small text-muted">Operational & Triage Notes</label>
+                <textarea name="notes" rows="2" class="form-control rounded-3" placeholder="Chief complaints, emergency observations, vital signs..."></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer border-top p-3.5 bg-light rounded-bottom-4 d-flex justify-content-between">
+          <button type="button" class="btn btn-light border rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" id="submitExistingEmergencyBtn" class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-sm" disabled>
+            <i class="bi bi-shield-fill-check me-1.5"></i> Confirm Emergency Intake
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let searchTimeout = null;
+
+// Search for Option B: Existing Patient Intake
+function searchExistingPatientsLive() {
+  clearTimeout(searchTimeout);
+  const q = document.getElementById('existingPatientSearchInput').value.trim();
+  const resultsContainer = document.getElementById('existingPatientSearchResults');
+
+  if (q.length < 2) {
+    resultsContainer.innerHTML = `
+      <div class="text-center text-muted py-3 small">
+        <i class="bi bi-person-lines-fill fs-3 d-block mb-1 opacity-50"></i>
+        Enter patient name, phone number, or patient code to search...
+      </div>`;
+    return;
+  }
+
+  resultsContainer.innerHTML = '<div class="text-center py-3 text-muted small"><span class="spinner-border spinner-border-sm me-2"></span>Searching directory...</div>';
+
+  searchTimeout = setTimeout(() => {
+    fetch(`{{ url_for('reception.api_emergency_search_patients') }}?q=${encodeURIComponent(q)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.success || !data.patients || data.patients.length === 0) {
+          resultsContainer.innerHTML = `
+            <div class="text-center text-muted py-3 small">
+              <i class="bi bi-emoji-neutral fs-3 d-block mb-1 text-warning"></i>
+              No matching patient records found for "${q}".
+            </div>`;
+          return;
+        }
+
+        let html = '<div class="list-group list-group-flush">';
+        data.patients.forEach(p => {
+          html += `
+            <div class="list-group-item list-group-item-action d-flex align-items-center justify-content-between p-2.5 rounded-3 mb-1 border-0 bg-white shadow-sm">
+              <div>
+                <div class="fw-bold text-slate-900">${p.full_name}</div>
+                <div class="text-muted small font-monospace" style="font-size:0.75rem;">
+                  <span class="badge bg-primary-subtle text-primary border">${p.patient_code}</span>
+                  <span class="ms-1">${p.mobile}</span> · ${p.gender} · DOB: ${p.dob}
+                </div>
+              </div>
+              <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" onclick="selectExistingPatient(${p.id}, '${p.full_name.replace(/'/g, "\\'")}', '${p.patient_code}', '${p.mobile}', '${p.gender}')">
+                Select Patient
+              </button>
+            </div>`;
+        });
+        html += '</div>';
+        resultsContainer.innerHTML = html;
+      })
+      .catch(err => {
+        resultsContainer.innerHTML = '<div class="text-danger small text-center py-2">Error loading patient search results.</div>';
+      });
+  }, 250);
+}
+
+function selectExistingPatient(id, name, code, mobile, gender) {
+  document.getElementById('selectedExistingPatientId').value = id;
+  document.getElementById('cardPatientName').textContent = name;
+  document.getElementById('cardPatientDetails').textContent = `${code} · Mobile: ${mobile} · Gender: ${gender}`;
+  
+  document.getElementById('selectedExistingPatientCard').classList.remove('d-none');
+  document.getElementById('selectedExistingPatientCard').classList.add('d-flex');
+  document.getElementById('existingPatientSearchResults').classList.add('d-none');
+  document.getElementById('submitExistingEmergencyBtn').disabled = false;
+}
+
+function resetExistingPatientSelection() {
+  document.getElementById('selectedExistingPatientId').value = '';
+  document.getElementById('selectedExistingPatientCard').classList.add('d-none');
+  document.getElementById('selectedExistingPatientCard').classList.remove('d-flex');
+  document.getElementById('existingPatientSearchResults').classList.remove('d-none');
+  document.getElementById('submitExistingEmergencyBtn').disabled = true;
+  document.getElementById('existingPatientSearchInput').focus();
+}
+
+
+// Search for Linking an Unknown Patient Modal
+function searchPatientsLive(encounterId) {
+  clearTimeout(searchTimeout);
+  const q = document.getElementById(`patientSearchInput${encounterId}`).value.trim();
+  const resultsContainer = document.getElementById(`patientSearchResults${encounterId}`);
+
+  if (q.length < 2) {
+    resultsContainer.innerHTML = `
+      <div class="text-center text-muted py-4 small">
+        <i class="bi bi-search fs-3 d-block mb-1 opacity-50"></i>
+        Type at least 2 characters to search existing patients in the database...
+      </div>`;
+    return;
+  }
+
+  resultsContainer.innerHTML = '<div class="text-center py-3 text-muted small"><span class="spinner-border spinner-border-sm me-2"></span>Searching directory...</div>';
+
+  searchTimeout = setTimeout(() => {
+    fetch(`{{ url_for('reception.api_emergency_search_patients') }}?q=${encodeURIComponent(q)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.success || !data.patients || data.patients.length === 0) {
+          resultsContainer.innerHTML = `
+            <div class="text-center text-muted py-3 small">
+              <i class="bi bi-emoji-neutral fs-3 d-block mb-1 text-warning"></i>
+              No matching patient records found for "${q}".
+            </div>`;
+          return;
+        }
+
+        let html = '<div class="list-group list-group-flush">';
+        data.patients.forEach(p => {
+          html += `
+            <div class="list-group-item list-group-item-action d-flex align-items-center justify-content-between p-2.5 rounded-3 mb-1 border-0 bg-white shadow-sm">
+              <div>
+                <div class="fw-bold text-slate-900">${p.full_name}</div>
+                <div class="text-muted small font-monospace" style="font-size:0.75rem;">
+                  <span class="badge bg-primary-subtle text-primary border">${p.patient_code}</span>
+                  <span class="ms-1">${p.mobile}</span> · ${p.gender} · DOB: ${p.dob}
+                </div>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="selectPatientForLink(${encounterId}, ${p.id}, '${p.full_name.replace(/'/g, "\\'")}', '${p.patient_code}', '${p.mobile}')">
+                Link to This Patient
+              </button>
+            </div>`;
+        });
+        html += '</div>';
+        resultsContainer.innerHTML = html;
+      })
+      .catch(err => {
+        resultsContainer.innerHTML = '<div class="text-danger small text-center py-2">Error retrieving search results.</div>';
+      });
+  }, 250);
+}
+
+function selectPatientForLink(encounterId, patientId, name, code, mobile) {
+  document.getElementById(`selectedPatientId${encounterId}`).value = patientId;
+  document.getElementById(`selectedPatientName${encounterId}`).textContent = name;
+  document.getElementById(`selectedPatientDetails${encounterId}`).textContent = `Patient Code: ${code} · Mobile: ${mobile}`;
+  
+  document.getElementById(`selectedPatientPreview${encounterId}`).classList.remove('d-none');
+  document.getElementById(`selectedPatientPreview${encounterId}`).classList.add('d-flex');
+  document.getElementById(`confirmLinkBtn${encounterId}`).disabled = false;
+}
+</script>
 {% endblock %}
