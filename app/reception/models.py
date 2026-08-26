@@ -11,7 +11,7 @@ class CheckIn(db.Model):
     department = db.Column(db.String(50), default='General OPD')
     status = db.Column(db.String(20), default='WAITING') # WAITING, IN_CONSULTATION, COMPLETED, NO_SHOW, CANCELLED
     priority = db.Column(db.String(20), default='Regular') # Emergency, Senior Citizen, Pregnant Woman, Child, Regular
-    check_in_time = db.Column(db.DateTime, default=datetime.utcnow)
+    check_in_time = db.Column(db.DateTime, default=datetime.now)
     called_time = db.Column(db.DateTime, nullable=True)
     completed_time = db.Column(db.DateTime, nullable=True)
     checked_in_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -43,7 +43,7 @@ class CheckIn(db.Model):
         if self.check_in_time and self.called_time:
             return max(0.0, round((self.called_time - self.check_in_time).total_seconds() / 60.0, 1))
         elif self.check_in_time and self.status == 'WAITING':
-            return max(0.0, round((datetime.utcnow() - self.check_in_time).total_seconds() / 60.0, 1))
+            return max(0.0, round((datetime.now() - self.check_in_time).total_seconds() / 60.0, 1))
         return None
 
     def estimated_wait_minutes(self):

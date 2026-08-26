@@ -17,7 +17,7 @@ class Consultation(db.Model):
     notes = db.Column(db.Text, nullable=True)
     started_at = db.Column(db.DateTime, nullable=True)
     completed_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now)
 
     # Relationships
     patient = db.relationship('Patient', backref='consultations', lazy=True)

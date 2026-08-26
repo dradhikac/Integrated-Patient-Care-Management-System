@@ -132,7 +132,7 @@ def start_consultation(checkin_id):
         abort(403)
 
     checkin.status = 'IN_CONSULTATION'
-    checkin.called_time = datetime.utcnow()
+    checkin.called_time = datetime.now()
 
     # Match appointment if any
     today = date.today()
@@ -331,7 +331,7 @@ def create_consultation():
                 db.cast(CheckIn.check_in_time, db.Date) == today
             ).order_by(CheckIn.id.desc()).first()
 
-        now_time = datetime.utcnow()
+        now_time = datetime.now()
         start_time = checkin.called_time if (checkin and checkin.called_time) else now_time
 
         consultation = Consultation(

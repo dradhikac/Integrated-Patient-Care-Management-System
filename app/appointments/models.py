@@ -40,7 +40,7 @@ class Appointment(db.Model):
     priority = db.Column(db.String(30), default='Regular') # 'Emergency', 'Senior Citizen', 'Pregnant Woman', 'Child', 'Regular'
     status = db.Column(db.String(30), default='BOOKED') # 'BOOKED', 'CHECKED_IN', 'COMPLETED', 'CANCELLED', 'NO_SHOW'
     notes = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now)
 
     # Relationships
     patient = db.relationship('Patient', backref='appointments', lazy=True)

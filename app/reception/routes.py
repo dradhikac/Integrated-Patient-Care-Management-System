@@ -253,9 +253,9 @@ def update_status(check_in_id):
     if new_status in ['WAITING', 'IN_CONSULTATION', 'COMPLETED', 'NO_SHOW', 'CANCELLED']:
         check_in_obj.status = new_status
         if new_status == 'IN_CONSULTATION' and not check_in_obj.called_time:
-            check_in_obj.called_time = datetime.utcnow()
+            check_in_obj.called_time = datetime.now()
         elif new_status == 'COMPLETED':
-            check_in_obj.completed_time = datetime.utcnow()
+            check_in_obj.completed_time = datetime.now()
 
         today = date.today()
         apt = Appointment.query.filter(
