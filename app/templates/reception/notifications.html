@@ -1,0 +1,189 @@
+{% extends 'reception/base_reception.html' %}
+
+{% block title %}Notification History — MediCore+ Front Desk{% endblock %}
+
+{% block header_title %}Front Desk Notification History{% endblock %}
+{% block header_subtitle %}Real-time operational alerts, patient check-ins, queue activity & appointment events{% endblock %}
+
+{% block reception_content %}
+<div class="container-fluid p-0">
+
+  <!-- Header Action Row with Filters & Mark All Read -->
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <!-- Filter Tabs -->
+    <div class="d-flex align-items-center gap-1.5 overflow-x-auto pb-2 pb-md-0" style="scrollbar-width: thin;">
+      <a href="{{ url_for('reception.notification_history', tab='all', q=search) }}"
+         class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {% if current_tab == 'all' %}btn-primary text-white shadow-sm{% else %}btn-light text-dark border{% endif %}">
+        All <span class="badge bg-secondary-subtle text-dark ms-1">{{ counts_by_tab.all }}</span>
+      </a>
+
+      <a href="{{ url_for('reception.notification_history', tab='unread', q=search) }}"
+         class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {% if current_tab == 'unread' %}btn-primary text-white shadow-sm{% else %}btn-light text-dark border{% endif %}">
+        <i class="bi bi-circle-fill text-danger me-1" style="font-size: 0.45rem;"></i> Unread
+        <span class="badge bg-danger text-white ms-1">{{ counts_by_tab.unread }}</span>
+      </a>
+
+      <a href="{{ url_for('reception.notification_history', tab='appointments', q=search) }}"
+         class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {% if current_tab == 'appointments' %}btn-primary text-white shadow-sm{% else %}btn-light text-dark border{% endif %}">
+        <i class="bi bi-calendar-check me-1 text-purple" style="color: #8B5CF6;"></i> Appointments
+        <span class="badge bg-secondary-subtle text-dark ms-1">{{ counts_by_tab.appointments }}</span>
+      </a>
+
+      <a href="{{ url_for('reception.notification_history', tab='patients', q=search) }}"
+         class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {% if current_tab == 'patients' %}btn-primary text-white shadow-sm{% else %}btn-light text-dark border{% endif %}">
+        <i class="bi bi-person-plus me-1 text-success"></i> Patients
+        <span class="badge bg-secondary-subtle text-dark ms-1">{{ counts_by_tab.patients }}</span>
+      </a>
+
+      <a href="{{ url_for('reception.notification_history', tab='queue', q=search) }}"
+         class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {% if current_tab == 'queue' %}btn-primary text-white shadow-sm{% else %}btn-light text-dark border{% endif %}">
+        <i class="bi bi-hourglass-split me-1 text-warning"></i> Queue
+        <span class="badge bg-secondary-subtle text-dark ms-1">{{ counts_by_tab.queue }}</span>
+      </a>
+
+      <a href="{{ url_for('reception.notification_history', tab='payments', q=search) }}"
+         class="btn btn-sm rounded-pill px-3 py-1.5 fw-bold {% if current_tab == 'payments' %}btn-primary text-white shadow-sm{% else %}btn-light text-dark border{% endif %}">
+        <i class="bi bi-credit-card me-1 text-amber" style="color: #D97706;"></i> Payments
+        <span class="badge bg-secondary-subtle text-dark ms-1">{{ counts_by_tab.payments }}</span>
+      </a>
+    </div>
+
+    <!-- Search & Mark All Read Action -->
+    <div class="d-flex align-items-center gap-2">
+      <form method="GET" action="{{ url_for('reception.notification_history') }}" class="d-flex">
+        <input type="hidden" name="tab" value="{{ current_tab }}">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-white border-end-0 rounded-start-pill text-muted ps-3">
+            <i class="bi bi-search"></i>
+          </span>
+          <input type="text" name="q" value="{{ search }}" class="form-control border-start-0 rounded-end-pill pe-3" placeholder="Filter alerts...">
+        </div>
+      </form>
+
+      {% if counts_by_tab.unread > 0 %}
+      <button class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-bold text-nowrap" onclick="markAllNotificationsReadPage()">
+        <i class="bi bi-check2-all me-1"></i> Mark All as Read
+      </button>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Notification Cards Stream -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-header bg-white border-bottom p-3.5 d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2">
+        <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.95rem;">
+          <i class="bi bi-bell-fill text-primary me-1.5"></i> Operational Activity Stream
+        </h6>
+        <span class="badge bg-light text-secondary border rounded-pill small px-2.5 py-1">
+          Showing {{ notifications|length }} event{{ 's' if notifications|length != 1 else '' }}
+        </span>
+      </div>
+      <div class="text-muted small">
+        <i class="bi bi-shield-check text-success me-1"></i> Front-Desk Scope
+      </div>
+    </div>
+
+    <div class="list-group list-group-flush">
+      {% for n in notifications %}
+      <div class="list-group-item p-3.5 border-bottom transition-all {% if not n.is_read %}bg-light-subtle{% endif %}" id="notif-row-{{ n.id }}" style="{% if not n.is_read %}background-color: #F8FAFC; border-left: 3px solid {{ n.color }} !important;{% endif %}">
+        <div class="d-flex align-items-start justify-content-between gap-3">
+          
+          <!-- Left Icon -->
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: {{ n.color }}15; color: {{ n.color }}; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+            <i class="bi {{ n.icon }}"></i>
+          </div>
+
+          <!-- Main Content -->
+          <div class="flex-grow-1 min-width-0">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+              <span class="fw-bold text-dark" style="font-size: 0.92rem;">{{ n.title }}</span>
+              <span class="badge rounded-pill px-2 py-0.5" style="background: {{ n.color }}18; color: {{ n.color }}; font-size: 0.68rem; font-weight: 700;">
+                {{ n.category.replace('_', ' ') }}
+              </span>
+              {% if not n.is_read %}
+              <span class="badge bg-primary text-white rounded-pill px-2 py-0.5" style="font-size: 0.62rem; font-weight: 700;">
+                NEW
+              </span>
+              {% endif %}
+            </div>
+
+            <p class="text-muted mb-2 small" style="line-height: 1.45;">{{ n.message }}</p>
+
+            <div class="d-flex flex-wrap align-items-center gap-3 text-muted small">
+              <span><i class="bi bi-clock me-1"></i> {{ n.time_ago }} ({{ n.created_at.strftime('%I:%M %p') }})</span>
+              {% if n.reference_code %}
+              <span><i class="bi bi-hash me-0.5"></i> <span class="font-monospace fw-semibold text-dark">{{ n.reference_code }}</span></span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Right Actions -->
+          <div class="d-flex align-items-center gap-2 flex-shrink-0">
+            {% if not n.is_read %}
+            <button class="btn btn-sm btn-light border rounded-pill px-2.5 py-1 text-muted small" title="Mark as read" onclick="markSingleRead({{ n.id }}, event)">
+              <i class="bi bi-check2"></i>
+            </button>
+            {% endif %}
+
+            {% if n.link %}
+            <a href="{{ n.link }}" class="btn btn-sm btn-primary rounded-pill px-3 py-1 fw-bold small text-nowrap" style="background: #2563EB;" onclick="markSingleRead({{ n.id }})">
+              Open <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+            {% endif %}
+          </div>
+
+        </div>
+      </div>
+      {% else %}
+      <div class="text-center text-muted py-5">
+        <i class="bi bi-bell-slash fs-1 d-block opacity-40 mb-2"></i>
+        <h6 class="fw-bold text-dark">No Notifications Found</h6>
+        <p class="small text-muted mb-0">There are no operational alerts matching your filter criteria.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function markSingleRead(notifId, event) {
+  if (event) event.preventDefault();
+  fetch(`/reception/api/notifications/${notifId}/read`, {
+    method: 'POST',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    const row = document.getElementById(`notif-row-${notifId}`);
+    if (row) {
+      row.style.background = '#FFFFFF';
+      row.style.borderLeft = 'none';
+      const badge = row.querySelector('.bg-primary');
+      if (badge && badge.innerText === 'NEW') badge.remove();
+    }
+    updateBellDropdown();
+  });
+}
+
+function markAllNotificationsReadPage() {
+  fetch('/reception/api/notifications/mark-all-read', {
+    method: 'POST',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    window.location.reload();
+  });
+}
+</script>
+{% endblock %}

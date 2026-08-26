@@ -839,3 +839,132 @@ def collect_payment():
 
     flash(f"Payment of ₹{amount_paid:.2f} recorded successfully! Receipt: {payment_code}", 'success')
     return redirect(url_for('billing.view_bill', bill_id=bill.id))
+
+
+# ─────────────────────────────────────────────────────────────
+# RECEPTIONIST OPERATIONAL NOTIFICATIONS (DROPDOWN & HISTORY)
+# ─────────────────────────────────────────────────────────────
+@reception_bp.route('/api/notifications/recent', methods=['GET'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def api_recent_notifications():
+    """Returns real-time front desk notifications for the top bell popover."""
+    from app.notifications.reception_notifications import (
+        get_reception_notifications, get_reception_unread_count
+    )
+    unread_count = get_reception_unread_count()
+    notifs = get_reception_notifications(limit=10)
+
+    data = []
+    for n in notifs:
+        data.append({
+            'id': n.id,
+            'category': n.category,
+            'title': n.title,
+            'message': n.message,
+            'icon': n.icon,
+            'color': n.color,
+            'link': n.link or url_for('reception.dashboard'),
+            'is_read': n.is_read,
+            'time_ago': n.time_ago,
+            'created_at_str': n.created_at.strftime('%I:%M %p') if n.created_at else ''
+        })
+
+    return jsonify({
+        'success': True,
+        'unread_count': unread_count,
+        'notifications': data
+    })
+
+
+@reception_bp.route('/api/notifications/<int:notif_id>/read', methods=['POST'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def api_mark_notification_read(notif_id):
+    """Marks a single receptionist notification as read."""
+    from app.notifications.reception_notifications import (
+        mark_reception_notification_read, get_reception_unread_count
+    )
+    success = mark_reception_notification_read(notif_id)
+    unread_count = get_reception_unread_count()
+    return jsonify({
+        'success': success,
+        'unread_count': unread_count
+    })
+
+
+@reception_bp.route('/api/notifications/mark-all-read', methods=['POST'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def api_mark_all_notifications_read():
+    """Marks all unread receptionist notifications as read."""
+    from app.notifications.reception_notifications import (
+        mark_all_reception_notifications_read
+    )
+    count = mark_all_reception_notifications_read()
+    return jsonify({
+        'success': True,
+        'marked_count': count,
+        'unread_count': 0
+    })
+
+
+@reception_bp.route('/notifications', methods=['GET'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def notification_history():
+    """
+    Dedicated Receptionist Notification History page.
+    Renders in the modern MediCore+ Receptionist Dashboard UI.
+    """
+    from app.notifications.reception_notifications import (
+        get_reception_notifications, get_reception_unread_count
+    )
+    from app.notifications.models import StaffNotification
+
+    tab = request.args.get('tab', 'all').lower()
+    search = request.args.get('q', '').strip()
+
+    # Category mapping
+    category_filter = None
+    unread_only = False
+
+    if tab == 'unread':
+        unread_only = True
+    elif tab == 'appointments':
+        category_filter = 'APPOINTMENT'
+    elif tab == 'patients':
+        category_filter = 'PATIENT'
+    elif tab == 'queue':
+        category_filter = 'QUEUE'
+    elif tab == 'payments':
+        category_filter = 'PAYMENT'
+    elif tab == 'checkin':
+        category_filter = 'CHECK_IN'
+
+    notifications = get_reception_notifications(
+        limit=100,
+        unread_only=unread_only,
+        category=category_filter,
+        search=search
+    )
+
+    unread_count = get_reception_unread_count()
+
+    # Count stats for badge pills
+    base_query = StaffNotification.query.filter_by(role_target='Receptionist')
+    counts_by_tab = {
+        'all': base_query.count(),
+        'unread': base_query.filter_by(is_read=False).count(),
+        'appointments': base_query.filter_by(category='APPOINTMENT').count(),
+        'patients': base_query.filter_by(category='PATIENT').count(),
+        'queue': base_query.filter_by(category='QUEUE').count(),
+        'payments': base_query.filter_by(category='PAYMENT').count(),
+    }
+
+    return render_template('reception/notifications.html',
+                           notifications=notifications,
+                           current_tab=tab,
+                           unread_count=unread_count,
+                           counts_by_tab=counts_by_tab,
+                           search=search)

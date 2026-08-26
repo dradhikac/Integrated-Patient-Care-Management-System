@@ -29,6 +29,60 @@
       padding: 14px 16px 6px 16px;
       user-select: none;
     }
+
+    /* Notification Bell Popover & Badge */
+    .notif-popover-panel {
+      width: 380px;
+      max-width: 92vw;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 14px 35px -5px rgba(15, 23, 42, 0.18), 0 8px 12px -6px rgba(15, 23, 42, 0.1) !important;
+      animation: fadeInDown 0.18s ease-out;
+      z-index: 1060;
+    }
+    .notif-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid #F1F5F9;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      transition: background 0.15s ease;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+    }
+    .notif-item:hover {
+      background-color: #F8FAFC;
+    }
+    .notif-item.unread {
+      background-color: #F0F9FF;
+    }
+    .notif-item:last-child {
+      border-bottom: none;
+    }
+    .notif-icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .notif-unread-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #2563EB;
+      display: inline-block;
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
   {% block extra_css %}{% endblock %}
 </head>
@@ -87,9 +141,6 @@
 
           <!-- COMMUNICATION -->
           <div class="sidebar-section-title">Communication</div>
-          <a href="{{ url_for('notifications.index') }}" class="admin-nav-item {% if 'notifications' in request.endpoint %}active{% endif %}">
-            <i class="bi bi-bell-fill"></i> Notifications
-          </a>
           <a href="{{ url_for('reports.dashboard') }}" class="admin-nav-item {% if 'reports' in request.endpoint %}active{% endif %}">
             <i class="bi bi-file-earmark-bar-graph"></i> Daily Reports
           </a>
@@ -151,10 +202,42 @@
         </div>
 
         <div class="admin-header-right">
-          <a href="{{ url_for('notifications.index') }}" class="icon-action-btn" title="Notifications">
-            <i class="bi bi-bell-fill"></i>
-            <span class="badge-counter">0</span>
-          </a>
+          <!-- Top Notification Bell Dropdown -->
+          <div class="dropdown" id="receptionNotifDropdown">
+            <button class="icon-action-btn position-relative border-0 bg-transparent" type="button" id="notifBellBtn" data-bs-toggle="dropdown" aria-expanded="false" title="Front Desk Notifications">
+              <i class="bi bi-bell-fill"></i>
+              <span class="badge-counter d-none" id="notifBadgeCounter">0</span>
+            </button>
+            
+            <div class="dropdown-menu dropdown-menu-end p-0 shadow-lg border-0 rounded-4 notif-popover-panel" aria-labelledby="notifBellBtn" style="width: 380px; max-width: 90vw; margin-top: 12px;">
+              <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-white rounded-top-4">
+                <div class="d-flex align-items-center gap-2">
+                  <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.95rem;">
+                    <i class="bi bi-bell-fill text-primary me-1"></i> Notifications
+                  </h6>
+                  <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-0.5 small fw-bold" id="notifPanelUnreadBadge">0 unread</span>
+                </div>
+                <button class="btn btn-sm btn-link text-decoration-none text-muted p-0 small fw-semibold" id="markAllReadBtn" onclick="markAllNotificationsReadDropdown(event)">
+                  Mark all as read
+                </button>
+              </div>
+              
+              <!-- Notification Items List -->
+              <div class="notif-list-container" id="notifListContainer" style="max-height: 380px; overflow-y: auto;">
+                <div class="text-center py-4 text-muted small">
+                  <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+                  <div>Loading alerts...</div>
+                </div>
+              </div>
+              
+              <!-- Footer -->
+              <div class="p-2.5 text-center border-top bg-light rounded-bottom-4">
+                <a href="{{ url_for('reception.notification_history') }}" class="text-decoration-none text-primary fw-bold small d-block py-1">
+                  View all notifications <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+              </div>
+            </div>
+          </div>
           
           <a href="{{ url_for('auth.index') }}" class="icon-action-btn" title="Visit Public Landing Page" target="_blank">
             <i class="bi bi-globe"></i>
@@ -253,8 +336,117 @@
       }
     });
 
+    // ─────────────────────────────────────────────────────────────
+    // RECEPTIONIST NOTIFICATION POPOVER & BADGE ENGINE
+    // ─────────────────────────────────────────────────────────────
+    function updateBellDropdown() {
+      fetch('/reception/api/notifications/recent', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const badgeEl = document.getElementById('notifBadgeCounter');
+        const headerBadgeEl = document.getElementById('notifPanelUnreadBadge');
+        const container = document.getElementById('notifListContainer');
+
+        const unread = data.unread_count || 0;
+        if (badgeEl) {
+          if (unread > 0) {
+            badgeEl.innerText = unread > 99 ? '99+' : unread;
+            badgeEl.classList.remove('d-none');
+          } else {
+            badgeEl.classList.add('d-none');
+          }
+        }
+
+        if (headerBadgeEl) {
+          headerBadgeEl.innerText = `${unread} unread`;
+          if (unread === 0) {
+            headerBadgeEl.className = 'badge bg-light text-muted rounded-pill px-2 py-0.5 small';
+          } else {
+            headerBadgeEl.className = 'badge bg-primary-subtle text-primary rounded-pill px-2 py-0.5 small fw-bold';
+          }
+        }
+
+        if (container) {
+          if (!data.notifications || data.notifications.length === 0) {
+            container.innerHTML = `
+              <div class="text-center py-4 text-muted small">
+                <i class="bi bi-bell-slash fs-2 d-block opacity-40 mb-1"></i>
+                <div class="fw-semibold">No notifications</div>
+                <div class="text-secondary" style="font-size: 0.75rem;">Front desk alerts will appear here</div>
+              </div>`;
+            return;
+          }
+
+          let html = '';
+          data.notifications.forEach(n => {
+            const isUnreadClass = !n.is_read ? 'unread' : '';
+            const unreadDot = !n.is_read ? '<span class="notif-unread-dot"></span>' : '';
+            html += `
+              <div class="notif-item ${isUnreadClass}" onclick="handleNotifItemClick(${n.id}, '${n.link || ''}', event)">
+                <div class="notif-icon-box" style="background: ${n.color}15; color: ${n.color};">
+                  <i class="bi ${n.icon}"></i>
+                </div>
+                <div class="flex-grow-1 min-width-0">
+                  <div class="d-flex align-items-center justify-content-between gap-1 mb-0.5">
+                    <div class="fw-bold text-dark text-truncate" style="font-size: 0.85rem;">${n.title}</div>
+                    <span class="text-muted flex-shrink-0" style="font-size: 0.7rem;">${n.time_ago}</span>
+                  </div>
+                  <div class="text-muted small text-truncate-2" style="font-size: 0.77rem; line-height: 1.35;">${n.message}</div>
+                </div>
+                ${unreadDot}
+              </div>`;
+          });
+          container.innerHTML = html;
+        }
+      })
+      .catch(err => console.debug('Notif fetch error:', err));
+    }
+
+    function handleNotifItemClick(notifId, link, event) {
+      if (event) event.preventDefault();
+      fetch(`/reception/api/notifications/${notifId}/read`, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Content-Type': 'application/json'
+        }
+      }).finally(() => {
+        if (link && link !== '#') {
+          window.location.href = link;
+        } else {
+          updateBellDropdown();
+        }
+      });
+    }
+
+    function markAllNotificationsReadDropdown(event) {
+      if (event) event.preventDefault();
+      fetch('/reception/api/notifications/mark-all-read', {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(res => res.json())
+      .then(() => {
+        updateBellDropdown();
+      });
+    }
+
+    // Initialize notification polling and on-dropdown open
+    const notifDropdownEl = document.getElementById('receptionNotifDropdown');
+    if (notifDropdownEl) {
+      notifDropdownEl.addEventListener('show.bs.dropdown', () => {
+        updateBellDropdown();
+      });
+    }
+
     setInterval(updateLiveClock, 1000);
     updateLiveClock();
+    updateBellDropdown();
   </script>
 
   {% block extra_js %}{% endblock %}
