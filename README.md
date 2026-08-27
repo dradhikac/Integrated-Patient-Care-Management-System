@@ -1,4 +1,4 @@
-# Integrated Patient Care Management System (IPCMS) 🏥
+# Integrated Patient Care Management System (IPCMS) 
 
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
 [![Flask 3.0](https://img.shields.io/badge/Flask-3.0-green.svg)](https://flask.palletsprojects.com/)
@@ -12,7 +12,7 @@ IPCMS streamlines the complete 360-degree patient care lifecycle across **15 ful
 
 ---
 
-## 🌟 Key Features & 15 Subsystem Modules
+##  Key Features & 15 Subsystem Modules
 
 | Subsystem Module | Core Capabilities & Highlights |
 | :--- | :--- |
@@ -34,7 +34,7 @@ IPCMS streamlines the complete 360-degree patient care lifecycle across **15 ful
 
 ---
 
-## 🏗️ System Architecture
+##  System Architecture
 
 ```mermaid
 graph TD
@@ -54,7 +54,7 @@ graph TD
 
 ---
 
-## 🛠️ Technology Stack
+##  Technology Stack
 
 - **Backend Framework**: Python 3.11, Flask 3.0+
 - **Database Engine**: MySQL 8.0+ / MySQL Workbench (`ipcms_db`)
@@ -66,7 +66,7 @@ graph TD
 
 ---
 
-## 🚀 Quick Start & Local Setup Guide
+##  Quick Start & Local Setup Guide
 
 ### 1. Prerequisites
 Ensure you have the following installed on your system:
@@ -115,7 +115,7 @@ Open your browser and navigate to **`http://127.0.0.1:5000`**.
 
 ---
 
-## 🔑 Demo Login Accounts
+##  Demo Login Accounts
 
 All demo accounts are pre-seeded with password: **`Password@123`**
 
@@ -129,7 +129,7 @@ All demo accounts are pre-seeded with password: **`Password@123`**
 
 ---
 
-## 🧪 Running Unit Tests
+##  Running Unit Tests
 
 Run the complete test suite across all 15 modules:
 ```bash
@@ -139,28 +139,3 @@ python -m unittest discover -s tests
 
 ---
 
-## 📚 Project Documentation Sitemap
-
-Detailed implementation guides and Viva voce defense preparation guides for all 15 modules are available in the [`docs/`](file:///r:/Integrated-Patient-Care-Management-System/docs/) directory:
-
-- 📖 [Complete Project Documentation (All 15 Modules)](file:///r:/Integrated-Patient-Care-Management-System/docs/complete_project_documentation.md)
-- 🔒 [Module 01 Implementation Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_01_implementation_guide.md) \| [Viva Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_01_viva_guide.md)
-- 👤 [Module 02 Implementation Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_02_implementation_guide.md) \| [Viva Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_02_viva_guide.md)
-- 🎟️ [Module 03 Implementation Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_03_implementation_guide.md) \| [Viva Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_03_viva_guide.md)
-- 📅 [Module 04 Implementation Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_04_implementation_guide.md) \| [Viva Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_04_viva_guide.md)
-- 📺 [Module 05 Implementation Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_05_implementation_guide.md) \| [Viva Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_05_viva_guide.md)
-- 📂 [Module 06 Implementation Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_06_implementation_guide.md) \| [Viva Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_06_viva_guide.md)
-- 🩺 [Module 07 Implementation Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_07_implementation_guide.md) \| [Viva Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_07_viva_guide.md)
-- 💊 [Module 08 Implementation Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_08_implementation_guide.md) \| [Viva Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_08_viva_guide.md)
-- 🧪 [Module 09 Implementation Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_09_implementation_guide.md) \| [Viva Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_09_viva_guide.md)
-- 💳 [Module 10 Implementation Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_10_implementation_guide.md) \| [Viva Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_10_viva_guide.md)
-- 🏥 [Module 11 Implementation Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_11_implementation_guide.md) \| [Viva Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_11_viva_guide.md)
-- 📊 [Module 12 Implementation Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_12_implementation_guide.md) \| [Viva Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_12_viva_guide.md)
-- 🔔 [Module 13 Implementation Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_13_implementation_guide.md) \| [Viva Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_13_viva_guide.md)
-- 📈 [Module 14 Implementation Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_14_implementation_guide.md) \| [Viva Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_14_viva_guide.md)
-- 🛡️ [Module 15 Implementation Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_15_implementation_guide.md) \| [Viva Guide](file:///r:/Integrated-Patient-Care-Management-System/docs/module_15_viva_guide.md)
-
----
-
-## 📄 License
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
