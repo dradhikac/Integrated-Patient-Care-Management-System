@@ -139,12 +139,17 @@
           <!-- Actions -->
           <div class="col-md-2 text-md-end">
             {% if apt.status == 'BOOKED' and apt.appointment_date >= today %}
-            <form method="POST" action="{{ url_for('portal.cancel_appointment', appointment_id=apt.id) }}" onsubmit="return confirm('Are you sure you want to cancel this appointment?');" class="d-inline">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold">
-                <i class="bi bi-x-lg me-1"></i> Cancel
-              </button>
-            </form>
+            <div class="d-flex flex-column flex-md-row justify-content-md-end gap-1.5">
+              <a href="{{ url_for('portal.reschedule_appointment', appointment_id=apt.id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold" title="Edit arrival time or date">
+                <i class="bi bi-pencil-square me-1"></i> Edit Time
+              </a>
+              <form method="POST" action="{{ url_for('portal.cancel_appointment', appointment_id=apt.id) }}" onsubmit="return confirm('Are you sure you want to cancel this appointment?');" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold">
+                  <i class="bi bi-x-lg me-1"></i> Cancel
+                </button>
+              </form>
+            </div>
             {% elif apt.status == 'COMPLETED' %}
             <a href="{{ url_for('portal.consultations') }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold">
               View Visit

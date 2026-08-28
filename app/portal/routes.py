@@ -270,6 +270,104 @@ def book_appointment():
                            notif_count=notif_count)
 
 
+@portal_bp.route('/appointments/<int:appointment_id>/reschedule', methods=['GET', 'POST'])
+@login_required
+@role_required('Patient')
+def reschedule_appointment(appointment_id):
+    patient = _require_patient()
+    if not patient:
+        return render_template('portal/not_linked.html')
+
+    apt = Appointment.query.get_or_404(appointment_id)
+    if apt.patient_id != patient.id:
+        flash('Access denied.', 'danger')
+        return redirect(url_for('portal.appointments'))
+
+    if apt.status not in ('BOOKED',):
+        flash(f'This appointment cannot be rescheduled because its status is {apt.status}.', 'warning')
+        return redirect(url_for('portal.appointments'))
+
+    selected_date_str = request.args.get('date', apt.appointment_date.strftime('%Y-%m-%d'))
+    try:
+        selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+    except ValueError:
+        selected_date = apt.appointment_date
+
+    slot_info = generate_doctor_slots(apt.doctor_id, selected_date)
+
+    # For slots on the same date, mark patient's current slot
+    if selected_date == apt.appointment_date:
+        for s in slot_info.get('slots', []):
+            if s.get('time') == apt.slot_time:
+                s['is_current'] = True
+                s['is_available'] = True
+
+    if request.method == 'POST':
+        apt_date_str = request.form.get('appointment_date')
+        slot_time_str = request.form.get('slot_time', '').strip()
+        notes = request.form.get('notes', '').strip()
+
+        if not apt_date_str or not slot_time_str:
+            flash('Please choose a date and an arrival window.', 'danger')
+            return redirect(url_for('portal.reschedule_appointment', appointment_id=apt.id, date=selected_date_str))
+
+        try:
+            new_date = datetime.strptime(apt_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            flash('Invalid date format.', 'danger')
+            return redirect(url_for('portal.reschedule_appointment', appointment_id=apt.id))
+
+        if new_date < date.today():
+            flash('Cannot reschedule an appointment to a past date.', 'danger')
+            return redirect(url_for('portal.reschedule_appointment', appointment_id=apt.id))
+
+        slot_t = None
+        for fmt in ('%H:%M:%S', '%H:%M', '%I:%M %p', '%I:%M%p'):
+            try:
+                slot_t = datetime.strptime(slot_time_str, fmt).time()
+                break
+            except ValueError:
+                pass
+
+        if not slot_t:
+            flash('Invalid arrival time window format.', 'danger')
+            return redirect(url_for('portal.reschedule_appointment', appointment_id=apt.id, date=apt_date_str))
+
+        # Check for conflicts with another patient's booking
+        conflict = Appointment.query.filter(
+            Appointment.doctor_id == apt.doctor_id,
+            Appointment.appointment_date == new_date,
+            Appointment.slot_time == slot_t,
+            Appointment.status != 'CANCELLED',
+            Appointment.id != apt.id
+        ).first()
+        if conflict:
+            flash('This arrival window is already reserved by another patient. Please choose another window.', 'danger')
+            return redirect(url_for('portal.reschedule_appointment', appointment_id=apt.id, date=apt_date_str))
+
+        # Update appointment timing
+        apt.appointment_date = new_date
+        apt.slot_time = slot_t
+        if notes:
+            apt.notes = notes
+
+        db.session.commit()
+        flash(
+            f'Appointment {apt.appointment_code} updated successfully! New Schedule: {new_date.strftime("%A, %d %B %Y")} at {slot_t.strftime("%I:%M %p")}.',
+            'success'
+        )
+        return redirect(url_for('portal.appointments'))
+
+    notif_count = Notification.query.filter_by(patient_id=patient.id, status='PENDING').count()
+    return render_template('portal/reschedule_appointment.html',
+                           patient=patient,
+                           appointment=apt,
+                           selected_date=selected_date,
+                           slot_info=slot_info,
+                           today_date=date.today().strftime('%Y-%m-%d'),
+                           notif_count=notif_count)
+
+
 @portal_bp.route('/appointments/<int:appointment_id>/cancel', methods=['POST'])
 @login_required
 @role_required('Patient')
