@@ -141,7 +141,7 @@
 
           <!-- COMMUNICATION -->
           <div class="sidebar-section-title">Communication</div>
-          <a href="{{ url_for('reports.dashboard') }}" class="admin-nav-item {% if 'reports' in request.endpoint %}active{% endif %}">
+          <a href="{{ url_for('reception.daily_reports') }}" class="admin-nav-item {% if 'reports' in request.endpoint or 'report' in request.endpoint %}active{% endif %}">
             <i class="bi bi-file-earmark-bar-graph"></i> Daily Reports
           </a>
         </nav>

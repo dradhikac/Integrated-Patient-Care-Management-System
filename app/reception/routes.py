@@ -1,5 +1,7 @@
+import io
+import csv
 from datetime import datetime, date, time, timedelta
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, Response
 from flask_login import login_required, current_user
 from app.extensions import db
 from app.auth.utils import role_required
@@ -8,6 +10,8 @@ from app.patients.models import Patient
 from app.appointments.models import Appointment, DoctorAvailability
 from app.reception.models import CheckIn, EmergencyEncounter
 from app.reception.forms import CheckInForm
+from app.billing.models import Bill, Payment
+from app.consultations.models import Consultation
 
 reception_bp = Blueprint('reception', __name__, template_folder='templates', url_prefix='/reception')
 
@@ -1278,3 +1282,390 @@ def notification_history():
                            unread_count=unread_count,
                            counts_by_tab=counts_by_tab,
                            search=search)
+
+
+@reception_bp.route('/reports', methods=['GET'])
+@reception_bp.route('/daily-reports', methods=['GET'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def daily_reports():
+    """
+    Dedicated Receptionist Daily Reports Dashboard.
+    Renders in the modern MediCore+ Receptionist UI with front-desk shift metrics,
+    OPD token intake logs, doctor consultation breakdown, cash counter reconciliation,
+    and printable shift handover report.
+    """
+    date_str = request.args.get('date', '').strip()
+    shift = request.args.get('shift', 'all').lower()
+    status_filter = request.args.get('status', 'ALL').upper()
+    dept_filter = request.args.get('dept', 'ALL')
+    search_q = request.args.get('q', '').strip()
+
+    try:
+        if date_str:
+            selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        else:
+            selected_date = date.today()
+    except (ValueError, TypeError):
+        selected_date = date.today()
+
+    # Time boundaries based on selected shift
+    if shift == 'morning':
+        start_dt = datetime.combine(selected_date, time(6, 0, 0))
+        end_dt = datetime.combine(selected_date, time(13, 59, 59))
+        shift_label = "Morning Shift (06:00 AM – 02:00 PM)"
+    elif shift == 'evening':
+        start_dt = datetime.combine(selected_date, time(14, 0, 0))
+        end_dt = datetime.combine(selected_date, time(21, 59, 59))
+        shift_label = "Evening Shift (02:00 PM – 10:00 PM)"
+    elif shift == 'night':
+        start_dt = datetime.combine(selected_date, time(22, 0, 0))
+        end_dt = datetime.combine(selected_date + timedelta(days=1), time(5, 59, 59))
+        shift_label = "Night Shift (10:00 PM – 06:00 AM)"
+    else:
+        shift = 'all'
+        start_dt = datetime.combine(selected_date, time(0, 0, 0))
+        end_dt = datetime.combine(selected_date, time(23, 59, 59))
+        shift_label = "Full Day Shift (24 Hours)"
+
+    # 1. Check-ins for the selected timeframe
+    all_checkins = CheckIn.query.filter(
+        CheckIn.check_in_time >= start_dt,
+        CheckIn.check_in_time <= end_dt
+    ).order_by(CheckIn.check_in_time.desc()).all()
+
+    total_intakes = len(all_checkins)
+    waiting_count = sum(1 for c in all_checkins if c.status == 'WAITING')
+    in_consult_count = sum(1 for c in all_checkins if c.status == 'IN_CONSULTATION')
+    completed_count = sum(1 for c in all_checkins if c.status == 'COMPLETED')
+    cancelled_count = sum(1 for c in all_checkins if c.status in ('CANCELLED', 'NO_SHOW'))
+
+    # Average wait time & consultation duration
+    completed_wait_times = [c.waiting_duration_minutes for c in all_checkins if c.waiting_duration_minutes is not None]
+    avg_wait_minutes = round(sum(completed_wait_times) / len(completed_wait_times), 1) if completed_wait_times else 0.0
+
+    completed_durations = [c.actual_duration_minutes for c in all_checkins if c.actual_duration_minutes is not None]
+    avg_consult_minutes = round(sum(completed_durations) / len(completed_durations), 1) if completed_durations else 0.0
+
+    # 2. New patient registrations on this date
+    new_patients_count = Patient.query.filter(
+        Patient.created_at >= start_dt,
+        Patient.created_at <= end_dt
+    ).count()
+
+    # 3. Scheduled appointments for this date
+    day_apts = Appointment.query.filter(
+        Appointment.appointment_date == selected_date
+    ).all()
+    total_apts = len(day_apts)
+    apts_booked = sum(1 for a in day_apts if a.status == 'BOOKED')
+    apts_checked_in = sum(1 for a in day_apts if a.status == 'CHECKED_IN')
+    apts_completed = sum(1 for a in day_apts if a.status == 'COMPLETED')
+    apts_cancelled = sum(1 for a in day_apts if a.status == 'CANCELLED')
+
+    # 4. Emergency cases & walk-ins
+    emergency_encounters = EmergencyEncounter.query.filter(
+        EmergencyEncounter.arrival_time >= start_dt,
+        EmergencyEncounter.arrival_time <= end_dt
+    ).all()
+    er_priority_checkins = sum(1 for c in all_checkins if c.priority == 'Emergency')
+    emergency_cases_total = len(emergency_encounters) + er_priority_checkins
+
+    # 5. Front-desk payments recorded during timeframe
+    payments = Payment.query.filter(
+        Payment.paid_at >= start_dt,
+        Payment.paid_at <= end_dt
+    ).order_by(Payment.paid_at.desc()).all()
+
+    total_revenue = sum(p.amount_paid for p in payments)
+    cash_revenue = sum(p.amount_paid for p in payments if (p.payment_method or '').strip() == 'Cash')
+    upi_revenue = sum(p.amount_paid for p in payments if 'UPI' in (p.payment_method or ''))
+    card_revenue = sum(p.amount_paid for p in payments if 'Card' in (p.payment_method or ''))
+    other_revenue = total_revenue - (cash_revenue + upi_revenue + card_revenue)
+
+    # 6. Priority & Department Breakdown
+    priority_breakdown = {
+        'Emergency': er_priority_checkins,
+        'Senior Citizen': sum(1 for c in all_checkins if c.priority == 'Senior Citizen'),
+        'Pregnant Woman': sum(1 for c in all_checkins if c.priority == 'Pregnant Woman'),
+        'Child': sum(1 for c in all_checkins if c.priority == 'Child'),
+        'Regular': sum(1 for c in all_checkins if c.priority in ('Regular', None, ''))
+    }
+
+    department_breakdown = {}
+    for c in all_checkins:
+        dept = c.department or 'General OPD'
+        department_breakdown[dept] = department_breakdown.get(dept, 0) + 1
+
+    # 7. Hourly Footfall Buckets
+    hourly_distribution = {
+        '08:00 - 10:00': 0,
+        '10:00 - 12:00': 0,
+        '12:00 - 14:00': 0,
+        '14:00 - 16:00': 0,
+        '16:00 - 18:00': 0,
+        '18:00 - 20:00': 0,
+        '20:00+': 0
+    }
+    for c in all_checkins:
+        if c.check_in_time:
+            hr = c.check_in_time.hour
+            if 8 <= hr < 10:
+                hourly_distribution['08:00 - 10:00'] += 1
+            elif 10 <= hr < 12:
+                hourly_distribution['10:00 - 12:00'] += 1
+            elif 12 <= hr < 14:
+                hourly_distribution['12:00 - 14:00'] += 1
+            elif 14 <= hr < 16:
+                hourly_distribution['14:00 - 16:00'] += 1
+            elif 16 <= hr < 18:
+                hourly_distribution['16:00 - 18:00'] += 1
+            elif 18 <= hr < 20:
+                hourly_distribution['18:00 - 20:00'] += 1
+            else:
+                hourly_distribution['20:00+'] += 1
+
+    # 8. Doctor-wise OPD Performance
+    doctor_role = Role.query.filter_by(name='Doctor').first()
+    all_doctors = User.query.filter_by(role_id=doctor_role.id, is_active=True).all() if doctor_role else []
+
+    today_weekday = selected_date.weekday()
+    avail_doc_ids = {
+        a.doctor_id for a in DoctorAvailability.query.filter_by(day_of_week=today_weekday, is_active=True).all()
+    }
+
+    doctor_summaries = []
+    for doc in all_doctors:
+        doc_tokens = [c for c in all_checkins if c.doctor_id == doc.id]
+        doc_completed = sum(1 for c in doc_tokens if c.status == 'COMPLETED')
+        doc_waiting = sum(1 for c in doc_tokens if c.status == 'WAITING')
+        doc_in_consult = sum(1 for c in doc_tokens if c.status == 'IN_CONSULTATION')
+        doc_cancelled = sum(1 for c in doc_tokens if c.status in ('CANCELLED', 'NO_SHOW'))
+
+        doc_durations = [c.actual_duration_minutes for c in doc_tokens if c.actual_duration_minutes is not None]
+        doc_avg_dur = round(sum(doc_durations) / len(doc_durations), 1) if doc_durations else 0.0
+
+        is_on_duty = (doc.id in avail_doc_ids) or (len(avail_doc_ids) == 0)
+
+        doctor_summaries.append({
+            'doctor': doc,
+            'is_on_duty': is_on_duty,
+            'total_tokens': len(doc_tokens),
+            'completed': doc_completed,
+            'waiting': doc_waiting,
+            'in_consultation': doc_in_consult,
+            'cancelled': doc_cancelled,
+            'avg_duration': doc_avg_dur
+        })
+
+    # Sort doctors: active ones with tokens first
+    doctor_summaries.sort(key=lambda d: (d['total_tokens'], d['is_on_duty']), reverse=True)
+
+    # 9. Filtered Check-in Table
+    table_checkins = all_checkins
+    if status_filter != 'ALL':
+        table_checkins = [c for c in table_checkins if c.status == status_filter]
+    if dept_filter != 'ALL':
+        table_checkins = [c for c in table_checkins if (c.department or 'General OPD') == dept_filter]
+    if search_q:
+        q_lower = search_q.lower()
+        table_checkins = [
+            c for c in table_checkins
+            if (c.token_no and q_lower in c.token_no.lower()) or
+               (c.patient and (
+                   (c.patient.full_name and q_lower in c.patient.full_name.lower()) or
+                   (c.patient.patient_code and q_lower in c.patient.patient_code.lower()) or
+                   (c.patient.mobile and q_lower in c.patient.mobile.lower())
+               )) or
+               (c.doctor and c.doctor.name and q_lower in c.doctor.name.lower())
+        ]
+
+    # Distinct departments for dropdown filter
+    all_departments = sorted(list(set(list(department_breakdown.keys()) + ['General OPD', 'Pediatrics', 'Cardiology', 'Orthopedics', 'Gynecology', 'Emergency'])))
+
+    kpis = {
+        'total_intakes': total_intakes,
+        'waiting_count': waiting_count,
+        'in_consult_count': in_consult_count,
+        'completed_count': completed_count,
+        'cancelled_count': cancelled_count,
+        'new_patients_count': new_patients_count,
+        'total_apts': total_apts,
+        'apts_booked': apts_booked,
+        'apts_checked_in': apts_checked_in,
+        'apts_completed': apts_completed,
+        'apts_cancelled': apts_cancelled,
+        'emergency_cases_total': emergency_cases_total,
+        'avg_wait_minutes': avg_wait_minutes,
+        'avg_consult_minutes': avg_consult_minutes,
+        'total_revenue': total_revenue,
+        'cash_revenue': cash_revenue,
+        'upi_revenue': upi_revenue,
+        'card_revenue': card_revenue,
+        'other_revenue': other_revenue,
+        'payment_count': len(payments)
+    }
+
+    return render_template(
+        'reception/reports.html',
+        selected_date=selected_date,
+        selected_date_str=selected_date.strftime('%Y-%m-%d'),
+        selected_shift=shift,
+        shift_label=shift_label,
+        status_filter=status_filter,
+        dept_filter=dept_filter,
+        search_q=search_q,
+        kpis=kpis,
+        doctor_summaries=doctor_summaries,
+        payments=payments,
+        checkins=table_checkins,
+        all_departments=all_departments,
+        priority_breakdown=priority_breakdown,
+        department_breakdown=department_breakdown,
+        hourly_distribution=hourly_distribution,
+        is_today=(selected_date == date.today()),
+        today_str=date.today().strftime('%Y-%m-%d'),
+        yesterday_str=(date.today() - timedelta(days=1)).strftime('%Y-%m-%d'),
+        timedelta=timedelta,
+        now=datetime.now()
+    )
+
+
+@reception_bp.route('/reports/export-csv', methods=['GET'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def export_daily_reports_csv():
+    """
+    Exports front desk daily operational report datasets as CSV.
+    Supported export types: 'intakes', 'payments', 'doctors'
+    """
+    export_type = request.args.get('type', 'intakes').lower()
+    date_str = request.args.get('date', '').strip()
+    shift = request.args.get('shift', 'all').lower()
+
+    try:
+        if date_str:
+            selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        else:
+            selected_date = date.today()
+    except (ValueError, TypeError):
+        selected_date = date.today()
+
+    if shift == 'morning':
+        start_dt = datetime.combine(selected_date, time(6, 0, 0))
+        end_dt = datetime.combine(selected_date, time(13, 59, 59))
+    elif shift == 'evening':
+        start_dt = datetime.combine(selected_date, time(14, 0, 0))
+        end_dt = datetime.combine(selected_date, time(21, 59, 59))
+    elif shift == 'night':
+        start_dt = datetime.combine(selected_date, time(22, 0, 0))
+        end_dt = datetime.combine(selected_date + timedelta(days=1), time(5, 59, 59))
+    else:
+        start_dt = datetime.combine(selected_date, time(0, 0, 0))
+        end_dt = datetime.combine(selected_date, time(23, 59, 59))
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    if export_type == 'payments':
+        writer.writerow(['Payment Code', 'Invoice Code', 'Patient UHID', 'Patient Name', 'Payment Mode', 'Transaction Ref', 'Amount (₹)', 'Paid Timestamp', 'Recorded By'])
+        payments = Payment.query.filter(
+            Payment.paid_at >= start_dt,
+            Payment.paid_at <= end_dt
+        ).order_by(Payment.paid_at.desc()).all()
+
+        for p in payments:
+            patient_uhid = p.bill.patient.patient_code if (p.bill and p.bill.patient) else 'N/A'
+            patient_name = p.bill.patient.full_name if (p.bill and p.bill.patient) else 'Unknown'
+            inv_code = p.bill.invoice_code if p.bill else 'N/A'
+            rec_by = p.recorded_by.name if p.recorded_by else 'Front Desk'
+            paid_time = p.paid_at.strftime('%Y-%m-%d %H:%M:%S') if p.paid_at else ''
+
+            writer.writerow([
+                p.payment_code,
+                inv_code,
+                patient_uhid,
+                patient_name,
+                p.payment_method,
+                p.transaction_ref or '',
+                f"{p.amount_paid:.2f}",
+                paid_time,
+                rec_by
+            ])
+        filename = f"medicore_frontdesk_payments_{selected_date.strftime('%Y%m%d')}_{shift}.csv"
+
+    elif export_type == 'doctors':
+        writer.writerow(['Doctor Name', 'Doctor Code', 'Specialization', 'Department', 'Total Tokens', 'Completed', 'In Consultation', 'Waiting', 'Cancelled', 'Avg Duration (mins)'])
+        doctor_role = Role.query.filter_by(name='Doctor').first()
+        doctors = User.query.filter_by(role_id=doctor_role.id, is_active=True).all() if doctor_role else []
+        all_checkins = CheckIn.query.filter(
+            CheckIn.check_in_time >= start_dt,
+            CheckIn.check_in_time <= end_dt
+        ).all()
+
+        for doc in doctors:
+            doc_tokens = [c for c in all_checkins if c.doctor_id == doc.id]
+            doc_completed = sum(1 for c in doc_tokens if c.status == 'COMPLETED')
+            doc_waiting = sum(1 for c in doc_tokens if c.status == 'WAITING')
+            doc_in_consult = sum(1 for c in doc_tokens if c.status == 'IN_CONSULTATION')
+            doc_cancelled = sum(1 for c in doc_tokens if c.status in ('CANCELLED', 'NO_SHOW'))
+            doc_durations = [c.actual_duration_minutes for c in doc_tokens if c.actual_duration_minutes is not None]
+            doc_avg_dur = round(sum(doc_durations) / len(doc_durations), 1) if doc_durations else 0.0
+
+            writer.writerow([
+                doc.name,
+                doc.user_code or '',
+                doc.specialization or '',
+                doc.department or 'General OPD',
+                len(doc_tokens),
+                doc_completed,
+                doc_in_consult,
+                doc_waiting,
+                doc_cancelled,
+                doc_avg_dur
+            ])
+        filename = f"medicore_doctor_opd_summary_{selected_date.strftime('%Y%m%d')}_{shift}.csv"
+
+    else:
+        # Default: Daily Intakes / Tokens
+        writer.writerow(['Token No', 'Patient UHID', 'Patient Name', 'Mobile', 'Assigned Doctor', 'Department', 'Priority', 'Check-In Time', 'Called Time', 'Completed Time', 'Wait Mins', 'Duration Mins', 'Status'])
+        checkins = CheckIn.query.filter(
+            CheckIn.check_in_time >= start_dt,
+            CheckIn.check_in_time <= end_dt
+        ).order_by(CheckIn.check_in_time.asc()).all()
+
+        for c in checkins:
+            uhid = c.patient.patient_code if c.patient else 'N/A'
+            p_name = c.patient.full_name if c.patient else 'Walk-In Patient'
+            mobile = c.patient.mobile if c.patient else ''
+            doc_name = c.doctor.name if c.doctor else 'Unassigned'
+            dept = c.department or 'General OPD'
+            cin_time = c.check_in_time.strftime('%H:%M:%S') if c.check_in_time else ''
+            call_time = c.called_time.strftime('%H:%M:%S') if c.called_time else ''
+            comp_time = c.completed_time.strftime('%H:%M:%S') if c.completed_time else ''
+            wait_m = c.waiting_duration_minutes or ''
+            dur_m = c.actual_duration_minutes or ''
+
+            writer.writerow([
+                c.token_no,
+                uhid,
+                p_name,
+                mobile,
+                doc_name,
+                dept,
+                c.priority or 'Regular',
+                cin_time,
+                call_time,
+                comp_time,
+                wait_m,
+                dur_m,
+                c.status
+            ])
+        filename = f"medicore_frontdesk_intakes_{selected_date.strftime('%Y%m%d')}_{shift}.csv"
+
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-disposition": f"attachment; filename={filename}"}
+    )
+

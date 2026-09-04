@@ -22,6 +22,9 @@ reports_bp = Blueprint('reports', __name__, template_folder='templates', url_pre
 @login_required
 @role_required('Admin', 'Doctor', 'Receptionist')
 def dashboard():
+    if current_user.role and current_user.role.name == 'Receptionist':
+        return redirect(url_for('reception.daily_reports'))
+
     kpis = get_today_admin_kpis()
     monthly_trend = get_monthly_revenue_trend()
     status_breakdown = get_appointment_status_breakdown()
