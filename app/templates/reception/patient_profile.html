@@ -1,6 +1,6 @@
 {% extends 'reception/base_reception.html' %}
 
-{% block title %}{{ patient.patient_code }} — {{ patient.full_name }} — MediCore+{% endblock %}
+{% block title %}{{ patient.patient_code }} — {{ patient.full_name }} — CareHub{% endblock %}
 {% block header_title %}{{ patient.full_name }}{% endblock %}
 {% block header_subtitle %}{{ patient.patient_code }} · Registered {{ patient.created_at.strftime('%d %B %Y') }} · Preferred Language: {{ patient.preferred_language }}{% endblock %}
 

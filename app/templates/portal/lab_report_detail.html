@@ -1,6 +1,6 @@
 {% extends 'portal/base_patient.html' %}
 
-{% block title %}{{ lab_request.request_code }} — MediCore+ Health Portal{% endblock %}
+{% block title %}{{ lab_request.request_code }} — CareHub Health Portal{% endblock %}
 {% block header_title %}Diagnostic Lab Report{% endblock %}
 {% block header_subtitle %}{{ lab_request.request_code }} · Ordered by {{ lab_request.doctor.name }} on {{ lab_request.created_at.strftime('%d %B %Y') }}{% endblock %}
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Doctor Portal — MediCore+{% endblock %}</title>
+  <title>{% block title %}Doctor Portal — CareHub{% endblock %}</title>
 
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -407,11 +407,12 @@
   <aside class="doc-sidebar" id="docSidebar">
 
     <!-- Brand -->
-    <a href="{{ url_for('doctor_portal.dashboard') }}" class="doc-brand text-decoration-none">
-      <div class="doc-brand-icon"><i class="bi bi-hospital"></i></div>
+    <a href="{{ url_for('doctor_portal.dashboard') }}" class="doc-brand text-decoration-none d-flex align-items-center gap-2">
+      <div class="bg-white rounded-3 p-1 d-flex align-items-center justify-content-center shadow-sm" style="height: 38px; padding: 4px 8px;">
+        <img src="{{ url_for('static', filename='images/carehub_logo.png') }}" alt="CareHub" style="height: 26px; width: auto; max-width: 120px; object-fit: contain;">
+      </div>
       <div class="doc-brand-text">
-        <div class="doc-brand-title">MediCore+</div>
-        <div class="doc-brand-sub">Doctor Portal</div>
+        <div class="doc-brand-sub text-white-50" style="font-size: 0.65rem; letter-spacing: 0.5px; text-transform: uppercase;">Doctor Portal</div>
       </div>
     </a>
 
@@ -495,7 +496,7 @@
         </button>
         <div>
           <div class="doc-header-title">{% block page_title %}Doctor Portal{% endblock %}</div>
-          <div class="doc-header-sub">{% block page_subtitle %}MediCore+ Clinical Workspace{% endblock %}</div>
+          <div class="doc-header-sub">{% block page_subtitle %}CareHub Clinical Workspace{% endblock %}</div>
         </div>
       </div>
       <div class="doc-header-right">
@@ -532,7 +533,7 @@
 
     <!-- Footer -->
     <footer style="padding: 14px 28px; border-top: 1px solid #F1F5F9; font-size: 0.75rem; color: #94A3B8; background: #FFFFFF; text-align: center;">
-      MediCore+ Doctor Portal &mdash; Confidential Clinical Workspace &mdash; &copy; {{ now().year if now is defined else '2026' }} All rights reserved.
+      CareHub Doctor Portal &mdash; Confidential Clinical Workspace &mdash; &copy; {{ now().year if now is defined else '2026' }} All rights reserved.
     </footer>
   </div>
 </div>

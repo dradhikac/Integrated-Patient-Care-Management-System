@@ -1,6 +1,6 @@
 {% extends 'reception/base_reception.html' %}
 
-{% block title %}Daily Reports & Shift Analytics — MediCore+ Front Desk{% endblock %}
+{% block title %}Daily Reports & Shift Analytics — CareHub Front Desk{% endblock %}
 
 {% block header_title %}Daily Front Desk Operations & Shift Report{% endblock %}
 {% block header_subtitle %}Operational performance summary, OPD token intakes, doctor consultation loads, and counter collections{% endblock %}
@@ -619,7 +619,7 @@
       <div class="modal-body p-4" id="printableHandoverReport">
         <!-- Hospital Branding Header -->
         <div class="text-center pb-3 mb-3 border-bottom">
-          <h4 class="fw-bold text-dark mb-1">MediCore+ Super Specialty Hospital</h4>
+          <h4 class="fw-bold text-dark mb-1">CareHub Super Specialty Hospital</h4>
           <p class="text-muted small mb-1">Department of Front Desk & Patient Care Operations</p>
           <div class="badge bg-primary px-3 py-1.5 fw-bold text-uppercase" style="letter-spacing: 1px;">
             DAILY FRONT DESK SHIFT HANDOVER REPORT
@@ -865,7 +865,7 @@ function printHandoverReport() {
   const printContents = document.getElementById('printableHandoverReport').innerHTML;
 
   const printWindow = window.open('', '', 'height=800,width=900');
-  printWindow.document.write('<html><head><title>Shift Handover Report — MediCore+</title>');
+  printWindow.document.write('<html><head><title>Shift Handover Report — CareHub</title>');
   printWindow.document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">');
   printWindow.document.write('<style>');
   printWindow.document.write('@media print { body { padding: 20px; font-size: 12px; } .table { font-size: 11px; } }');

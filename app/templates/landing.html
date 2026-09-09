@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MediCore+ — Care Beyond Compare | Integrated Healthcare Management System</title>
+  <title>CareHub — Integrated Patient Care Management System</title>
 
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -50,7 +50,7 @@
     /* -------------------------------------------------------------
        1. Navigation Header
     ------------------------------------------------------------- */
-    .medicore-navbar {
+    .carehub-navbar {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
@@ -923,7 +923,7 @@
     /* -------------------------------------------------------------
        8. Footer
     ------------------------------------------------------------- */
-    .medicore-footer {
+    .carehub-footer {
       background: #0F172A;
       color: #94A3B8;
       padding: 4.5rem 0 2rem;
@@ -1051,28 +1051,22 @@
   <!-- ============================================================
        1. Navigation Header
   ============================================================ -->
-  <nav class="navbar navbar-expand-lg medicore-navbar sticky-top">
+  <nav class="navbar navbar-expand-lg carehub-navbar sticky-top">
     <div class="container px-lg-4">
 
       <!-- Brand Logo -->
-      <a href="/" class="brand-box">
-        <div class="brand-icon">
-          <i class="bi bi-hospital"></i>
-        </div>
-        <div class="brand-text">
-          <span class="brand-title">MediCore+</span>
-          <span class="brand-tagline">Care Beyond Compare</span>
-        </div>
+      <a href="/" class="brand-box text-decoration-none d-flex align-items-center">
+        <img src="{{ url_for('static', filename='images/carehub_logo.png') }}" alt="CareHub" style="height: 42px; width: auto; max-width: 170px; object-fit: contain;">
       </a>
 
       <!-- Mobile Toggle -->
       <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
-        data-bs-target="#medicoreNav">
+        data-bs-target="#carehubNav">
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <!-- Center Links & Right Actions -->
-      <div class="collapse navbar-collapse" id="medicoreNav">
+      <div class="collapse navbar-collapse" id="carehubNav">
         <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
           <li class="nav-item">
             <a class="nav-link nav-link-item active" href="/">Home</a>
@@ -1270,7 +1264,7 @@
           <div class="ps-lg-3">
             <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill fw-bold text-uppercase mb-2"
               style="font-size: 0.75rem;">
-              Why Choose MediCore+
+              Why Choose CareHub
             </span>
             <h2 class="fw-bold text-dark mb-3" style="font-size: 2.2rem; letter-spacing: -0.5px;">
               Compassionate Healthcare Powered by Clinical Precision
@@ -1573,7 +1567,7 @@
             <h2 class="fw-bold mb-2" style="font-size: 2rem;">Take Control of Your Health Journey</h2>
             <p class="mb-0 opacity-90" style="font-size: 1.02rem; max-width: 600px;">
               Access your digital prescriptions, diagnostic lab reports, appointment bookings, and complete clinical
-              timeline anytime, anywhere through the secure MediCore+ Patient Portal.
+              timeline anytime, anywhere through the secure CareHub Patient Portal.
             </p>
           </div>
           <div class="col-lg-4 text-lg-end">
@@ -1591,19 +1585,18 @@
   <!-- ============================================================
        8. Footer
   ============================================================ -->
-  <footer class="medicore-footer" id="contact">
+  <footer class="carehub-footer" id="contact">
     <div class="container px-lg-4">
       <div class="row g-4">
         <!-- Col 1: Brand & Bio -->
         <div class="col-lg-4">
           <div class="d-flex align-items-center gap-2 mb-3">
-            <div class="brand-icon" style="width: 38px; height: 38px; font-size: 1.15rem;">
-              <i class="bi bi-hospital"></i>
+            <div class="bg-white rounded-3 p-1.5 d-inline-flex align-items-center justify-content-center shadow-sm" style="height: 42px; padding: 4px 10px;">
+              <img src="{{ url_for('static', filename='images/carehub_logo.png') }}" alt="CareHub" style="height: 30px; width: auto;">
             </div>
-            <span class="footer-brand-title">MediCore+</span>
           </div>
           <p class="text-muted small mb-4" style="line-height: 1.7;">
-            MediCore+ Integrated Patient Care Management System provides world-class clinical excellence, ethical
+            CareHub Integrated Patient Care Management System provides world-class clinical excellence, ethical
             medicine, and seamless patient experience across outpatient, inpatient, and diagnostic services.
           </p>
           <div class="d-flex gap-3">
@@ -1642,13 +1635,13 @@
         <div class="col-lg-3">
           <div class="footer-heading">24/7 Helpline</div>
           <div class="mb-3">
-            <div class="text-white fw-bold fs-6"><i class="bi bi-telephone-fill text-danger me-2"></i>1800-MEDICORE
+            <div class="text-white fw-bold fs-6"><i class="bi bi-telephone-fill text-danger me-2"></i>1800-CAREHUB
             </div>
             <div class="text-muted small">Toll-Free Emergency Dispatch</div>
           </div>
           <div class="mb-3">
             <div class="text-white fw-bold fs-6"><i
-                class="bi bi-envelope-fill text-primary me-2"></i>care@medicore.hospital</div>
+                class="bi bi-envelope-fill text-primary me-2"></i>care@carehub.hospital</div>
             <div class="text-muted small">Patient Support & Inquiries</div>
           </div>
           <div class="small text-muted">
@@ -1661,7 +1654,7 @@
       <!-- Bottom Bar -->
       <div class="footer-bottom-bar d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div>
-          &copy; 2026 <strong>MediCore+ Healthcare</strong>. Integrated Patient Care Management System. All rights
+          &copy; 2026 <strong>CareHub Healthcare</strong>. Integrated Patient Care Management System. All rights
           reserved.
         </div>
         <div class="d-flex gap-3">
@@ -1676,7 +1669,7 @@
   </footer>
 
   <!-- ============================================================
-       9. Unified MediCore+ Login Portal Authentication Modal
+       9. Unified CareHub Login Portal Authentication Modal
   ============================================================ -->
   <div class="modal fade" id="patientPortalAuthModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -1689,7 +1682,7 @@
               <i class="bi bi-shield-lock-fill text-white fs-6"></i>
             </div>
             <div>
-              <h5 class="modal-title fw-bold mb-0" style="font-size: 1.15rem;">MediCore+ Access Portals</h5>
+              <h5 class="modal-title fw-bold mb-0" style="font-size: 1.15rem;">CareHub Access Portals</h5>
               <div style="font-size: 0.72rem; opacity: 0.9; font-weight: 500;">Select your designated healthcare portal
                 below</div>
             </div>

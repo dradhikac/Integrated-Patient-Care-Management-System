@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign In — MediCore+ Healthcare System</title>
+  <title>Sign In — CareHub Healthcare System</title>
   
   <!-- Google Fonts: Plus Jakarta Sans & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,11 +17,11 @@
   
   <style>
     :root {
-      --medicore-navy: #0F172A;
-      --medicore-blue: #1E40AF;
-      --medicore-blue-hover: #1D4ED8;
-      --medicore-teal: #0D9488;
-      --medicore-teal-light: #CCFBF1;
+      --carehub-navy: #0F172A;
+      --carehub-blue: #1E40AF;
+      --carehub-blue-hover: #1D4ED8;
+      --carehub-teal: #0D9488;
+      --carehub-teal-light: #CCFBF1;
       --slate-bg: #F8FAFC;
       --border-color: #E2E8F0;
       --text-muted: #64748B;
@@ -72,14 +72,14 @@
     .brand-title {
       font-size: 1.25rem;
       font-weight: 800;
-      color: var(--medicore-navy);
+      color: var(--carehub-navy);
       line-height: 1.1;
     }
 
     .brand-subtitle {
       font-size: 0.68rem;
       font-weight: 700;
-      color: var(--medicore-teal);
+      color: var(--carehub-teal);
       letter-spacing: 0.5px;
       text-transform: uppercase;
     }
@@ -210,20 +210,20 @@
     }
 
     .portal-tab-btn:hover {
-      color: var(--medicore-navy);
+      color: var(--carehub-navy);
       background: rgba(255, 255, 255, 0.6);
     }
 
     .portal-tab-btn.active {
       background: #FFFFFF;
-      color: var(--medicore-blue);
+      color: var(--carehub-blue);
       box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
     }
 
     .form-header-title {
       font-size: 1.7rem;
       font-weight: 800;
-      color: var(--medicore-navy);
+      color: var(--carehub-navy);
       letter-spacing: -0.5px;
     }
 
@@ -243,12 +243,12 @@
     }
 
     .form-control:focus {
-      border-color: var(--medicore-blue);
+      border-color: var(--carehub-blue);
       box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.12);
     }
 
     .btn-signin {
-      background: linear-gradient(135deg, var(--medicore-blue) 0%, #1D4ED8 100%);
+      background: linear-gradient(135deg, var(--carehub-blue) 0%, #1D4ED8 100%);
       color: #FFFFFF;
       font-weight: 700;
       font-size: 0.98rem;
@@ -270,7 +270,7 @@
     .staff-notice-card {
       background: #F8FAFC;
       border: 1px solid #E2E8F0;
-      border-left: 4px solid var(--medicore-blue);
+      border-left: 4px solid var(--carehub-blue);
       border-radius: 10px;
       padding: 12px 16px;
       margin-bottom: 1.5rem;
@@ -313,14 +313,8 @@
 
   <!-- Top Navigation Bar -->
   <nav class="login-navbar d-flex justify-content-between align-items-center">
-    <a href="/" class="brand-logo">
-      <div class="brand-icon">
-        <i class="bi bi-hospital"></i>
-      </div>
-      <div>
-        <div class="brand-title">MediCore+</div>
-        <div class="brand-subtitle">Care Beyond Compare</div>
-      </div>
+    <a href="/" class="brand-logo text-decoration-none">
+      <img src="{{ url_for('static', filename='images/carehub_logo.png') }}" alt="CareHub" style="height: 40px; width: auto;">
     </a>
     <a href="/" class="btn btn-sm btn-outline-secondary rounded-pill px-3 fw-semibold">
       <i class="bi bi-arrow-left me-1"></i> Back to Home
@@ -337,9 +331,9 @@
           <!-- Dynamic Hero Badge -->
           <div class="hero-badge" id="heroBadge">
             {% if portal == 'staff' %}
-              <i class="bi bi-shield-lock-fill text-warning"></i> MediCore+ Staff &amp; Clinical Access
+              <i class="bi bi-shield-lock-fill text-warning"></i> CareHub Staff &amp; Clinical Access
             {% else %}
-              <i class="bi bi-person-heart text-info"></i> MediCore+ Patient Portal
+              <i class="bi bi-person-heart text-info"></i> CareHub Patient Portal
             {% endif %}
           </div>
 
@@ -471,7 +465,7 @@
               {{ form.remember(class="form-check-input", id="remember") }}
               <label class="form-check-label text-muted small fw-medium" for="remember">Keep me signed in</label>
             </div>
-            <a href="{{ url_for('auth.forgot_password') }}" class="small text-decoration-none fw-bold" style="color: var(--medicore-blue);">
+            <a href="{{ url_for('auth.forgot_password') }}" class="small text-decoration-none fw-bold" style="color: var(--carehub-blue);">
               Forgot Password?
             </a>
           </div>
@@ -485,7 +479,7 @@
 
         <!-- New Patient Registration Card (ONLY in Patient Portal - STRICTLY REMOVED for Staff) -->
         <div class="register-box {% if portal == 'staff' %}d-none{% endif %}" id="patientRegisterBox">
-          <p class="text-muted small mb-2">New patient visiting MediCore+ for the first time?</p>
+          <p class="text-muted small mb-2">New patient visiting CareHub for the first time?</p>
           <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold btn-sm" style="border-width: 1.5px;">
             <i class="bi bi-person-plus-fill me-1 text-teal"></i> Register New Patient Account
           </a>
@@ -536,7 +530,7 @@
 
   <!-- Footer -->
   <footer class="text-center py-3 text-muted small">
-    &copy; 2026 MediCore+ Healthcare Management System. All rights reserved.
+    &copy; 2026 CareHub Healthcare Management System. All rights reserved.
   </footer>
 
   <!-- Bootstrap 5 JS Bundle -->
@@ -581,7 +575,7 @@
       const heroFooter = document.getElementById('heroFooter');
 
       if (isStaff) {
-        heroBadge.innerHTML = '<i class="bi bi-shield-lock-fill text-warning"></i> MediCore+ Staff & Clinical Access';
+        heroBadge.innerHTML = '<i class="bi bi-shield-lock-fill text-warning"></i> CareHub Staff & Clinical Access';
         heroTitle.innerHTML = 'Institutional<br>Clinical Workspace';
         heroSubtitle.textContent = 'Secure point-of-care clinical management, doctor consultations, laboratory workflow, and hospital administration.';
         heroFeatures.innerHTML = `
@@ -592,7 +586,7 @@
         `;
         heroFooter.innerHTML = '<small class="text-light opacity-75"><i class="bi bi-shield-check me-1"></i> Institutional access is restricted to verified hospital staff.</small>';
       } else {
-        heroBadge.innerHTML = '<i class="bi bi-person-heart text-info"></i> MediCore+ Patient Portal';
+        heroBadge.innerHTML = '<i class="bi bi-person-heart text-info"></i> CareHub Patient Portal';
         heroTitle.innerHTML = 'Your Health Journey,<br>All in One Place';
         heroSubtitle.textContent = 'Access your verified health records, view doctor prescriptions, download lab diagnostic reports, and manage appointment bookings.';
         heroFeatures.innerHTML = `

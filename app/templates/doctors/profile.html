@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ doctor.name }} — {{ doctor.specialization }} | MediCore+ Healthcare{% endblock %}
+{% block title %}{{ doctor.name }} — {{ doctor.specialization }} | CareHub Healthcare{% endblock %}
 
 {% block content %}
 <style>
@@ -231,7 +231,7 @@
           <div class="col-md-6">
             <div class="info-grid-item">
               <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#94A3B8;margin-bottom:6px;"><i class="bi bi-geo-alt me-1 text-danger"></i>Location</div>
-              <div style="font-size:0.9rem;font-weight:700;color:#0F172A;">MediCore+ Main Hospital</div>
+              <div style="font-size:0.9rem;font-weight:700;color:#0F172A;">CareHub Main Hospital</div>
             </div>
           </div>
         </div>
@@ -283,7 +283,7 @@
             {{ pract_row('currency-rupee', 'Consultation Fee', '₹' + '%.0f'|format(doctor.consultation_fee) + ' (OPD)', '#1E40AF') }}
             {{ pract_row('calendar-week', 'Working Days', doctor.available_days, '#15803D') }}
             {{ pract_row('clock-history', 'Consulting Hours', '09:00 AM – 01:00 PM', '#0369A1') }}
-            {{ pract_row('geo-alt-fill', 'Hospital Location', 'MediCore+ Main Hospital, OPD Block', '#EF4444') }}
+            {{ pract_row('geo-alt-fill', 'Hospital Location', 'CareHub Main Hospital, OPD Block', '#EF4444') }}
             {{ pract_row('telephone-fill', 'Appointment Line', '+91 98765 43210', '#0D9488') }}
           </div>
         </div>

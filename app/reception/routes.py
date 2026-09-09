@@ -824,17 +824,17 @@ def send_activation(patient_id):
         import flask
         if flask.current_app.config.get('MAIL_USERNAME'):
             msg = Message(
-                subject='MediCore+ Portal Activation',
+                subject='CareHub Portal Activation',
                 sender=flask.current_app.config['MAIL_DEFAULT_SENDER'],
                 recipients=[patient.email],
                 body=(
                     f"Dear {patient.full_name},\n\n"
-                    f"Your MediCore+ Patient Portal account has been created.\n"
+                    f"Your CareHub Patient Portal account has been created.\n"
                     f"Click the link below to set your password and activate your account:\n\n"
                     f"{activation_url}\n\n"
                     f"Or use OTP code: {otp}  (valid 24 hours)\n\n"
                     f"If you did not request this, please ignore this email.\n\n"
-                    f"— MediCore+ Team"
+                    f"— CareHub Team"
                 )
             )
             mail.send(msg)
@@ -906,7 +906,7 @@ def activate_portal(token):
                 new_user = User(
                     user_code=user_code,
                     name=patient.full_name,
-                    email=patient.email or f"patient_{patient.id}@medicore.local",
+                    email=patient.email or f"patient_{patient.id}@carehub.local",
                     mobile=patient.mobile,
                     role_id=patient_role.id,
                     is_active=True,
@@ -920,7 +920,7 @@ def activate_portal(token):
             record.is_used = True
             db.session.commit()
 
-            flash(f'Welcome, {patient.full_name}! Your MediCore+ Patient Portal is now active.', 'success')
+            flash(f'Welcome, {patient.full_name}! Your CareHub Patient Portal is now active.', 'success')
             return redirect(url_for('auth.login'))
 
     return render_template('reception/activate_portal.html', patient=patient, token=token, error=error)
@@ -1592,7 +1592,7 @@ def export_daily_reports_csv():
                 paid_time,
                 rec_by
             ])
-        filename = f"medicore_frontdesk_payments_{selected_date.strftime('%Y%m%d')}_{shift}.csv"
+        filename = f"carehub_frontdesk_payments_{selected_date.strftime('%Y%m%d')}_{shift}.csv"
 
     elif export_type == 'doctors':
         writer.writerow(['Doctor Name', 'Doctor Code', 'Specialization', 'Department', 'Total Tokens', 'Completed', 'In Consultation', 'Waiting', 'Cancelled', 'Avg Duration (mins)'])
@@ -1624,7 +1624,7 @@ def export_daily_reports_csv():
                 doc_cancelled,
                 doc_avg_dur
             ])
-        filename = f"medicore_doctor_opd_summary_{selected_date.strftime('%Y%m%d')}_{shift}.csv"
+        filename = f"carehub_doctor_opd_summary_{selected_date.strftime('%Y%m%d')}_{shift}.csv"
 
     else:
         # Default: Daily Intakes / Tokens
@@ -1661,7 +1661,7 @@ def export_daily_reports_csv():
                 dur_m,
                 c.status
             ])
-        filename = f"medicore_frontdesk_intakes_{selected_date.strftime('%Y%m%d')}_{shift}.csv"
+        filename = f"carehub_frontdesk_intakes_{selected_date.strftime('%Y%m%d')}_{shift}.csv"
 
     return Response(
         output.getvalue(),

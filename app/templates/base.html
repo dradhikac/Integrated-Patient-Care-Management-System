@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}IPCMS - Integrated Patient Care Management System{% endblock %}</title>
+  <title>{% block title %}CareHub — Integrated Patient Care Management System{% endblock %}</title>
   
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -18,8 +18,10 @@
   <!-- Navigation Bar -->
   <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top">
     <div class="container-fluid">
-      <a class="navbar-brand" href="{{ url_for('auth.dashboard') if current_user.is_authenticated else url_for('auth.login') }}">
-        <i class="bi bi-hospital"></i> IPCMS
+      <a class="navbar-brand d-flex align-items-center" href="{{ url_for('auth.dashboard') if current_user.is_authenticated else url_for('auth.login') }}">
+        <div class="bg-white rounded-2 px-2 py-1 d-inline-flex align-items-center justify-content-center shadow-sm">
+          <img src="{{ url_for('static', filename='images/carehub_logo.png') }}" alt="CareHub" style="height: 24px; width: auto;">
+        </div>
       </a>
       
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
@@ -149,7 +151,7 @@
   <!-- Footer -->
   <footer>
     <div class="container">
-      <p class="mb-0">Integrated Patient Care Management System (IPCMS) &copy; 2026. Production Ready Healthcare Architecture.</p>
+      <p class="mb-0">CareHub &copy; 2026. Integrated Patient Care Management System.</p>
     </div>
   </footer>
 

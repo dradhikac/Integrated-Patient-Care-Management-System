@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create Patient Account — MediCore+ Healthcare</title>
+  <title>Create Patient Account — CareHub Healthcare</title>
   
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,10 +17,10 @@
   
   <style>
     :root {
-      --medicore-navy: #0F172A;
-      --medicore-blue: #1E40AF;
-      --medicore-blue-hover: #1D4ED8;
-      --medicore-teal: #0D9488;
+      --carehub-navy: #0F172A;
+      --carehub-blue: #1E40AF;
+      --carehub-blue-hover: #1D4ED8;
+      --carehub-teal: #0D9488;
       --slate-bg: #F8FAFC;
       --border-color: #E2E8F0;
       --text-muted: #64748B;
@@ -70,14 +70,14 @@
     .brand-title {
       font-size: 1.25rem;
       font-weight: 800;
-      color: var(--medicore-navy);
+      color: var(--carehub-navy);
       line-height: 1.1;
     }
 
     .brand-subtitle {
       font-size: 0.68rem;
       font-weight: 700;
-      color: var(--medicore-teal);
+      color: var(--carehub-teal);
       letter-spacing: 0.5px;
       text-transform: uppercase;
     }
@@ -139,12 +139,12 @@
     }
 
     .form-control:focus, .form-select:focus {
-      border-color: var(--medicore-blue);
+      border-color: var(--carehub-blue);
       box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.12);
     }
 
     .btn-register {
-      background: linear-gradient(135deg, var(--medicore-blue) 0%, #1D4ED8 100%);
+      background: linear-gradient(135deg, var(--carehub-blue) 0%, #1D4ED8 100%);
       color: #FFFFFF;
       font-weight: 700;
       font-size: 1rem;
@@ -168,14 +168,8 @@
 
   <!-- Top Navbar -->
   <nav class="reg-navbar d-flex justify-content-between align-items-center">
-    <a href="/" class="brand-logo">
-      <div class="brand-icon">
-        <i class="bi bi-hospital"></i>
-      </div>
-      <div>
-        <div class="brand-title">MediCore+</div>
-        <div class="brand-subtitle">Care Beyond Compare</div>
-      </div>
+    <a href="/" class="brand-logo text-decoration-none">
+      <img src="{{ url_for('static', filename='images/carehub_logo.png') }}" alt="CareHub" style="height: 40px; width: auto;">
     </a>
     <a href="{{ url_for('auth.login', portal='patient') }}" class="btn btn-sm btn-outline-primary rounded-pill px-4 fw-semibold">
       <i class="bi bi-box-arrow-in-right me-1"></i> Already registered? Sign In
@@ -192,7 +186,7 @@
           <div class="hero-badge">
             <i class="bi bi-person-heart text-info"></i> Patient Health Portal
           </div>
-          <h2 class="fw-bold fs-2 mt-3 mb-3" style="letter-spacing: -0.5px;">Join the MediCore+ Healthcare Network</h2>
+          <h2 class="fw-bold fs-2 mt-3 mb-3" style="letter-spacing: -0.5px;">Join the CareHub Healthcare Network</h2>
           <p class="text-slate-300 small" style="line-height: 1.6;">Register for instant self-service access to your verified medical history, doctor appointments, digital e-prescriptions, and lab diagnostic reports.</p>
         </div>
 
@@ -302,7 +296,7 @@
   </div>
 
   <footer class="text-center py-3 text-muted small">
-    &copy; 2026 MediCore+ Healthcare Management System. All rights reserved.
+    &copy; 2026 CareHub Healthcare Management System. All rights reserved.
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/bootstrap.bundle.min.js"></script>

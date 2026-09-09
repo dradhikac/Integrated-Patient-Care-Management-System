@@ -1,6 +1,6 @@
 {% extends 'portal/base_patient.html' %}
 
-{% block title %}Account Setup Required — MediCore+{% endblock %}
+{% block title %}Account Setup Required — CareHub{% endblock %}
 {% block header_title %}Account Setup Required{% endblock %}
 {% block header_subtitle %}Linking your account with your clinical patient record{% endblock %}
 
@@ -13,7 +13,7 @@
           <i class="bi bi-hospital"></i>
         </div>
       </div>
-      <h3 class="fw-bold mb-2 text-dark">Welcome to MediCore+ Patient Portal</h3>
+      <h3 class="fw-bold mb-2 text-dark">Welcome to CareHub Patient Portal</h3>
       <p class="text-muted mb-4" style="font-size: 0.95rem;">
         Your login account has been created, but it is not yet linked to an active hospital medical record.
       </p>
@@ -23,7 +23,7 @@
         <ul class="text-muted small mb-0 ps-3">
           <li>If you registered in-person at the front desk, provide your registered mobile number (<strong>{{ current_user.mobile or 'N/A' }}</strong>) or email (<strong>{{ current_user.email }}</strong>) to the receptionist.</li>
           <li>The receptionist will generate an immediate activation token or link your hospital file.</li>
-          <li>For immediate assistance, visit the Front Desk or call <strong>1800-MEDICORE</strong>.</li>
+          <li>For immediate assistance, visit the Front Desk or call <strong>1800-CAREHUB</strong>.</li>
         </ul>
       </div>
 

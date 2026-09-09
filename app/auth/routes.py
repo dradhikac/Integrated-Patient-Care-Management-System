@@ -99,7 +99,7 @@ def register():
             db.session.add(new_patient)
             db.session.commit()
             login_user(new_user)
-            flash(f'🎉 Account created successfully! Welcome to MediCore+, {full_name}!', 'success')
+            flash(f'🎉 Account created successfully! Welcome to CareHub, {full_name}!', 'success')
             return redirect(url_for('auth.dashboard'))
 
     return render_template('auth/register.html', form=form)

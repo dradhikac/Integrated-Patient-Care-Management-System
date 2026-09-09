@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Patient Portal — MediCore+{% endblock %}</title>
+  <title>{% block title %}Patient Portal — CareHub{% endblock %}</title>
   
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -14,122 +14,111 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   
+  <!-- Portal CSS Tokens -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
   <style>
     :root {
       --portal-navy: #0F172A;
-      --portal-blue: #2563EB;
-      --portal-blue-hover: #1D4ED8;
+      --portal-blue: #1E40AF;
+      --portal-blue-light: #EFF6FF;
       --portal-teal: #0D9488;
-      --portal-teal-light: #CCFBF1;
-      --portal-bg: #F8FAFC;
-      --portal-sidebar-bg: #FFFFFF;
+      --portal-slate: #F8FAFC;
       --portal-border: #E2E8F0;
-      --portal-text-main: #0F172A;
-      --portal-text-muted: #64748B;
-      --portal-card-bg: #FFFFFF;
-      --portal-sidebar-width: 260px;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
     }
 
     body {
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: var(--portal-bg);
-      color: var(--portal-text-main);
+      font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #F8FAFC;
+      color: #0F172A;
       min-height: 100vh;
-      overflow-x: hidden;
     }
 
-    /* Layout Structure */
+    /* Portal Layout */
     .portal-layout {
       display: flex;
       min-height: 100vh;
-      width: 100%;
     }
 
-    /* Sidebar Styling - Light & Calming */
+    /* Sidebar Navigation */
     .portal-sidebar {
-      width: var(--portal-sidebar-width);
-      background-color: var(--portal-sidebar-bg);
-      border-right: 1px solid var(--portal-border);
+      width: 260px;
+      background-color: #0F172A;
+      color: #FFFFFF;
+      flex-shrink: 0;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      position: fixed;
-      top: 0;
-      bottom: 0;
-      left: 0;
+      border-right: 1px solid #1E293B;
       z-index: 1040;
-      transition: transform 0.25s ease-in-out;
-      overflow-y: auto;
+      transition: transform 0.3s ease;
     }
 
     .portal-brand {
-      padding: 20px 22px 16px;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid #1E293B;
       display: flex;
       align-items: center;
       gap: 12px;
-      border-bottom: 1px solid #F1F5F9;
       text-decoration: none;
+      color: #FFFFFF;
+    }
+
+    .portal-brand:hover {
+      color: #FFFFFF;
     }
 
     .portal-brand-icon {
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       border-radius: 10px;
-      background: linear-gradient(135deg, #2563EB 0%, #0D9488 100%);
-      color: #FFF;
+      background: linear-gradient(135deg, #1E40AF 0%, #0D9488 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.25rem;
-      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+      font-size: 1.2rem;
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.35);
     }
 
     .portal-brand-title {
       font-size: 1.15rem;
       font-weight: 800;
-      color: var(--portal-navy);
-      line-height: 1.1;
+      color: #FFFFFF;
       letter-spacing: -0.3px;
+      line-height: 1.1;
     }
 
     .portal-brand-sub {
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--portal-teal);
-      letter-spacing: 0.3px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #38BDF8;
+      letter-spacing: 0.6px;
       text-transform: uppercase;
     }
 
-    /* Nav Sections */
     .portal-nav-group {
-      padding: 12px 14px 6px;
+      padding: 1rem 0.85rem;
     }
 
     .portal-nav-heading {
       font-size: 0.68rem;
       font-weight: 800;
-      color: #94A3B8;
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      padding: 8px 12px 4px;
+      color: #64748B;
+      padding: 0.75rem 0.85rem 0.4rem;
     }
 
     .portal-nav-link {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 9px 12px;
-      color: #475569;
-      text-decoration: none;
-      font-size: 0.88rem;
-      font-weight: 600;
+      padding: 0.65rem 0.85rem;
       border-radius: 10px;
+      color: #94A3B8;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.88rem;
       transition: all 0.18s ease;
       margin-bottom: 2px;
     }
@@ -372,13 +361,12 @@
     <aside class="portal-sidebar" id="portalSidebar">
       <div>
         <!-- Brand -->
-        <a href="{{ url_for('portal.dashboard') }}" class="portal-brand">
-          <div class="portal-brand-icon">
-            <i class="bi bi-hospital"></i>
+        <a href="{{ url_for('portal.dashboard') }}" class="portal-brand d-flex align-items-center gap-2 text-decoration-none">
+          <div class="bg-white rounded-3 p-1 d-flex align-items-center justify-content-center shadow-sm" style="height: 38px; padding: 4px 8px;">
+            <img src="{{ url_for('static', filename='images/carehub_logo.png') }}" alt="CareHub" style="height: 26px; width: auto; max-width: 120px; object-fit: contain;">
           </div>
           <div>
-            <div class="portal-brand-title">MediCore+</div>
-            <div class="portal-brand-sub">Health Portal</div>
+            <div class="portal-brand-sub text-white-50" style="font-size: 0.65rem; letter-spacing: 0.5px; text-transform: uppercase;">Health Portal</div>
           </div>
         </a>
 
@@ -520,12 +508,12 @@
       <!-- Footer -->
       <footer class="portal-footer">
         <div>
-          &copy; 2026 <strong>MediCore+ Healthcare</strong> · Patient Care Management System
+          &copy; 2026 <strong>CareHub Healthcare</strong> · Patient Care Management System
         </div>
         <div class="d-flex align-items-center gap-3">
           <span><i class="bi bi-shield-check text-success me-1"></i> End-to-End Encrypted Health Records</span>
           <span>·</span>
-          <span>Emergency Desk: <strong>108 / 1800-MEDICORE</strong></span>
+          <span>Emergency Desk: <strong>108 / 1800-CAREHUB</strong></span>
         </div>
       </footer>
     </main>
