@@ -126,34 +126,4 @@ def view_patient(patient_id):
 @login_required
 @role_required('Admin', 'Receptionist')
 def edit_patient(patient_id):
-    patient = Patient.query.get_or_404(patient_id)
-    form = PatientRegistrationForm(obj=patient)
-
-    if form.validate_on_submit():
-        patient.first_name = form.first_name.data.strip()
-        patient.last_name = form.last_name.data.strip()
-        patient.full_name = f"{patient.first_name} {patient.last_name}"
-        patient.dob = form.dob.data
-        patient.gender = form.gender.data
-        patient.mobile = form.mobile.data.strip()
-        patient.email = form.email.data.strip() if form.email.data else None
-        patient.address = form.address.data.strip() if form.address.data else None
-        patient.blood_group = form.blood_group.data
-        patient.emergency_contact_name = form.emergency_contact_name.data
-        patient.emergency_contact_mobile = form.emergency_contact_mobile.data
-        patient.insurance_provider = form.insurance_provider.data
-        patient.insurance_policy_no = form.insurance_policy_no.data
-        patient.height_cm = form.height_cm.data
-        patient.weight_kg = form.weight_kg.data
-        patient.preferred_language = form.preferred_language.data
-        
-        if form.aadhaar_number.data:
-            patient.set_aadhaar(form.aadhaar_number.data.strip())
-
-        patient.calculate_bmi()
-        db.session.commit()
-
-        flash(f'Patient profile for {patient.patient_code} updated successfully!', 'success')
-        return redirect(url_for('patients.view_patient', patient_id=patient.id))
-
-    return render_template('patients/edit.html', form=form, patient=patient)
+    return redirect(url_for('reception.edit_patient_rec', patient_id=patient_id))

@@ -772,6 +772,74 @@ def patient_profile_rec(patient_id):
     return render_template('reception/patient_profile.html', patient=patient)
 
 
+@reception_bp.route('/patients/<int:patient_id>/edit', methods=['GET', 'POST'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def edit_patient_rec(patient_id):
+    """Modern Edit Patient Profile view wrapped in the Receptionist shell."""
+    from app.patients.forms import PatientRegistrationForm
+    from app.patients.models import PatientAllergy, PatientMedicalHistory
+
+    patient = Patient.query.get_or_404(patient_id)
+    form = PatientRegistrationForm(obj=patient)
+
+    if request.method == 'GET':
+        # Prepopulate allergies and chronic diseases
+        allergies = [a.allergen for a in patient.allergies] if hasattr(patient, 'allergies') else []
+        if allergies:
+            form.allergies.data = ', '.join(allergies)
+        histories = [h.description for h in patient.medical_histories] if hasattr(patient, 'medical_histories') else []
+        if histories:
+            form.chronic_diseases.data = '\n'.join(histories)
+
+    if form.validate_on_submit():
+        patient.first_name = form.first_name.data.strip()
+        patient.last_name = form.last_name.data.strip()
+        patient.full_name = f"{patient.first_name} {patient.last_name}"
+        patient.dob = form.dob.data
+        patient.gender = form.gender.data
+        patient.mobile = form.mobile.data.strip()
+        patient.email = form.email.data.strip() if form.email.data else None
+        patient.address = form.address.data.strip() if form.address.data else None
+        patient.blood_group = form.blood_group.data
+        patient.emergency_contact_name = form.emergency_contact_name.data
+        patient.emergency_contact_mobile = form.emergency_contact_mobile.data
+        patient.insurance_provider = form.insurance_provider.data
+        patient.insurance_policy_no = form.insurance_policy_no.data
+        patient.height_cm = form.height_cm.data
+        patient.weight_kg = form.weight_kg.data
+        patient.preferred_language = form.preferred_language.data
+        patient.vaccination_records = form.vaccination_records.data if hasattr(form, 'vaccination_records') and form.vaccination_records.data else None
+
+        if form.aadhaar_number.data:
+            patient.set_aadhaar(form.aadhaar_number.data.strip())
+
+        patient.calculate_bmi()
+
+        # Update Allergies
+        if form.allergies.data is not None:
+            PatientAllergy.query.filter_by(patient_id=patient.id).delete()
+            allergen_list = [a.strip() for a in form.allergies.data.split(',') if a.strip()]
+            for item in allergen_list:
+                db.session.add(PatientAllergy(patient_id=patient.id, allergen=item, severity='Moderate'))
+
+        # Update Medical History
+        if form.chronic_diseases.data is not None:
+            PatientMedicalHistory.query.filter_by(patient_id=patient.id).delete()
+            if form.chronic_diseases.data.strip():
+                db.session.add(PatientMedicalHistory(
+                    patient_id=patient.id,
+                    condition_type='Chronic Disease',
+                    description=form.chronic_diseases.data.strip()
+                ))
+
+        db.session.commit()
+        flash(f'Patient profile for {patient.patient_code} ({patient.full_name}) updated successfully!', 'success')
+        return redirect(url_for('reception.patient_profile_rec', patient_id=patient.id))
+
+    return render_template('reception/edit_patient.html', form=form, patient=patient)
+
+
 @reception_bp.route('/patients/<int:patient_id>/send-activation', methods=['POST'])
 @login_required
 @role_required('Admin', 'Receptionist')
