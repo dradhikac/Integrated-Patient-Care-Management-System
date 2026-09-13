@@ -31,9 +31,10 @@ def create_app(config_class=Config):
     from app.notifications.routes import notifications_bp
     from app.reports.routes import reports_bp
     from app.admin.routes import admin_bp
-    from app.doctors.routes import doctors_bp
     from app.portal import portal_bp
     from app.doctor_portal import doctor_portal_bp
+    from app.doctors.routes import doctors_bp
+    from app.ai import ai_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(patients_bp)
@@ -53,8 +54,10 @@ def create_app(config_class=Config):
     app.register_blueprint(doctors_bp)
     app.register_blueprint(portal_bp)
     app.register_blueprint(doctor_portal_bp)
+    app.register_blueprint(ai_bp)
 
     csrf.exempt(doctors_bp)
+    csrf.exempt(ai_bp)
 
     # Jinja2 globals
     from datetime import datetime as _dt

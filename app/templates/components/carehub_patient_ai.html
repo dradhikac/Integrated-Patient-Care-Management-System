@@ -1,0 +1,76 @@
+<!-- CareHub Authenticated Patient Portal AI Assistant Component -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/carehub-patient-ai.css') }}">
+
+<!-- Floating Circular Launcher (Bottom-Right, 58px) -->
+<button type="button" 
+        class="carehub-patient-ai-launcher" 
+        id="carehubPatientAiLauncher" 
+        aria-label="Open CareHub Patient AI Assistant" 
+        title="Open CareHub Patient AI Assistant"
+        aria-expanded="false"
+        aria-controls="carehubPatientAiWindow">
+  <span class="carehub-patient-ai-badge-ping"></span>
+  <i class="bi bi-robot carehub-patient-ai-icon-open"></i>
+  <i class="bi bi-x-lg carehub-patient-ai-icon-close"></i>
+</button>
+
+<!-- Floating Chat Window -->
+<aside class="carehub-patient-ai-window" id="carehubPatientAiWindow" aria-label="CareHub Patient AI Assistant Window" role="dialog">
+  <!-- Header -->
+  <header class="carehub-patient-ai-header">
+    <div class="carehub-patient-ai-header-info">
+      <div class="carehub-patient-ai-avatar">
+        <i class="bi bi-person-gear"></i>
+      </div>
+      <div>
+        <h4 class="carehub-patient-ai-title">Patient AI Assistant</h4>
+        <div class="carehub-patient-ai-subtitle">
+          <span class="carehub-patient-ai-status-dot"></span>
+          <span>Authenticated Session · {{ patient.full_name if patient else 'My Account' }}</span>
+        </div>
+      </div>
+    </div>
+    <button type="button" class="carehub-patient-ai-close-btn" id="carehubPatientAiClose" aria-label="Close Assistant">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </header>
+
+  <!-- 3 Primary Action Buttons -->
+  <div class="carehub-patient-ai-actions-bar" id="carehubPatientAiActionsBar">
+    <button type="button" class="carehub-patient-action-btn" data-action="book">
+      <i class="bi bi-calendar-plus-fill"></i>
+      <span>Book</span>
+    </button>
+    <button type="button" class="carehub-patient-action-btn" data-action="reschedule">
+      <i class="bi bi-arrow-repeat"></i>
+      <span>Reschedule</span>
+    </button>
+    <button type="button" class="carehub-patient-action-btn" data-action="cancel">
+      <i class="bi bi-calendar-x-fill"></i>
+      <span>Cancel</span>
+    </button>
+  </div>
+
+  <!-- Message Body -->
+  <main class="carehub-patient-ai-messages" id="carehubPatientAiMessages" aria-live="polite">
+    <!-- Messages appended dynamically via carehub-patient-ai.js -->
+  </main>
+
+  <!-- Input Form -->
+  <footer class="carehub-patient-ai-input-bar">
+    <input type="text" 
+           class="carehub-patient-ai-input" 
+           id="carehubPatientAiInput" 
+           placeholder="Ask to book, reschedule, or cancel (e.g. move my visit to Monday)..." 
+           aria-label="Type appointment request"
+           autocomplete="off">
+    <button type="button" 
+            class="carehub-patient-ai-send-btn" 
+            id="carehubPatientAiSend" 
+            aria-label="Send message">
+      <i class="bi bi-send-fill"></i>
+    </button>
+  </footer>
+</aside>
+
+<script src="{{ url_for('static', filename='js/carehub-patient-ai.js') }}"></script>
