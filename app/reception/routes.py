@@ -1026,6 +1026,88 @@ def appointments_rec():
                            today=today)
 
 
+@reception_bp.route('/appointments/book', methods=['GET', 'POST'])
+@login_required
+@role_required('Admin', 'Receptionist')
+def book_appointment_rec():
+    """Smart Appointment Booking wrapped in the modern Receptionist CareHub shell."""
+    from app.appointments.forms import BookAppointmentForm
+    from app.appointments.slot_generator import generate_doctor_slots
+    from app.appointments.models import Appointment
+
+    form = BookAppointmentForm()
+    
+    doc_role = Role.query.filter_by(name='Doctor').first()
+    doctors = User.query.filter_by(role_id=doc_role.id, is_active=True).all() if doc_role else []
+    form.doctor_id.choices = [(d.id, f"{d.name} ({d.user_code})") for d in doctors]
+
+    patients = Patient.query.order_by(Patient.full_name.asc()).all()
+    form.patient_id.choices = [(p.id, f"{p.full_name} ({p.patient_code})") for p in patients]
+
+    selected_doc_id = request.args.get('doctor_id', type=int) or (doctors[0].id if doctors else None)
+    selected_date_str = request.args.get('date', date.today().strftime('%Y-%m-%d'))
+    try:
+        selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+    except ValueError:
+        selected_date = date.today()
+
+    slot_info = generate_doctor_slots(selected_doc_id, selected_date) if selected_doc_id else {'slots': []}
+
+    pre_patient_id = request.args.get('patient_id', type=int)
+    if pre_patient_id and request.method == 'GET':
+        form.patient_id.data = pre_patient_id
+
+    if form.validate_on_submit():
+        slot_time_str = form.slot_time.data.strip()
+        try:
+            slot_t = datetime.strptime(slot_time_str, '%H:%M:%S').time()
+        except ValueError:
+            try:
+                slot_t = datetime.strptime(slot_time_str, '%H:%M').time()
+            except ValueError:
+                flash('Invalid time slot format selected.', 'danger')
+                return render_template('reception/book_appointment.html', form=form, doctors=doctors, selected_doc_id=selected_doc_id, selected_date=selected_date, slot_info=slot_info)
+
+        target_doc_id = form.doctor_id.data
+        target_date = form.appointment_date.data
+
+        # Double Booking Prevention Check
+        existing_booking = Appointment.query.filter(
+            Appointment.doctor_id == target_doc_id,
+            Appointment.appointment_date == target_date,
+            Appointment.slot_time == slot_t,
+            Appointment.status != 'CANCELLED'
+        ).first()
+
+        if existing_booking:
+            flash(f'Slot {slot_time_str} is already booked for this doctor. Please choose another available slot.', 'danger')
+            return redirect(url_for('reception.book_appointment_rec', doctor_id=target_doc_id, date=target_date.strftime('%Y-%m-%d'), patient_id=form.patient_id.data))
+
+        apt = Appointment(
+            appointment_code=Appointment.generate_appointment_code(),
+            patient_id=form.patient_id.data,
+            doctor_id=target_doc_id,
+            appointment_date=target_date,
+            slot_time=slot_t,
+            booking_type=form.booking_type.data,
+            priority=form.priority.data,
+            status='BOOKED',
+            notes=form.notes.data.strip() if form.notes.data else None
+        )
+        db.session.add(apt)
+        db.session.commit()
+
+        flash(f'Appointment {apt.appointment_code} booked successfully for {apt.appointment_date} at {apt.slot_time.strftime("%I:%M %p")}!', 'success')
+        return redirect(url_for('reception.appointments_rec'))
+
+    return render_template('reception/book_appointment.html',
+                           form=form,
+                           doctors=doctors,
+                           selected_doc_id=selected_doc_id,
+                           selected_date=selected_date,
+                           slot_info=slot_info)
+
+
 # ───────────────────────────────────────────────────────────────────────────────
 #  PAYMENT & BILLING AFTER CONSULTATION — Receptionist Action
 # ───────────────────────────────────────────────────────────────────────────────

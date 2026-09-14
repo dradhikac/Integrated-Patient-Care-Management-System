@@ -119,7 +119,7 @@
           <a href="{{ url_for('reception.register_patient_rec') }}" class="admin-nav-item {% if request.endpoint == 'reception.register_patient_rec' %}active{% endif %}">
             <i class="bi bi-person-plus-fill"></i> Register Patient
           </a>
-          <a href="{{ url_for('reception.appointments_rec') }}" class="admin-nav-item {% if request.endpoint == 'reception.appointments_rec' %}active{% endif %}">
+          <a href="{{ url_for('reception.appointments_rec') }}" class="admin-nav-item {% if request.endpoint in ['reception.appointments_rec', 'reception.book_appointment_rec'] %}active{% endif %}">
             <i class="bi bi-calendar-check-fill"></i> Appointments
           </a>
           <a href="{{ url_for('reception.dashboard') }}#checkInDesk" class="admin-nav-item">

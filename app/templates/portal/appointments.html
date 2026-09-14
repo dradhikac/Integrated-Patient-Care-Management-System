@@ -106,10 +106,15 @@
           <!-- Doctor & Specialty -->
           <div class="col-md-4">
             <div class="fw-bold text-dark fs-6">{{ apt.doctor.name }}</div>
-            <div class="text-muted small">
-              <i class="bi bi-hospital me-1 text-primary"></i> {{ apt.doctor.department or 'Outpatient Department (OPD)' }}
+            {% if apt.doctor.specialization and apt.doctor.specialization != apt.doctor.department %}
+            <div class="text-primary small fw-semibold">
+              <i class="bi bi-person-badge me-1"></i> {{ apt.doctor.specialization }}
             </div>
-            <div class="text-muted small font-monospace">Ref: {{ apt.appointment_code }}</div>
+            {% endif %}
+            <div class="text-muted small">
+              <i class="bi bi-hospital me-1"></i> {{ apt.doctor.department or 'Outpatient Department (OPD)' }}
+            </div>
+            <div class="text-muted small font-monospace mt-0.5">Ref: {{ apt.appointment_code }}</div>
           </div>
 
           <!-- Type & Status -->

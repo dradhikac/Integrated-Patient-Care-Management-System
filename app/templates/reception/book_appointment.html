@@ -1,0 +1,293 @@
+{% extends 'reception/base_reception.html' %}
+
+{% block title %}Smart Appointment Booking — CareHub Desk{% endblock %}
+{% block header_title %}Smart Appointment Booking{% endblock %}
+{% block header_subtitle %}Real-time doctor clinic windows · 15-minute expected arrival checkpoints · Auto-waitlist allocation{% endblock %}
+
+{% block extra_css %}
+<style>
+.booking-card {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.03);
+  overflow: hidden;
+  height: 100%;
+}
+.booking-card-hdr {
+  padding: 16px 22px;
+  border-bottom: 1px solid #F1F5F9;
+  display: flex; align-items: center; justify-content: space-between;
+  background: #F8FAFC;
+}
+.booking-card-hdr h4 {
+  font-size: .95rem; font-weight: 800; color: #0F172A; margin: 0;
+}
+.booking-card-body { padding: 22px; }
+
+.form-label { font-size: .82rem; font-weight: 700; color: #374151; margin-bottom: 6px; }
+.form-control, .form-select {
+  border: 1.5px solid #E2E8F0; border-radius: 9px;
+  font-size: .88rem; color: #0F172A; padding: 10px 14px;
+  transition: all .18s;
+}
+.form-control:focus, .form-select:focus {
+  border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+}
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+  gap: 10px;
+}
+.slot-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 6px;
+  border-radius: 10px;
+  border: 1.5px solid #E2E8F0;
+  background: #FFFFFF;
+  color: #0F172A;
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.slot-pill:hover:not(.disabled) {
+  border-color: #2563EB;
+  background: #EFF6FF;
+  color: #2563EB;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.12);
+}
+.slot-pill.active {
+  background: #2563EB !important;
+  color: #FFFFFF !important;
+  border-color: #2563EB !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+}
+.slot-pill.disabled {
+  background: #F8FAFC;
+  color: #94A3B8;
+  border-color: #F1F5F9;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+.slot-pill.emergency {
+  border-color: #FDE68A;
+  background: #FFFBEB;
+  color: #B45309;
+}
+.slot-pill.past {
+  background: #F1F5F9;
+  color: #94A3B8;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.legend-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+</style>
+{% endblock %}
+
+{% block reception_content %}
+
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <div>
+    <p class="text-muted mb-0" style="font-size:.87rem;">
+      <i class="bi bi-info-circle me-1 text-primary"></i>
+      Reserve an arrival window slot. Patient check-in and queue tokens are generated seamlessly upon arrival.
+    </p>
+  </div>
+  <a href="{{ url_for('reception.appointments_rec') }}" class="btn btn-light border rounded-pill px-3.5 fw-semibold shadow-sm">
+    <i class="bi bi-calendar-check me-1"></i> View Appointments
+  </a>
+</div>
+
+<div class="row g-4">
+
+  {# ── Left Column: Doctor Selection & Booking Form ─────────────── #}
+  <div class="col-lg-5">
+    <div class="booking-card">
+      <div class="booking-card-hdr">
+        <h4><i class="bi bi-sliders text-primary me-2"></i> Select Doctor & Date</h4>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1">Step 1 & 2</span>
+      </div>
+      <div class="booking-card-body">
+
+        {# Filter Selector Form #}
+        <form method="GET" action="{{ url_for('reception.book_appointment_rec') }}" id="filterForm" class="mb-4">
+          <div class="mb-3">
+            <label class="form-label">Consulting Doctor <span class="text-danger">*</span></label>
+            <select name="doctor_id" class="form-select fw-semibold" onchange="document.getElementById('filterForm').submit()">
+              {% for d in doctors %}
+              <option value="{{ d.id }}" {% if d.id == selected_doc_id %}selected{% endif %}>
+                {{ d.name }} ({{ d.user_code }}) — {{ d.department or 'OPD' }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Target Appointment Date <span class="text-danger">*</span></label>
+            <input type="date" name="date" value="{{ selected_date.strftime('%Y-%m-%d') }}" class="form-control fw-semibold" onchange="document.getElementById('filterForm').submit()">
+          </div>
+        </form>
+
+        <hr style="border-color: #F1F5F9;" class="my-4">
+
+        {# Submission Form #}
+        <form method="POST" action="{{ url_for('reception.book_appointment_rec', doctor_id=selected_doc_id, date=selected_date.strftime('%Y-%m-%d')) }}">
+          {{ form.csrf_token }}
+          <input type="hidden" name="doctor_id" value="{{ selected_doc_id }}">
+          <input type="hidden" name="appointment_date" value="{{ selected_date.strftime('%Y-%m-%d') }}">
+
+          <div class="mb-3">
+            <label class="form-label">Select Patient <span class="text-danger">*</span></label>
+            <div class="d-flex gap-2">
+              <div class="flex-grow-1">
+                {{ form.patient_id(class="form-select" + (" is-invalid" if form.patient_id.errors else "")) }}
+                {% for err in form.patient_id.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+              </div>
+              <a href="{{ url_for('reception.register_patient_rec') }}" class="btn btn-outline-primary rounded-3 px-2.5" title="Register New Patient" target="_blank">
+                <i class="bi bi-person-plus-fill"></i>
+              </a>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Chosen Slot Time <span class="text-danger">*</span></label>
+            {{ form.slot_time(class="form-control font-monospace fw-bold" + (" is-invalid" if form.slot_time.errors else ""), id="selected_slot_input", readonly=True, placeholder="Click a slot pill on the right...") }}
+            {% for err in form.slot_time.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-sm-6">
+              <label class="form-label">Booking Channel</label>
+              {{ form.booking_type(class="form-select") }}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label">Patient Priority</label>
+              {{ form.priority(class="form-select") }}
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Reason for Visit / Clinical Notes</label>
+            {{ form.notes(class="form-control", rows=2, placeholder="e.g. Follow-up consultation, chest discomfort, fever...") }}
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 py-2.5 rounded-pill fw-bold shadow-sm" style="background:#2563EB; font-size: .95rem;">
+            <i class="bi bi-calendar-check-fill me-1.5"></i> Confirm & Book Appointment
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  {# ── Right Column: Interactive Clinic Windows & Slots ─────────── #}
+  <div class="col-lg-7">
+    <div class="booking-card">
+      <div class="booking-card-hdr">
+        <div>
+          <h4><i class="bi bi-clock-history text-primary me-2"></i> Doctor Clinic Windows & Arrival Checkpoints</h4>
+          <span class="text-muted small">
+            Doctor Clinic Hours: <strong>{{ slot_info.get('clinic_hours_str', '09:00 AM - 01:00 PM') }}</strong>
+          </span>
+        </div>
+        <span class="badge bg-light text-dark border font-monospace px-3 py-1.5 rounded-pill fw-bold">
+          {{ selected_date.strftime('%d %b %Y') }}
+        </span>
+      </div>
+      <div class="booking-card-body">
+
+        {# Legend Strip #}
+        <div class="d-flex flex-wrap gap-2 mb-4 pb-3 border-bottom">
+          <span class="legend-badge bg-success-subtle text-success border border-success-subtle">
+            <i class="bi bi-check-circle-fill"></i> Available Window
+          </span>
+          <span class="legend-badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+            <i class="bi bi-dash-circle-fill"></i> Reserved / Booked
+          </span>
+          <span class="legend-badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
+            <i class="bi bi-exclamation-triangle-fill"></i> Emergency Reserved
+          </span>
+          <span class="legend-badge bg-light text-muted border">
+            <i class="bi bi-slash-circle"></i> Past
+          </span>
+        </div>
+
+        <div class="alert alert-info border-0 rounded-3 py-2 px-3 mb-4 d-flex align-items-center gap-2" style="background:#EFF6FF; color:#1E40AF; font-size:0.83rem;">
+          <i class="bi bi-info-circle-fill fs-5 flex-shrink-0"></i>
+          <div>Selection represents patient's <strong>expected arrival checkpoint</strong>. Doctor attends via live dynamic queue.</div>
+        </div>
+
+        {% if slot_info.get('is_holiday') %}
+        <div class="text-center py-5">
+          <div class="fs-1 mb-2">🏖️</div>
+          <h5 class="fw-bold text-dark">Hospital Holiday</h5>
+          <p class="text-muted">{{ slot_info.get('holiday_reason') }}</p>
+        </div>
+        {% elif not slot_info.get('has_availability') %}
+        <div class="text-center py-5">
+          <div class="fs-1 mb-2">🗓️</div>
+          <h5 class="fw-bold text-dark">Doctor Not Available</h5>
+          <p class="text-muted">Doctor is not scheduled on {{ selected_date.strftime('%A') }}s.</p>
+        </div>
+        {% else %}
+        <div class="slot-grid">
+          {% for slot in slot_info.get('slots', []) %}
+            {% if slot.is_past %}
+              <div class="slot-pill past" title="Past Time Slot">
+                <span>{{ slot.time_str }}</span>
+              </div>
+            {% elif slot.is_emergency_reserved %}
+              <div class="slot-pill emergency {% if not slot.is_available %}disabled{% endif %}"
+                   {% if slot.is_available %}onclick="selectSlot('{{ slot.time_24h }}', this)"{% endif %}
+                   title="Emergency Reserved Slot">
+                <span>{{ slot.time_str }}</span>
+                <span style="font-size:0.62rem;font-weight:700;">EMERGENCY</span>
+              </div>
+            {% elif not slot.is_available %}
+              <div class="slot-pill disabled" title="Slot Already Booked">
+                <span>{{ slot.time_str }}</span>
+                <span style="font-size:0.62rem;">BOOKED</span>
+              </div>
+            {% else %}
+              <div class="slot-pill" onclick="selectSlot('{{ slot.time_24h }}', this)">
+                <span>{{ slot.time_str }}</span>
+                <span style="font-size:0.62rem;color:#059669;">AVAILABLE</span>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectSlot(timeVal, el) {
+  document.getElementById('selected_slot_input').value = timeVal;
+  document.querySelectorAll('.slot-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>
+{% endblock %}

@@ -38,6 +38,8 @@ def register_patient():
     if current_user.role.name not in ['Admin', 'Receptionist']:
         flash('Permission denied. Receptionist or Admin access required.', 'danger')
         return redirect(url_for('auth.dashboard'))
+    if current_user.role.name == 'Receptionist':
+        return redirect(url_for('reception.register_patient_rec', **request.args))
     form = PatientRegistrationForm()
     force_create = request.args.get('force_create', '0') == '1'
 

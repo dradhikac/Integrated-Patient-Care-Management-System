@@ -133,7 +133,7 @@
           {% else %}
           <p class="text-muted mb-0" style="font-size:.8rem;">
             <i class="bi bi-exclamation-triangle text-warning me-1"></i>
-            No email or mobile on file. <a href="{{ url_for('patients.edit_patient', patient_id=patient.id) }}">Edit patient record</a> to enable portal activation.
+            No email or mobile on file. <a href="{{ url_for('reception.edit_patient_rec', patient_id=patient.id) }}">Edit patient record</a> to enable portal activation.
           </p>
           {% endif %}
         {% endif %}

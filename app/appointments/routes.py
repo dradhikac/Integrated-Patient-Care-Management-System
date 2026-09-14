@@ -76,6 +76,8 @@ def list_appointments():
 @appointments_bp.route('/book', methods=['GET', 'POST'])
 @login_required
 def book_appointment():
+    if current_user.role.name == 'Receptionist':
+        return redirect(url_for('reception.book_appointment_rec', **request.args))
     form = BookAppointmentForm()
     
     doc_role = Role.query.filter_by(name='Doctor').first()

@@ -251,7 +251,7 @@
             <a href="{{ url_for('reception.check_in', patient_id=p.id) }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold me-1">
               <i class="bi bi-box-arrow-in-right me-1"></i> Check In
             </a>
-            <a href="{{ url_for('patients.view_patient', patient_id=p.id) }}" class="btn btn-sm btn-light border rounded-pill px-2" title="View Profile">
+            <a href="{{ url_for('reception.patient_profile_rec', patient_id=p.id) }}" class="btn btn-sm btn-light border rounded-pill px-2" title="View Profile">
               <i class="bi bi-eye"></i>
             </a>
           </td>
@@ -263,7 +263,7 @@
   {% else %}
   <div class="d-flex align-items-center justify-content-between p-4">
     <div class="text-muted"><i class="bi bi-person-x fs-4 me-2 opacity-50"></i> No patients found for "<strong>{{ search_q }}</strong>".</div>
-    <a href="{{ url_for('patients.register_patient') }}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold">
+    <a href="{{ url_for('reception.register_patient_rec') }}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold">
       <i class="bi bi-person-plus-fill me-1"></i> Register New Patient
     </a>
   </div>
@@ -308,11 +308,11 @@
       <h3 class="rec-card-title"><i class="bi bi-lightning-charge-fill text-warning"></i> Quick Actions</h3>
     </div>
     <div class="p-3">
-      <a href="{{ url_for('patients.register_patient') }}" class="quick-action-btn qa-green">
+      <a href="{{ url_for('reception.register_patient_rec') }}" class="quick-action-btn qa-green">
         <div class="qa-icon"><i class="bi bi-person-plus-fill"></i></div>
         <span>Register New Patient</span>
       </a>
-      <a href="{{ url_for('appointments.book_appointment') }}" class="quick-action-btn qa-primary">
+      <a href="{{ url_for('reception.book_appointment_rec') }}" class="quick-action-btn qa-primary">
         <div class="qa-icon"><i class="bi bi-calendar-plus-fill"></i></div>
         <span>Book Appointment</span>
       </a>
@@ -425,7 +425,7 @@
         <button class="filter-tab" onclick="filterApts('COMPLETED',this)">Completed ({{ today_apts|selectattr('status','equalto','COMPLETED')|list|length }})</button>
         <button class="filter-tab" onclick="filterApts('CANCELLED',this)">Cancelled ({{ today_apts|selectattr('status','equalto','CANCELLED')|list|length }})</button>
       </div>
-      <a href="{{ url_for('appointments.list_appointments') }}" class="btn btn-sm btn-link fw-bold text-primary text-decoration-none p-0" style="font-size:.83rem; white-space:nowrap;">View All →</a>
+      <a href="{{ url_for('reception.appointments_rec') }}" class="btn btn-sm btn-link fw-bold text-primary text-decoration-none p-0" style="font-size:.83rem; white-space:nowrap;">View All →</a>
     </div>
   </div>
 
@@ -492,6 +492,7 @@
               <span class="sb sb-scheduled">{{ apt.status }}</span>
             {% endif %}
           </td>
+          <td class="text-end pe-4">
             {% if apt.status == 'BOOKED' %}
               <div class="d-inline-flex gap-1">
                 <form action="{{ url_for('reception.quick_checkin_apt', appointment_id=apt.id) }}" method="POST" class="d-inline">
@@ -542,7 +543,7 @@
           <td colspan="7" class="text-center text-muted py-5">
             <i class="bi bi-calendar-x fs-1 d-block opacity-40 mb-2"></i>
             No appointments scheduled for today.<br>
-            <a href="{{ url_for('appointments.book_appointment') }}" class="btn btn-sm btn-primary rounded-pill px-4 mt-3 fw-bold" style="background:#2563EB;">
+            <a href="{{ url_for('reception.book_appointment_rec') }}" class="btn btn-sm btn-primary rounded-pill px-4 mt-3 fw-bold" style="background:#2563EB;">
               <i class="bi bi-calendar-plus me-1"></i> Book First Appointment
             </a>
           </td>

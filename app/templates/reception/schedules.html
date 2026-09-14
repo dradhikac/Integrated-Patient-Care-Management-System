@@ -15,7 +15,7 @@
           </h5>
           <span class="text-muted small">Consultation shifts for all hospital medical specialists</span>
         </div>
-        <a href="{{ url_for('appointments.book_appointment') }}" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold" style="background-color: #2563EB;">
+        <a href="{{ url_for('reception.book_appointment_rec') }}" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold" style="background-color: #2563EB;">
           <i class="bi bi-calendar-plus me-1"></i> Book Appointment
         </a>
       </div>
@@ -65,7 +65,7 @@
                 </span>
               </td>
               <td class="text-end pe-4">
-                <a href="{{ url_for('appointments.book_appointment') }}?doctor_id={{ doc.id }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
+                <a href="{{ url_for('reception.book_appointment_rec') }}?doctor_id={{ doc.id }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
                   Book Slot
                 </a>
               </td>
