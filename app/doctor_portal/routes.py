@@ -17,6 +17,7 @@ from app.appointments.models import Appointment, DoctorAvailability
 from app.reception.models import CheckIn
 from app.consultations.models import Consultation, Vital
 from app.prescriptions.models import Prescription, PrescriptionItem, Medicine
+from app.prescriptions.qr_generator import generate_prescription_qr_base64
 from app.lab.models import LabRequest
 from app.appointments.slot_generator import generate_doctor_slots
 
@@ -510,7 +511,9 @@ def prescription_detail(prescription_id):
     rx = Prescription.query.get_or_404(prescription_id)
     if rx.doctor_id != current_user.id:
         abort(403)
-    return render_template('doctor/prescription_detail.html', doctor=doctor, rx=rx)
+    verify_url = request.host_url.rstrip('/') + url_for('prescriptions.verify_prescription', prescription_code=rx.prescription_code)
+    qr_base64 = generate_prescription_qr_base64(verify_url)
+    return render_template('doctor/prescription_detail.html', doctor=doctor, rx=rx, qr_base64=qr_base64, verify_url=verify_url)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

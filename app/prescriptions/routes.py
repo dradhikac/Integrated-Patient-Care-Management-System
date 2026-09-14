@@ -120,7 +120,7 @@ def print_prescription(prescription_id):
     verify_url = request.host_url.rstrip('/') + url_for('prescriptions.verify_prescription', prescription_code=rx.prescription_code)
     qr_base64 = generate_prescription_qr_base64(verify_url)
 
-    return render_template('prescriptions/print_prescription.html', rx=rx, qr_base64=qr_base64)
+    return render_template('prescriptions/print_prescription.html', rx=rx, qr_base64=qr_base64, verify_url=verify_url)
 
 
 @prescriptions_bp.route('/verify/<prescription_code>')

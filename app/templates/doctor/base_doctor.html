@@ -515,6 +515,7 @@
     </header>
 
     <!-- Flash Messages -->
+    {% if request.endpoint != 'doctor_portal.prescription_detail' %}
     <div class="px-4 pt-3" id="flashContainer">
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% for category, message in messages %}
@@ -525,6 +526,7 @@
         {% endfor %}
       {% endwith %}
     </div>
+    {% endif %}
 
     <!-- Page Content -->
     <main class="doc-content">
