@@ -12,84 +12,85 @@
 
   .prescription-canvas {
     background: #FFFFFF;
-    max-width: 820px;
+    max-width: 800px;
     margin: 0 auto;
-    border-radius: 16px;
+    border-radius: 12px;
     border: 1px solid #E2E8F0;
-    box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
-    padding: 36px 40px;
+    box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
+    padding: 22px 28px;
     color: #0F172A;
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    box-sizing: border-box;
   }
 
   .rx-header-rule {
-    border-bottom: 1.5px solid #E2E8F0;
-    margin: 16px 0 20px 0;
+    border-bottom: 1px solid #E2E8F0;
+    margin: 10px 0 12px 0;
   }
 
   .rx-meta-pill {
     background: #F8FAFC;
     border: 1px solid #E2E8F0;
-    border-radius: 12px;
-    padding: 8px 16px;
+    border-radius: 8px;
+    padding: 4px 12px;
     display: inline-flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
   }
 
   .rx-info-box {
     background: #F0F6FF;
     border: 1px solid #DBEAFE;
-    border-radius: 14px;
-    padding: 16px 20px;
-    margin-bottom: 20px;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
   }
 
   .rx-section-label {
-    font-size: 0.68rem;
+    font-size: 0.62rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
+    letter-spacing: 0.5px;
     color: #475569;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
   }
 
   .rx-med-header {
     background: #EFF6FF;
     color: #1E40AF;
-    padding: 10px 18px;
-    border-radius: 10px;
+    padding: 6px 12px;
+    border-radius: 8px;
     font-weight: 800;
-    font-size: 0.82rem;
-    letter-spacing: 0.6px;
+    font-size: 0.74rem;
+    letter-spacing: 0.5px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
+    gap: 6px;
+    margin-bottom: 8px;
   }
 
   .rx-table {
     width: 100%;
     border-collapse: collapse;
     border: 1px solid #E2E8F0;
-    border-radius: 10px;
+    border-radius: 8px;
     overflow: hidden;
   }
 
   .rx-table th {
     background: #F8FAFC;
-    border-bottom: 1.5px solid #E2E8F0;
-    padding: 10px 12px;
-    font-size: 0.78rem;
+    border-bottom: 1px solid #E2E8F0;
+    padding: 6px 10px;
+    font-size: 0.72rem;
     font-weight: 700;
     color: #334155;
   }
 
   .rx-table td {
-    padding: 12px 12px;
+    padding: 7px 10px;
     border-bottom: 1px solid #F1F5F9;
     vertical-align: middle;
-    font-size: 0.84rem;
+    font-size: 0.78rem;
   }
 
   .rx-table tbody tr:last-child td {
@@ -103,22 +104,28 @@
   .rx-important-box {
     background: #F0F6FF;
     border: 1px solid #BFDBFE;
-    border-radius: 12px;
-    padding: 14px 16px;
+    border-radius: 10px;
+    padding: 10px 12px;
     height: 100%;
   }
 
   @media print {
-    body {
+    @page {
+      size: A4 portrait;
+      margin: 6mm 8mm;
+    }
+    html, body {
       background: #FFFFFF !important;
       margin: 0 !important;
       padding: 0 !important;
+      height: 100% !important;
+      overflow: hidden !important;
     }
     .doc-sidebar, .doc-header, .doc-sidebar-footer, footer, .rx-action-bar, #flashContainer {
       display: none !important;
     }
     .doc-main {
-      margin-left: 0 !important;
+      margin: 0 !important;
       padding: 0 !important;
     }
     .doc-content {
@@ -126,15 +133,15 @@
     }
     .prescription-canvas {
       max-width: 100% !important;
+      width: 100% !important;
       border: none !important;
       box-shadow: none !important;
-      padding: 12mm 15mm !important;
+      padding: 4mm 6mm !important;
       margin: 0 !important;
       border-radius: 0 !important;
-    }
-    @page {
-      size: A4 portrait;
-      margin: 8mm 10mm;
+      page-break-after: avoid !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
     }
   }
 </style>
@@ -146,39 +153,39 @@
 {% set doc_name = rx.doctor.name if rx.doctor.name.startswith('Dr.') else ('Dr. ' ~ rx.doctor.name) %}
 
 <!-- Top Action Buttons (Hidden on Print) -->
-<div class="d-flex align-items-center justify-content-between mb-4 rx-action-bar" style="max-width: 820px; margin: 0 auto;">
-  <a href="{{ url_for('doctor_portal.prescriptions') }}" class="btn-doc-secondary text-decoration-none">
+<div class="d-flex align-items-center justify-content-between mb-3 rx-action-bar" style="max-width: 800px; margin: 0 auto;">
+  <a href="{{ url_for('doctor_portal.prescriptions') }}" class="btn-doc-secondary text-decoration-none py-1.5 px-3" style="font-size: 0.82rem;">
     <i class="bi bi-arrow-left me-1"></i> Back to Prescriptions
   </a>
   <div class="d-flex gap-2">
-    <button onclick="window.print()" class="btn-doc-primary">
+    <button onclick="window.print()" class="btn-doc-primary py-1.5 px-3" style="font-size: 0.82rem;">
       <i class="bi bi-printer-fill me-1"></i> Print / Download PDF
     </button>
   </div>
 </div>
 
-<!-- Main A4 Prescription Sheet -->
+<!-- Main Compact Single-Page A4 Prescription Sheet -->
 <div class="prescription-canvas" id="rxDocument">
   
   <!-- Hospital Branding & Header -->
-  <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
     <div>
-      <div class="d-flex align-items-center gap-2 mb-1">
-        <img src="{{ url_for('static', filename='images/carehub_logo.png') }}" alt="CareHub" style="height: 38px; width: auto; object-fit: contain;">
+      <div class="d-flex align-items-center gap-2 mb-0.5">
+        <img src="{{ url_for('static', filename='images/carehub_logo.png') }}" alt="CareHub" style="height: 30px; width: auto; object-fit: contain;">
       </div>
-      <div style="font-size: 0.74rem; font-weight: 600; color: #475569; letter-spacing: 0.3px;">Your Health, Our Priority</div>
+      <div style="font-size: 0.68rem; font-weight: 600; color: #475569; letter-spacing: 0.3px;">Your Health, Our Priority</div>
     </div>
     <div style="text-align: right; max-width: 380px;">
-      <div style="font-size: 1.15rem; font-weight: 800; color: #0F172A; letter-spacing: -0.3px; line-height: 1.2;">CareHub Healthcare</div>
-      <div style="font-size: 0.75rem; color: #475569; font-weight: 500; margin-bottom: 4px;">Multi-Specialty Hospital &amp; Research Centre</div>
-      <div style="font-size: 0.72rem; color: #64748B; line-height: 1.4;">
-        <i class="bi bi-geo-alt-fill text-primary me-1" style="font-size: 0.7rem;"></i>123 Health Avenue, Bengaluru, Karnataka - 560001
+      <div style="font-size: 1.05rem; font-weight: 800; color: #0F172A; letter-spacing: -0.3px; line-height: 1.15;">CareHub Healthcare</div>
+      <div style="font-size: 0.68rem; color: #475569; font-weight: 500; margin-bottom: 2px;">Multi-Specialty Hospital &amp; Research Centre</div>
+      <div style="font-size: 0.65rem; color: #64748B; line-height: 1.3;">
+        <i class="bi bi-geo-alt-fill text-primary me-0.5" style="font-size: 0.62rem;"></i>123 Health Avenue, Bengaluru, Karnataka - 560001
       </div>
-      <div style="font-size: 0.72rem; color: #64748B; line-height: 1.4;">
-        <i class="bi bi-telephone-fill text-primary me-1" style="font-size: 0.7rem;"></i>+91 98765 43210 &nbsp;&bull;&nbsp; <i class="bi bi-envelope-fill text-primary me-1" style="font-size: 0.7rem;"></i>carehub@hospital.com
+      <div style="font-size: 0.65rem; color: #64748B; line-height: 1.3;">
+        <i class="bi bi-telephone-fill text-primary me-0.5" style="font-size: 0.62rem;"></i>+91 98765 43210 &nbsp;&bull;&nbsp; <i class="bi bi-envelope-fill text-primary me-0.5" style="font-size: 0.62rem;"></i>carehub@hospital.com
       </div>
-      <div style="font-size: 0.72rem; color: #64748B; line-height: 1.4;">
-        <i class="bi bi-globe text-primary me-1" style="font-size: 0.7rem;"></i>www.carehub.com
+      <div style="font-size: 0.65rem; color: #64748B; line-height: 1.3;">
+        <i class="bi bi-globe text-primary me-0.5" style="font-size: 0.62rem;"></i>www.carehub.com
       </div>
     </div>
   </div>
@@ -186,28 +193,27 @@
   <div class="rx-header-rule"></div>
 
   <!-- Prescription Title & Metadata Bar -->
-  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
-    <div class="d-flex align-items-center gap-3">
-      <div style="width: 44px; height: 44px; border-radius: 10px; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+    <div class="d-flex align-items-center gap-2">
+      <div style="width: 34px; height: 34px; border-radius: 8px; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
         <i class="bi bi-file-earmark-medical-fill"></i>
       </div>
       <div>
-        <div style="font-size: 1.35rem; font-weight: 800; color: #1E3A8A; letter-spacing: 0.5px; line-height: 1.1;">PRESCRIPTION</div>
-        <div style="font-size: 0.72rem; font-weight: 700; color: #64748B; letter-spacing: 0.8px; text-transform: uppercase;">CONFIDENTIAL MEDICAL RECORD</div>
+        <div style="font-size: 1.12rem; font-weight: 800; color: #1E3A8A; letter-spacing: 0.5px; line-height: 1.1;">PRESCRIPTION</div>
+        <div style="font-size: 0.62rem; font-weight: 700; color: #64748B; letter-spacing: 0.6px; text-transform: uppercase;">CONFIDENTIAL MEDICAL RECORD</div>
       </div>
     </div>
 
     <div class="rx-meta-pill">
       <div>
-        <div style="font-size: 0.7rem; font-weight: 600; color: #64748B; text-transform: uppercase;">Prescription No.</div>
-        <div style="font-size: 0.95rem; font-weight: 800; color: #0F172A; font-family: monospace;">{{ rx.prescription_code }}</div>
+        <div style="font-size: 0.62rem; font-weight: 600; color: #64748B; text-transform: uppercase;">Prescription No.</div>
+        <div style="font-size: 0.85rem; font-weight: 800; color: #0F172A; font-family: monospace;">{{ rx.prescription_code }}</div>
       </div>
-      <div style="width: 1px; height: 32px; background: #E2E8F0;"></div>
+      <div style="width: 1px; height: 24px; background: #E2E8F0;"></div>
       <div>
-        <div style="font-size: 0.7rem; font-weight: 600; color: #64748B; text-transform: uppercase;">Date &amp; Time</div>
-        <div style="font-size: 0.82rem; font-weight: 700; color: #1E293B; line-height: 1.2;">
-          {{ rx.created_at.strftime('%d %B %Y') }}<br>
-          <span style="font-size: 0.75rem; font-weight: 600; color: #64748B;">{{ rx.created_at.strftime('%I:%M %p') }}</span>
+        <div style="font-size: 0.62rem; font-weight: 600; color: #64748B; text-transform: uppercase;">Date &amp; Time</div>
+        <div style="font-size: 0.74rem; font-weight: 700; color: #1E293B; line-height: 1.2;">
+          {{ rx.created_at.strftime('%d %B %Y') }}, <span style="font-weight: 600; color: #64748B;">{{ rx.created_at.strftime('%I:%M %p') }}</span>
         </div>
       </div>
     </div>
@@ -215,27 +221,27 @@
 
   <!-- Patient Details & Visit Details (Two-Column Card) -->
   <div class="rx-info-box">
-    <div class="row g-3 align-items-center">
+    <div class="row g-2 align-items-center">
       <!-- Patient Details -->
-      <div class="col-md-7 border-end-md" style="border-color: #DBEAFE !important;">
-        <div class="d-flex align-items-start gap-3">
-          <div style="width: 44px; height: 44px; border-radius: 50%; background: #DBEAFE; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;">
+      <div class="col-7 border-end" style="border-color: #DBEAFE !important;">
+        <div class="d-flex align-items-start gap-2.5">
+          <div style="width: 34px; height: 34px; border-radius: 50%; background: #DBEAFE; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
             <i class="bi bi-person-fill"></i>
           </div>
           <div>
             <div class="rx-section-label">PATIENT DETAILS</div>
-            <div style="font-size: 1.02rem; font-weight: 800; color: #0F172A; margin-bottom: 2px;">{{ rx.patient.full_name }}</div>
-            <div style="font-size: 0.8rem; color: #475569; margin-bottom: 2px;">
+            <div style="font-size: 0.9rem; font-weight: 800; color: #0F172A; margin-bottom: 1px;">{{ rx.patient.full_name }}</div>
+            <div style="font-size: 0.72rem; color: #475569; margin-bottom: 1px;">
               <span class="font-monospace fw-semibold">{{ rx.patient.patient_code }}</span> &nbsp;|&nbsp;
               {% if rx.patient.dob %}
                 <span>{{ ((rx.created_at.date() - rx.patient.dob).days // 365) }} Years</span> &nbsp;|&nbsp;
               {% endif %}
               <span>{{ rx.patient.gender }}</span>
               {% if rx.patient.blood_group %}
-                &nbsp;|&nbsp; <span class="badge bg-danger-subtle text-danger fw-bold px-1.5" style="font-size:0.7rem;">{{ rx.patient.blood_group }}</span>
+                &nbsp;|&nbsp; <span class="badge bg-danger-subtle text-danger fw-bold px-1" style="font-size:0.65rem;">{{ rx.patient.blood_group }}</span>
               {% endif %}
             </div>
-            <div style="font-size: 0.78rem; color: #64748B;">
+            <div style="font-size: 0.7rem; color: #64748B;">
               Contact: <span class="fw-semibold text-dark">{{ rx.patient.mobile }}</span>
             </div>
           </div>
@@ -243,16 +249,16 @@
       </div>
 
       <!-- Visit Details -->
-      <div class="col-md-5">
-        <div class="d-flex align-items-start gap-3 ps-md-2">
-          <div style="width: 44px; height: 44px; border-radius: 12px; background: #DBEAFE; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
+      <div class="col-5">
+        <div class="d-flex align-items-start gap-2.5 ps-2">
+          <div style="width: 34px; height: 34px; border-radius: 8px; background: #DBEAFE; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0;">
             <i class="bi bi-calendar2-check-fill"></i>
           </div>
           <div>
             <div class="rx-section-label">VISIT DETAILS</div>
-            <div style="font-size: 0.88rem; font-weight: 700; color: #1E293B;">{{ rx.created_at.strftime('%d %B %Y') }}</div>
-            <div style="font-size: 0.8rem; color: #475569;">OPD Consultation</div>
-            <div style="font-size: 0.78rem; color: #64748B;">
+            <div style="font-size: 0.78rem; font-weight: 700; color: #1E293B;">{{ rx.created_at.strftime('%d %B %Y') }}</div>
+            <div style="font-size: 0.72rem; color: #475569;">OPD Consultation</div>
+            <div style="font-size: 0.7rem; color: #64748B;">
               {% if doc_prof and doc_prof.department %}
                 {{ doc_prof.department }}
               {% elif doc_prof and doc_prof.specialization %}
@@ -268,25 +274,21 @@
   </div>
 
   <!-- Doctor Details & Signature Section -->
-  <div class="row g-3 align-items-center pb-3 mb-3" style="border-bottom: 1.5px solid #E2E8F0;">
+  <div class="row g-2 align-items-center pb-2 mb-2" style="border-bottom: 1px solid #E2E8F0;">
     <!-- Doctor Info -->
-    <div class="col-md-7">
-      <div class="d-flex align-items-start gap-3">
-        <div style="width: 44px; height: 44px; border-radius: 50%; background: #EFF6FF; color: #1D4ED8; display: flex; align-items: center; justify-content: center; font-size: 1.35rem; flex-shrink: 0;">
+    <div class="col-7">
+      <div class="d-flex align-items-start gap-2.5">
+        <div style="width: 34px; height: 34px; border-radius: 50%; background: #EFF6FF; color: #1D4ED8; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
           <i class="bi bi-heart-pulse-fill"></i>
         </div>
         <div>
           <div class="rx-section-label">DOCTOR DETAILS</div>
-          <div style="font-size: 1.05rem; font-weight: 800; color: #0F172A;">{{ doc_name }}</div>
-          {% if doc_prof and doc_prof.education %}
-            <div style="font-size: 0.8rem; color: #475569; font-weight: 600;">{{ doc_prof.education }}</div>
-          {% else %}
-            <div style="font-size: 0.8rem; color: #475569; font-weight: 600;">MBBS, MD (General Medicine)</div>
-          {% endif %}
-          <div style="font-size: 0.8rem; color: #64748B;">
-            {% if doc_prof and doc_prof.specialization %}{{ doc_prof.specialization }}{% else %}General Medicine &amp; Cardiology{% endif %}
+          <div style="font-size: 0.92rem; font-weight: 800; color: #0F172A;">{{ doc_name }}</div>
+          <div style="font-size: 0.72rem; color: #475569; font-weight: 600;">
+            {% if doc_prof and doc_prof.education %}{{ doc_prof.education }}{% else %}MBBS, MD (General Medicine){% endif %}
           </div>
-          <div style="font-size: 0.78rem; color: #64748B;">
+          <div style="font-size: 0.7rem; color: #64748B;">
+            {% if doc_prof and doc_prof.specialization %}{{ doc_prof.specialization }}{% else %}General Medicine &amp; Cardiology{% endif %} &bull; 
             {% if doc_prof and doc_prof.department %}{{ doc_prof.department }}{% else %}Cardiology &amp; Heart Institute{% endif %}
           </div>
         </div>
@@ -294,17 +296,16 @@
     </div>
 
     <!-- Doctor Signature Block -->
-    <div class="col-md-5 text-md-end text-start">
-      <div class="d-inline-flex flex-column align-items-md-end align-items-start">
-        <div style="height: 44px; display: flex; align-items: flex-end;">
-          <!-- Professional realistic signature SVG path -->
-          <svg width="130" height="40" viewBox="0 0 140 45" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 32C25 15 35 10 42 22C46 29 48 36 54 28C62 16 75 14 82 25C88 34 100 20 115 18C122 17 132 25 136 28" stroke="#0F172A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    <div class="col-5 text-end">
+      <div class="d-inline-flex flex-column align-items-end">
+        <div style="height: 30px; display: flex; align-items: flex-end;">
+          <svg width="100" height="28" viewBox="0 0 140 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 32C25 15 35 10 42 22C46 29 48 36 54 28C62 16 75 14 82 25C88 34 100 20 115 18C122 17 132 25 136 28" stroke="#0F172A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
-        <div style="width: 140px; height: 1px; background: #CBD5E1; margin: 4px 0 6px 0;"></div>
-        <div style="font-size: 0.85rem; font-weight: 700; color: #0F172A;">{{ doc_name }}</div>
-        <div style="font-size: 0.75rem; color: #64748B;">
+        <div style="width: 110px; height: 1px; background: #CBD5E1; margin: 2px 0 3px 0;"></div>
+        <div style="font-size: 0.76rem; font-weight: 700; color: #0F172A;">{{ doc_name }}</div>
+        <div style="font-size: 0.68rem; color: #64748B;">
           Reg. No. {% if doc_prof and doc_prof.doctor_code %}{{ doc_prof.doctor_code }}{% else %}KMC-12345{% endif %}
         </div>
       </div>
@@ -313,20 +314,20 @@
 
   <!-- Prescribed Medications Heading -->
   <div class="rx-med-header">
-    <i class="bi bi-capsule" style="font-size: 1.05rem;"></i> PRESCRIBED MEDICATIONS
+    <i class="bi bi-capsule" style="font-size: 0.9rem;"></i> PRESCRIBED MEDICATIONS
   </div>
 
   <!-- Medication Table -->
-  <div class="table-responsive mb-4">
+  <div class="table-responsive mb-2">
     <table class="rx-table">
       <thead>
         <tr>
           <th style="width: 5%; text-align: center;">#</th>
-          <th style="width: 26%;">Medicine Name</th>
+          <th style="width: 28%;">Medicine Name</th>
           <th style="width: 18%;">Dose / Strength</th>
           <th style="width: 23%;">Instructions</th>
-          <th style="width: 15%; text-align: center;">Frequency</th>
-          <th style="width: 13%; text-align: center;">Duration</th>
+          <th style="width: 14%; text-align: center;">Frequency</th>
+          <th style="width: 12%; text-align: center;">Duration</th>
         </tr>
       </thead>
       <tbody>
@@ -348,7 +349,7 @@
             </span>
           </td>
           <td>
-            <div style="color: #475569; font-size: 0.82rem;">
+            <div style="color: #475569; font-size: 0.74rem;">
               {{ item.food_relation }}
               {% if item.instructions %}
                 <span style="color: #64748B;">&bull; {{ item.instructions }}</span>
@@ -356,7 +357,7 @@
             </div>
           </td>
           <td style="text-align: center;">
-            <span style="font-weight: 700; color: #1E40AF; font-family: monospace; font-size: 0.88rem; background: #EFF6FF; padding: 2px 8px; border-radius: 6px;">
+            <span style="font-weight: 700; color: #1E40AF; font-family: monospace; font-size: 0.8rem; background: #EFF6FF; padding: 1px 6px; border-radius: 4px;">
               {{ item.frequency }}
             </span>
           </td>
@@ -370,19 +371,19 @@
   </div>
 
   <!-- Advice & Follow-Up + Important Box -->
-  <div class="row g-3 mb-4">
+  <div class="row g-2 mb-2">
     <!-- Advice Column -->
-    <div class="col-md-7">
-      <div class="d-flex align-items-center gap-2 mb-2">
-        <div style="width: 28px; height: 28px; border-radius: 8px; background: #DBEAFE; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">
+    <div class="col-7">
+      <div class="d-flex align-items-center gap-1.5 mb-1">
+        <div style="width: 22px; height: 22px; border-radius: 6px; background: #DBEAFE; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;">
           <i class="bi bi-file-text-fill"></i>
         </div>
-        <span style="font-size: 0.75rem; font-weight: 800; color: #1E3A8A; letter-spacing: 0.5px; text-transform: uppercase;">ADVICE &amp; FOLLOW-UP</span>
+        <span style="font-size: 0.68rem; font-weight: 800; color: #1E3A8A; letter-spacing: 0.5px; text-transform: uppercase;">ADVICE &amp; FOLLOW-UP</span>
       </div>
       
-      <ul style="padding-left: 18px; margin: 0; font-size: 0.8rem; color: #334155; line-height: 1.6;">
+      <ul style="padding-left: 16px; margin: 0; font-size: 0.72rem; color: #334155; line-height: 1.45;">
         {% if rx.general_advice %}
-          <li class="fw-semibold text-primary mb-1">{{ rx.general_advice }}</li>
+          <li class="fw-semibold text-primary">{{ rx.general_advice }}</li>
         {% endif %}
         <li>Take medicines as prescribed.</li>
         <li>Maintain adequate hydration.</li>
@@ -392,13 +393,13 @@
     </div>
 
     <!-- Important Notice Column -->
-    <div class="col-md-5">
+    <div class="col-5">
       <div class="rx-important-box">
-        <div class="d-flex align-items-center gap-2 mb-1.5">
-          <i class="bi bi-info-circle-fill text-primary" style="font-size: 1.1rem;"></i>
-          <span style="font-size: 0.75rem; font-weight: 800; color: #1E40AF; letter-spacing: 0.5px; text-transform: uppercase;">IMPORTANT</span>
+        <div class="d-flex align-items-center gap-1.5 mb-1">
+          <i class="bi bi-info-circle-fill text-primary" style="font-size: 0.9rem;"></i>
+          <span style="font-size: 0.68rem; font-weight: 800; color: #1E40AF; letter-spacing: 0.5px; text-transform: uppercase;">IMPORTANT</span>
         </div>
-        <p style="font-size: 0.76rem; color: #334155; margin: 0; line-height: 1.45;">
+        <p style="font-size: 0.68rem; color: #334155; margin: 0; line-height: 1.35;">
           This prescription is valid only for the mentioned patient and should be used under medical advice. Do not self-medicate.
         </p>
       </div>
@@ -406,30 +407,29 @@
   </div>
 
   <!-- Footer & QR Verification Area -->
-  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pt-3" style="border-top: 1.5px solid #E2E8F0; margin-top: 10px;">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pt-2" style="border-top: 1px solid #E2E8F0; margin-top: 6px;">
     <!-- QR Code -->
-    <div class="d-flex align-items-center gap-3">
+    <div class="d-flex align-items-center gap-2">
       {% if qr_base64 %}
-      <img src="{{ qr_base64 }}" alt="QR Code" style="width: 72px; height: 72px; border: 1px solid #CBD5E1; border-radius: 6px; padding: 2px; background: #FFFFFF;">
+      <img src="{{ qr_base64 }}" alt="QR Code" style="width: 52px; height: 52px; border: 1px solid #CBD5E1; border-radius: 4px; padding: 1px; background: #FFFFFF;">
       {% endif %}
       <div>
-        <div style="font-size: 0.82rem; font-weight: 800; color: #0F172A;">Scan to Verify</div>
-        <div style="font-size: 0.72rem; color: #64748B; line-height: 1.35;">
-          Verify the authenticity of this prescription<br>
-          at <a href="{{ verify_url if verify_url else '#' }}" target="_blank" style="color: #2563EB; text-decoration: none; font-weight: 700;">carehub.com/verify</a>
+        <div style="font-size: 0.74rem; font-weight: 800; color: #0F172A;">Scan to Verify</div>
+        <div style="font-size: 0.65rem; color: #64748B; line-height: 1.25;">
+          Verify authenticity at <a href="{{ verify_url if verify_url else '#' }}" target="_blank" style="color: #2563EB; text-decoration: none; font-weight: 700;">carehub.com/verify</a>
         </div>
       </div>
     </div>
 
     <!-- Confidential Watermark & Slogan -->
     <div style="text-align: right;">
-      <div style="font-size: 0.78rem; font-style: italic; color: #64748B; display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
+      <div style="font-size: 0.7rem; font-style: italic; color: #64748B; display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
         <span>Compassion &bull; Innovation &bull; Better Health</span>
-        <svg width="36" height="16" viewBox="0 0 45 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="28" height="12" viewBox="0 0 45 20" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M2 10H14L18 2L24 18L28 7L32 12H43" stroke="#2563EB" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <div style="font-size: 0.72rem; color: #94A3B8; margin-top: 2px;">
+      <div style="font-size: 0.65rem; color: #94A3B8; margin-top: 1px;">
         CareHub &bull; Digital Health Records &bull; Confidential
       </div>
     </div>
