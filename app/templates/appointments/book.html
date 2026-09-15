@@ -114,8 +114,7 @@
           <div class="d-flex flex-wrap gap-2 mb-3">
             <small class="me-3"><span class="badge bg-success-subtle text-success border border-success me-1">Available</span> Available Window</small>
             <small class="me-3"><span class="badge bg-secondary me-1">Reserved</span> Reserved</small>
-            <small class="me-3"><span class="badge bg-warning-subtle text-dark border border-warning me-1">Emergency</span> Emergency Reserved</small>
-            <small><span class="badge bg-light text-muted border me-1">Past</span> Past</small>
+            <small><span class="badge bg-warning-subtle text-dark border border-warning me-1">Emergency</span> Emergency Reserved</small>
           </div>
           <div class="alert alert-info py-2 px-3 mb-3 small" style="font-size: 0.8rem;">
             <i class="bi bi-info-circle me-1"></i> Selection represents patient's <strong>expected arrival checkpoint</strong>. Doctor attends via live dynamic queue.
@@ -123,6 +122,7 @@
 
           <div class="row g-2">
             {% for s in slot_info.slots %}
+            {% if not s.get('is_past') and s.reason != 'Past' %}
             <div class="col-6 col-sm-4 col-md-3">
               {% if s.is_available %}
               <button type="button" class="btn btn-outline-success w-100 py-2 font-monospace slot-pill" data-slot="{{ s.time.strftime('%H:%M:%S') }}" data-display="{{ s.time_str }}">
@@ -136,12 +136,9 @@
               <button type="button" class="btn btn-secondary w-100 py-2 font-monospace disabled" title="Already Booked">
                 <i class="bi bi-lock-fill"></i> {{ s.time_str }}
               </button>
-              {% else %}
-              <button type="button" class="btn btn-light text-muted w-100 py-2 font-monospace disabled">
-                {{ s.time_str }}
-              </button>
               {% endif %}
             </div>
+            {% endif %}
             {% endfor %}
           </div>
           {% endif %}

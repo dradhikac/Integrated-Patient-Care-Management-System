@@ -188,16 +188,18 @@
             {% elif slot_info.get('slots') %}
               <div class="d-flex flex-wrap gap-2 pt-1">
                 {% for s in slot_info.get('slots') %}
-                  {% if not s.is_available %}
-                    <div class="window-chip disabled" title="{{ s.reason }}">
-                      <div>{{ s.time_str }}</div>
-                      <div class="rec-text">{{ s.reason }}</div>
-                    </div>
-                  {% else %}
-                    <div class="window-chip" onclick="selectWindow('{{ s.time_raw }}', '{{ s.time_str }}', '{{ s.recommended_arrival }}', this)">
-                      <div>{{ s.time_str }}</div>
-                      <div class="rec-text">Arrive: {{ s.recommended_arrival }}</div>
-                    </div>
+                  {% if not s.get('is_past') and s.reason != 'Past' %}
+                    {% if not s.is_available %}
+                      <div class="window-chip disabled" title="{{ s.reason }}">
+                        <div>{{ s.time_str }}</div>
+                        <div class="rec-text">{{ s.reason }}</div>
+                      </div>
+                    {% else %}
+                      <div class="window-chip" onclick="selectWindow('{{ s.time_raw }}', '{{ s.time_str }}', '{{ s.recommended_arrival }}', this)">
+                        <div>{{ s.time_str }}</div>
+                        <div class="rec-text">Arrive: {{ s.recommended_arrival }}</div>
+                      </div>
+                    {% endif %}
                   {% endif %}
                 {% endfor %}
               </div>

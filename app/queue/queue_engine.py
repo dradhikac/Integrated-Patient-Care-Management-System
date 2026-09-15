@@ -184,12 +184,12 @@ def get_doctor_clinic_windows(doctor_id: int, target_date: date):
         rec_arrival_str = rec_arrival_dt.strftime('%I:%M %p')
 
         is_past = (current_dt < now_dt) if is_today else (target_date < today)
-        is_booked = window_time in booked_times
-
         if is_past:
-            is_avail = False
-            reason = 'Past'
-        elif is_booked:
+            current_dt += step
+            continue
+
+        is_booked = window_time in booked_times
+        if is_booked:
             is_avail = False
             reason = 'Booked'
         else:
@@ -204,6 +204,7 @@ def get_doctor_clinic_windows(doctor_id: int, target_date: date):
             'recommended_arrival': rec_arrival_str,
             'is_available': is_avail,
             'is_booked': not is_avail,
+            'is_past': False,
             'reason': reason
         }
         arrival_windows.append(w_dict)

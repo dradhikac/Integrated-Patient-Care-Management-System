@@ -223,9 +223,6 @@
           <span class="legend-badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
             <i class="bi bi-exclamation-triangle-fill"></i> Emergency Reserved
           </span>
-          <span class="legend-badge bg-light text-muted border">
-            <i class="bi bi-slash-circle"></i> Past
-          </span>
         </div>
 
         <div class="alert alert-info border-0 rounded-3 py-2 px-3 mb-4 d-flex align-items-center gap-2" style="background:#EFF6FF; color:#1E40AF; font-size:0.83rem;">
@@ -248,27 +245,25 @@
         {% else %}
         <div class="slot-grid">
           {% for slot in slot_info.get('slots', []) %}
-            {% if slot.is_past %}
-              <div class="slot-pill past" title="Past Time Slot">
-                <span>{{ slot.time_str }}</span>
-              </div>
-            {% elif slot.is_emergency_reserved %}
-              <div class="slot-pill emergency {% if not slot.is_available %}disabled{% endif %}"
-                   {% if slot.is_available %}onclick="selectSlot('{{ slot.time_24h }}', this)"{% endif %}
-                   title="Emergency Reserved Slot">
-                <span>{{ slot.time_str }}</span>
-                <span style="font-size:0.62rem;font-weight:700;">EMERGENCY</span>
-              </div>
-            {% elif not slot.is_available %}
-              <div class="slot-pill disabled" title="Slot Already Booked">
-                <span>{{ slot.time_str }}</span>
-                <span style="font-size:0.62rem;">BOOKED</span>
-              </div>
-            {% else %}
-              <div class="slot-pill" onclick="selectSlot('{{ slot.time_24h }}', this)">
-                <span>{{ slot.time_str }}</span>
-                <span style="font-size:0.62rem;color:#059669;">AVAILABLE</span>
-              </div>
+            {% if not slot.is_past and slot.reason != 'Past' %}
+              {% if slot.is_emergency_reserved %}
+                <div class="slot-pill emergency {% if not slot.is_available %}disabled{% endif %}"
+                     {% if slot.is_available %}onclick="selectSlot('{{ slot.time_24h }}', this)"{% endif %}
+                     title="Emergency Reserved Slot">
+                  <span>{{ slot.time_str }}</span>
+                  <span style="font-size:0.62rem;font-weight:700;">EMERGENCY</span>
+                </div>
+              {% elif not slot.is_available %}
+                <div class="slot-pill disabled" title="Slot Already Booked">
+                  <span>{{ slot.time_str }}</span>
+                  <span style="font-size:0.62rem;">BOOKED</span>
+                </div>
+              {% else %}
+                <div class="slot-pill" onclick="selectSlot('{{ slot.time_24h }}', this)">
+                  <span>{{ slot.time_str }}</span>
+                  <span style="font-size:0.62rem;color:#059669;">AVAILABLE</span>
+                </div>
+              {% endif %}
             {% endif %}
           {% endfor %}
         </div>
