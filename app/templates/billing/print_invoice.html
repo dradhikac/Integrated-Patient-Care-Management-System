@@ -26,13 +26,16 @@
 <div class="invoice-card rounded-4">
   <div class="hospital-header d-flex justify-content-between align-items-center">
     <div>
-      <div class="invoice-title">🏥 IPCMS HEALTHCARE HOSPITAL</div>
-      <small class="text-muted">123 Health Avenue, Super Specialty Block, Bengaluru, KA - 560001</small><br>
-      <small class="text-muted">GSTIN: 29AAAAA0000A1Z5 | Phone: +91-80-12345678 | Email: billing@ipcms.com</small>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <img src="{{ url_for('static', filename='images/carehub_logo.png') }}" alt="CareHub" style="height: 30px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
+        <div class="invoice-title" style="color: #1E3A8A; font-size: 22px; font-weight: 800;">CAREHUB HEALTHCARE</div>
+      </div>
+      <small class="text-muted fw-semibold">Multi-Specialty Hospital &amp; Research Centre</small><br>
+      <small class="text-muted">123 Health Avenue, Bengaluru, KA - 560001 | Phone: +91 98765 43210 | GSTIN: 29AAAAA0000A1Z5</small>
     </div>
     <div class="text-end">
       <h4 class="fw-bold text-dark font-monospace mb-0">{{ bill.invoice_code }}</h4>
-      <small class="badge bg-secondary">TAX INVOICE RECEIPT</small>
+      <small class="badge bg-primary">OFFICIAL TAX INVOICE</small>
     </div>
   </div>
 

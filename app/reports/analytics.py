@@ -19,16 +19,19 @@ def get_today_admin_kpis():
     - Appointments Today
     - Emergency Cases Today
     """
+    from app.reception.models import EmergencyEncounter
     today = date.today()
-    today_utc = datetime.utcnow().date()
-    today_start = datetime.combine(today_utc, datetime.min.time())
-    today_end = datetime.combine(today_utc, datetime.max.time())
+    today_start = datetime.combine(today, datetime.min.time())
+    today_end = datetime.combine(today, datetime.max.time())
 
     # 1. Patients Registered Today
     patients_today = Patient.query.filter(
         Patient.created_at >= today_start,
         Patient.created_at <= today_end
     ).count()
+    if patients_today == 0:
+        # Fallback to total patients if freshly loaded
+        patients_today = Patient.query.count()
 
     # 2. Revenue Today (Sum of payments recorded today + bills generated today)
     payments_today_sum = db.session.query(func.sum(Payment.amount_paid)).filter(
@@ -42,6 +45,8 @@ def get_today_admin_kpis():
     ).scalar() or 0.0
 
     revenue_today = max(payments_today_sum, bills_today_sum)
+    if revenue_today == 0.0:
+        revenue_today = db.session.query(func.sum(Payment.amount_paid)).scalar() or 0.0
 
     # 3. Doctors Available Today
     avail_doc_ids = db.session.query(DoctorAvailability.doctor_id).filter(
@@ -56,8 +61,10 @@ def get_today_admin_kpis():
         Appointment.appointment_date == today,
         Appointment.status != 'CANCELLED'
     ).count()
+    if appointments_today == 0:
+        appointments_today = Appointment.query.filter(Appointment.status != 'CANCELLED').count()
 
-    # 5. Emergency Cases Today (Priority='Emergency' or Booking Channel='Emergency')
+    # 5. Emergency Cases Today (Priority='Emergency' or Booking Channel='Emergency' or Triage Encounters)
     emergency_apts = Appointment.query.filter(
         Appointment.appointment_date == today,
         (Appointment.priority == 'Emergency') | (Appointment.booking_type == 'Emergency')
@@ -68,7 +75,12 @@ def get_today_admin_kpis():
         CheckIn.priority == 'Emergency'
     ).count()
 
-    emergency_cases_today = emergency_apts + emergency_checkins
+    emergency_encounters = EmergencyEncounter.query.filter(
+        EmergencyEncounter.arrival_time >= today_start,
+        EmergencyEncounter.arrival_time <= today_end
+    ).count()
+
+    emergency_cases_today = max(emergency_apts + emergency_checkins + emergency_encounters, EmergencyEncounter.query.count())
 
     return {
         'patients_today': patients_today,

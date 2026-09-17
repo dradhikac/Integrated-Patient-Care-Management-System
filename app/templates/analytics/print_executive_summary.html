@@ -26,13 +26,16 @@
 <div class="report-card rounded-4">
   <div class="report-header d-flex justify-content-between align-items-center">
     <div>
-      <div class="report-title">🏥 IPCMS HEALTHCARE HOSPITAL</div>
-      <small class="text-muted">Executive Analytics & Clinical Intelligence Board</small><br>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <img src="{{ url_for('static', filename='images/carehub_logo.png') }}" alt="CareHub" style="height: 30px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
+        <div class="report-title" style="color: #1E3A8A; font-size: 22px; font-weight: 800;">CAREHUB HEALTHCARE</div>
+      </div>
+      <small class="text-muted fw-semibold">Multi-Specialty Hospital &amp; Research Centre — Executive Analytics</small><br>
       <small class="text-muted">Report Generated: {{ now.strftime('%d %B %Y, %I:%M %p') }}</small>
     </div>
     <div class="text-end">
-      <h4 class="fw-bold text-dark mb-0">EXECUTIVE SUMMARY</h4>
-      <small class="badge bg-secondary">OFFICIAL PERFORMANCE REPORT</small>
+      <h4 class="fw-bold text-dark mb-0" style="color: #1E3A8A !important;">EXECUTIVE SUMMARY</h4>
+      <small class="badge bg-primary">OFFICIAL PERFORMANCE REPORT</small>
     </div>
   </div>
 

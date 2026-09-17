@@ -2,62 +2,348 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Appointment Scheduling Report - IPCMS</title>
+  <title>Appointments & OPD Census Report — CareHub Healthcare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
-    body { background-color: #fff; font-family: 'Segoe UI', Arial, sans-serif; }
-    .report-card { max-width: 900px; margin: 20px auto; padding: 30px; }
-    .report-header { border-bottom: 2px solid #008080; padding-bottom: 15px; margin-bottom: 20px; }
-    .report-title { color: #008080; font-weight: 800; font-size: 22px; text-transform: uppercase; }
-    @media print { .no-print { display: none !important; } .report-card { padding: 0; margin: 0; } }
+    :root {
+      --primary-navy: #1E3A8A;
+      --primary-blue: #2563EB;
+      --border-color: #E2E8F0;
+      --text-dark: #0F172A;
+      --text-muted: #64748B;
+      --bg-light: #F8FAFC;
+    }
+    body {
+      background-color: #F1F5F9;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--text-dark);
+      padding-bottom: 40px;
+    }
+    .report-wrapper {
+      max-width: 1050px;
+      margin: 24px auto;
+      background: #FFFFFF;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.08);
+      padding: 36px 44px;
+      box-sizing: border-box;
+    }
+    .brand-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--primary-navy);
+      letter-spacing: -0.3px;
+      line-height: 1.1;
+    }
+    .brand-sub {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.3px;
+    }
+    .hospital-meta {
+      text-align: right;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .header-divider {
+      height: 3px;
+      background: linear-gradient(90deg, #F59E0B 0%, #2563EB 50%, #E2E8F0 100%);
+      border: none;
+      margin: 16px 0 20px 0;
+      border-radius: 2px;
+    }
+    .report-meta-box {
+      background: var(--bg-light);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px 20px;
+      margin-bottom: 22px;
+    }
+    .report-heading {
+      font-size: 1.18rem;
+      font-weight: 800;
+      color: var(--primary-navy);
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .report-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 0;
+    }
+    .kpi-pill {
+      background: #FFFFFF;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 8px 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .custom-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 24px;
+      font-size: 0.82rem;
+    }
+    .custom-table thead {
+      background: #1E3A8A;
+      color: #FFFFFF;
+    }
+    .custom-table th {
+      padding: 11px 14px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      border: none;
+    }
+    .custom-table td {
+      padding: 11px 14px;
+      vertical-align: middle;
+      border-top: 1px solid var(--border-color);
+      color: #1E293B;
+    }
+    .custom-table tbody tr:nth-child(even) {
+      background-color: #F8FAFC;
+    }
+    .custom-table tbody tr:hover {
+      background-color: #F1F5F9;
+    }
+    .code-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 0.76rem;
+      background: #EFF6FF;
+      color: #1D4ED8;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid #DBEAFE;
+    }
+    .prio-emergency {
+      background: #FEE2E2;
+      color: #991B1B;
+      font-weight: 700;
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid #FECACA;
+    }
+    .prio-senior {
+      background: #FEF3C7;
+      color: #92400E;
+      font-weight: 700;
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid #FDE68A;
+    }
+    .prio-regular {
+      background: #F1F5F9;
+      color: #475569;
+      font-weight: 600;
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .status-completed {
+      background: #DEF7EC;
+      color: #03543F;
+      font-weight: 700;
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .status-active {
+      background: #DBEAFE;
+      color: #1E40AF;
+      font-weight: 700;
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .status-booked {
+      background: #E0E7FF;
+      color: #3730A3;
+      font-weight: 700;
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .footer-section {
+      border-top: 1px solid var(--border-color);
+      padding-top: 18px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .sig-line {
+      width: 200px;
+      border-top: 1.5px dashed #94A3B8;
+      margin-top: 35px;
+      margin-bottom: 4px;
+    }
+    .action-bar {
+      max-width: 1050px;
+      margin: 18px auto 0 auto;
+    }
+    @media print {
+      body { background: #FFFFFF; padding: 0; }
+      .no-print { display: none !important; }
+      .report-wrapper {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+        max-width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
 
-<div class="no-print text-center my-3">
-  <button onclick="window.print()" class="btn btn-primary shadow">🖨️ Print / Save as PDF</button>
+<!-- Top Action Buttons (Hidden on Print) -->
+<div class="no-print action-bar d-flex justify-content-between align-items-center mb-3">
+  <button onclick="window.history.back()" class="btn btn-outline-secondary rounded-pill px-3 py-1.5 fw-semibold" style="font-size: 0.84rem;">
+    <i class="bi bi-arrow-left me-1"></i> Back to Reports
+  </button>
+  <button onclick="window.print()" class="btn btn-primary rounded-pill px-4 py-1.5 fw-bold shadow-sm" style="background-color: var(--primary-blue); border-color: var(--primary-blue); font-size: 0.84rem;">
+    <i class="bi bi-printer-fill me-1.5"></i> Print / Save as PDF
+  </button>
 </div>
 
-<div class="report-card">
-  <div class="report-header d-flex justify-content-between align-items-center">
+<!-- Main Printable Report Canvas -->
+<div class="report-wrapper">
+  
+  <!-- Hospital Header & Official Branding -->
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
     <div>
-      <div class="report-title">🏥 IPCMS HEALTHCARE HOSPITAL</div>
-      <small class="text-muted">Appointments & Time Slot Booking History</small><br>
-      <small class="text-muted">Generated: {{ now.strftime('%d %B %Y, %I:%M %p') }}</small>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <img src="{{ url_for('static', filename='images/carehub_logo.png') }}" alt="CareHub" style="height: 32px; width: auto; object-fit: contain;" onerror="this.style.display='none'">
+        <div>
+          <div class="brand-title">CareHub Healthcare</div>
+          <div class="brand-sub">Multi-Specialty Hospital &amp; Research Centre</div>
+        </div>
+      </div>
+      <div style="font-size: 0.68rem; font-weight: 600; color: var(--primary-blue); letter-spacing: 0.3px;">
+        <i class="bi bi-shield-check me-1"></i>Outpatient Scheduling &amp; Clinical Directorate
+      </div>
     </div>
-    <div class="text-end">
-      <span class="badge bg-warning text-dark fs-6">APPOINTMENT REPORT</span>
+    <div class="hospital-meta">
+      <div><strong>CareHub Super Specialty Campus</strong></div>
+      <div><i class="bi bi-geo-alt-fill text-primary me-1"></i>123 Health Avenue, Bengaluru, KA - 560001</div>
+      <div><i class="bi bi-telephone-fill text-primary me-1"></i>+91 98765 43210 &nbsp;|&nbsp; <i class="bi bi-envelope-fill text-primary me-1"></i>carehub@hospital.com</div>
+      <div><i class="bi bi-globe text-primary me-1"></i>www.carehub.com</div>
     </div>
   </div>
 
-  <table class="table table-bordered align-middle">
-    <thead class="table-light">
+  <div class="header-divider"></div>
+
+  <!-- Report Title & Highlights Strip -->
+  <div class="report-meta-box d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <div class="report-heading"><i class="bi bi-calendar-check-fill text-warning me-1.5"></i> Appointments &amp; OPD Census Report</div>
+      <p class="report-desc">Full schedule breakdown of patient bookings, consulting physicians, priority triage, and time slots.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <div class="kpi-pill">
+        <div>
+          <div style="font-size: 0.62rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Total Slots</div>
+          <div style="font-size: 1.1rem; font-weight: 800; color: var(--primary-navy); line-height: 1;">{{ data|length }} Bookings</div>
+        </div>
+      </div>
+      <div class="kpi-pill">
+        <div>
+          <div style="font-size: 0.62rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Generated Date</div>
+          <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-dark); line-height: 1.2;">{{ now.strftime('%d %b %Y, %I:%M %p') }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Data Table -->
+  <table class="custom-table">
+    <thead>
       <tr>
-        <th>#</th>
-        <th>Apt Code</th>
-        <th>Patient Name</th>
-        <th>Doctor Name</th>
-        <th>Date & Time Slot</th>
-        <th>Priority</th>
-        <th>Channel</th>
-        <th>Status</th>
+        <th style="width: 4%;">#</th>
+        <th style="width: 14%;">Appointment ID</th>
+        <th style="width: 18%;">Patient Name</th>
+        <th style="width: 18%;">Attending Doctor</th>
+        <th style="width: 16%;">Date &amp; Time Slot</th>
+        <th style="width: 12%;">Priority</th>
+        <th style="width: 8%;">Type</th>
+        <th style="width: 10%; text-align: center;">Status</th>
       </tr>
     </thead>
     <tbody>
       {% for apt in data %}
       <tr>
-        <td>{{ loop.index }}</td>
-        <td><code>{{ apt.appointment_code }}</code></td>
-        <td class="fw-bold">{{ apt.patient.full_name }}</td>
-        <td>{{ apt.doctor.name }}</td>
-        <td>{{ apt.appointment_date.strftime('%d %b %Y') }} ({{ apt.slot_time.strftime('%I:%M %p') }})</td>
-        <td><span class="badge bg-secondary">{{ getattr(apt, 'priority', 'Regular') }}</span></td>
-        <td><span class="badge bg-light text-dark border">{{ apt.booking_type }}</span></td>
-        <td><span class="badge bg-primary">{{ apt.status }}</span></td>
+        <td class="text-muted fw-bold">{{ loop.index }}</td>
+        <td><span class="code-badge">{{ apt.appointment_code }}</span></td>
+        <td>
+          <div class="fw-bold" style="color: var(--primary-navy);">{{ apt.patient.full_name }}</div>
+          <small class="text-muted" style="font-size: 0.7rem; font-family: 'JetBrains Mono', monospace;">{{ apt.patient.patient_code }}</small>
+        </td>
+        <td>
+          <div class="fw-semibold">{{ apt.doctor.name }}</div>
+          <small class="text-muted" style="font-size: 0.7rem;">{{ apt.doctor.doctor_profile[0].department if apt.doctor.doctor_profile else 'OPD' }}</small>
+        </td>
+        <td>
+          <div class="fw-bold" style="color: #1E293B;">{{ apt.appointment_date.strftime('%d %b %Y') }}</div>
+          <small class="text-muted">{{ apt.slot_time.strftime('%I:%M %p') }}</small>
+        </td>
+        <td>
+          {% if 'Emergency' in apt.priority %}
+            <span class="prio-emergency"><i class="bi bi-exclamation-triangle-fill"></i> Emergency</span>
+          {% elif 'Senior' in apt.priority or 'Pregnant' in apt.priority or 'Child' in apt.priority %}
+            <span class="prio-senior">{{ apt.priority }}</span>
+          {% else %}
+            <span class="prio-regular">Regular</span>
+          {% endif %}
+        </td>
+        <td>
+          <small class="badge bg-light text-dark border">{{ apt.booking_type or 'Online' }}</small>
+        </td>
+        <td style="text-align: center;">
+          {% if apt.status == 'COMPLETED' %}
+            <span class="status-completed"><i class="bi bi-check2"></i> Completed</span>
+          {% elif apt.status == 'IN_CONSULTATION' %}
+            <span class="status-active">In Consult</span>
+          {% elif apt.status == 'CHECKED_IN' %}
+            <span class="status-active">Checked-In</span>
+          {% else %}
+            <span class="status-booked">{{ apt.status }}</span>
+          {% endif %}
+        </td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
+
+  <!-- Official Footer & Signatures -->
+  <div class="footer-section d-flex justify-content-between align-items-end flex-wrap gap-3">
+    <div>
+      <div><strong>Confidential Healthcare Record:</strong> Generated via CareHub Integrated Hospital Management System.</div>
+      <div>Security Hash: <code>CH-APTCENSUS-{{ now.strftime('%Y%m%d%H%M') }}</code> &nbsp;&bull;&nbsp; Page 1 of 1</div>
+    </div>
+    <div class="text-end">
+      <div class="sig-line ms-auto"></div>
+      <div class="fw-bold" style="color: var(--text-dark);">OPD Registrar / Chief Medical Officer</div>
+      <small>CareHub Healthcare Bengaluru</small>
+    </div>
+  </div>
+
 </div>
 
 </body>
