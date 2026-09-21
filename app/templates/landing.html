@@ -924,10 +924,21 @@
        8. Footer
     ------------------------------------------------------------- */
     .carehub-footer {
-      background: #0F172A;
-      color: #94A3B8;
+      background: #0B132B;
+      color: #CBD5E1;
       padding: 4.5rem 0 2rem;
-      font-size: 0.9rem;
+      font-size: 0.92rem;
+    }
+
+    .carehub-footer .text-muted {
+      color: #94A3B8 !important;
+    }
+
+    .carehub-footer p,
+    .carehub-footer .footer-subtext {
+      color: #CBD5E1;
+      font-size: 0.88rem;
+      line-height: 1.75;
     }
 
     .footer-brand-title {
@@ -938,7 +949,7 @@
     }
 
     .footer-heading {
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       font-weight: 800;
       color: #FFFFFF;
       text-transform: uppercase;
@@ -957,20 +968,55 @@
     }
 
     .footer-links a {
+      color: #CBD5E1;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: inline-block;
+    }
+
+    .footer-links a:hover {
+      color: #38BDF8;
+      transform: translateX(3px);
+    }
+
+    .footer-social-link {
+      color: #94A3B8;
+      font-size: 1.15rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .footer-social-link:hover {
+      color: #FFFFFF;
+      background: #2563EB;
+      border-color: #2563EB;
+      transform: translateY(-2px);
+    }
+
+    .footer-bottom-bar {
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      padding-top: 1.8rem;
+      margin-top: 3.5rem;
+      font-size: 0.84rem;
+      color: #94A3B8;
+    }
+
+    .footer-bottom-bar a {
       color: #94A3B8;
       text-decoration: none;
       transition: color 0.2s ease;
     }
 
-    .footer-links a:hover {
+    .footer-bottom-bar a:hover {
       color: #FFFFFF;
-    }
-
-    .footer-bottom-bar {
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      padding-top: 1.8rem;
-      margin-top: 3.5rem;
-      font-size: 0.82rem;
     }
 
     /* Scroll Reveal */
@@ -1595,15 +1641,15 @@
               <img src="{{ url_for('static', filename='images/carehub_logo.png') }}" alt="CareHub" style="height: 30px; width: auto;">
             </div>
           </div>
-          <p class="text-muted small mb-4" style="line-height: 1.7;">
+          <p class="footer-subtext mb-4">
             CareHub Integrated Patient Care Management System provides world-class clinical excellence, ethical
             medicine, and seamless patient experience across outpatient, inpatient, and diagnostic services.
           </p>
-          <div class="d-flex gap-3">
-            <a href="#" class="text-muted fs-5"><i class="bi bi-facebook"></i></a>
-            <a href="#" class="text-muted fs-5"><i class="bi bi-twitter-x"></i></a>
-            <a href="#" class="text-muted fs-5"><i class="bi bi-linkedin"></i></a>
-            <a href="#" class="text-muted fs-5"><i class="bi bi-youtube"></i></a>
+          <div class="d-flex gap-2">
+            <a href="#" class="footer-social-link" title="Facebook"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="footer-social-link" title="Twitter"><i class="bi bi-twitter-x"></i></a>
+            <a href="#" class="footer-social-link" title="LinkedIn"><i class="bi bi-linkedin"></i></a>
+            <a href="#" class="footer-social-link" title="YouTube"><i class="bi bi-youtube"></i></a>
           </div>
         </div>
 
@@ -1623,11 +1669,11 @@
         <div class="col-6 col-lg-3">
           <div class="footer-heading">Specialties</div>
           <ul class="footer-links">
-            <li><a href="#doctors">Cardiology & Heart Care</a></li>
-            <li><a href="#doctors">Neurology & Brain Health</a></li>
-            <li><a href="#doctors">Orthopedics & Joint Care</a></li>
-            <li><a href="#doctors">Pediatrics & Neonatology</a></li>
-            <li><a href="#doctors">Radiology & Ultrasound</a></li>
+            <li><a href="#doctors">Cardiology &amp; Heart Care</a></li>
+            <li><a href="#doctors">Neurology &amp; Brain Health</a></li>
+            <li><a href="#doctors">Orthopedics &amp; Joint Care</a></li>
+            <li><a href="#doctors">Pediatrics &amp; Neonatology</a></li>
+            <li><a href="#doctors">Radiology &amp; Ultrasound</a></li>
           </ul>
         </div>
 
@@ -1635,18 +1681,15 @@
         <div class="col-lg-3">
           <div class="footer-heading">24/7 Helpline</div>
           <div class="mb-3">
-            <div class="text-white fw-bold fs-6"><i class="bi bi-telephone-fill text-danger me-2"></i>1800-CAREHUB
-            </div>
-            <div class="text-muted small">Toll-Free Emergency Dispatch</div>
+            <div class="text-white fw-bold fs-6"><i class="bi bi-telephone-fill text-danger me-2"></i>1800-CAREHUB</div>
+            <div style="color: #94A3B8; font-size: 0.82rem;">Toll-Free Emergency Dispatch</div>
           </div>
           <div class="mb-3">
-            <div class="text-white fw-bold fs-6"><i
-                class="bi bi-envelope-fill text-primary me-2"></i>care@carehub.hospital</div>
-            <div class="text-muted small">Patient Support & Inquiries</div>
+            <div class="text-white fw-bold fs-6"><i class="bi bi-envelope-fill text-primary me-2"></i>care@carehub.hospital</div>
+            <div style="color: #94A3B8; font-size: 0.82rem;">Patient Support &amp; Inquiries</div>
           </div>
-          <div class="small text-muted">
-            <i class="bi bi-geo-alt-fill text-teal me-1"></i> Medical District, Central Healthcare Avenue, City Hospital
-            Complex.
+          <div style="color: #CBD5E1; font-size: 0.84rem; line-height: 1.5;">
+            <i class="bi bi-geo-alt-fill text-info me-1"></i> Medical District, Central Healthcare Avenue, City Hospital Complex.
           </div>
         </div>
       </div>
@@ -1654,15 +1697,14 @@
       <!-- Bottom Bar -->
       <div class="footer-bottom-bar d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div>
-          &copy; 2026 <strong>CareHub Healthcare</strong>. Integrated Patient Care Management System. All rights
-          reserved.
+          &copy; 2026 <strong class="text-white">CareHub Healthcare</strong>. Integrated Patient Care Management System. All rights reserved.
         </div>
         <div class="d-flex gap-3">
-          <a href="#" class="text-muted text-decoration-none">Privacy Policy</a>
+          <a href="#" class="text-decoration-none">Privacy Policy</a>
           <span>·</span>
-          <a href="#" class="text-muted text-decoration-none">Terms of Service</a>
+          <a href="#" class="text-decoration-none">Terms of Service</a>
           <span>·</span>
-          <a href="#" class="text-muted text-decoration-none">Clinical Governance</a>
+          <a href="#" class="text-decoration-none">Clinical Governance</a>
         </div>
       </div>
     </div>
