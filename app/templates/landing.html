@@ -51,7 +51,7 @@
        1. Navigation Header
     ------------------------------------------------------------- */
     .carehub-navbar {
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.96);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border-color);
@@ -65,45 +65,6 @@
       align-items: center;
       gap: 12px;
       text-decoration: none;
-    }
-
-    .brand-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 11px;
-      background: linear-gradient(135deg, #1E40AF 0%, #0D9488 100%);
-      color: #FFFFFF;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.3rem;
-      box-shadow: 0 4px 14px rgba(30, 64, 175, 0.22);
-      transition: transform 0.25s ease;
-    }
-
-    .brand-box:hover .brand-icon {
-      transform: scale(1.05);
-    }
-
-    .brand-text {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .brand-title {
-      font-size: 1.3rem;
-      font-weight: 800;
-      color: var(--primary-navy);
-      line-height: 1.1;
-      letter-spacing: -0.4px;
-    }
-
-    .brand-tagline {
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: var(--accent-teal);
-      letter-spacing: 0.3px;
-      text-transform: uppercase;
     }
 
     .nav-link-item {
@@ -120,56 +81,75 @@
       color: var(--primary-blue) !important;
     }
 
-    .nav-contact-info {
-      display: flex;
+    .nav-link-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 24px;
+      height: 3px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #1D4ED8 0%, #0D9488 100%);
+    }
+
+    .nav-contact-pill {
+      display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      padding: 6px 16px;
+      background: #F8FAFC;
+      border: 1px solid var(--border-color);
+      border-radius: 30px;
       font-weight: 700;
       font-size: 0.88rem;
       color: var(--primary-navy);
       text-decoration: none;
-      transition: color 0.2s ease;
+      transition: all 0.2s ease;
     }
 
-    .nav-contact-info:hover {
+    .nav-contact-pill:hover {
+      background: #EFF6FF;
+      border-color: #BFDBFE;
       color: var(--primary-blue);
+      transform: translateY(-1px);
     }
 
     .nav-contact-icon {
-      width: 32px;
-      height: 32px;
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
       background: #EFF6FF;
       color: var(--primary-blue);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.85rem;
+      font-size: 0.78rem;
     }
 
     /* Unified Patient Portal Primary CTA */
     .btn-patient-portal {
-      background: var(--primary-blue);
+      background: linear-gradient(135deg, #1E40AF 0%, #1D4ED8 100%);
       color: #FFFFFF !important;
       font-weight: 700;
       font-size: 0.9rem;
-      padding: 0.65rem 1.4rem;
-      border-radius: 12px;
+      padding: 0.65rem 1.45rem;
+      border-radius: 30px;
       border: none;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      box-shadow: 0 4px 14px rgba(30, 64, 175, 0.22);
+      box-shadow: 0 4px 14px rgba(30, 64, 175, 0.25);
       transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
       cursor: pointer;
     }
 
     .btn-patient-portal:hover {
-      background: var(--primary-blue-hover);
+      background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%);
       color: #FFFFFF !important;
       transform: translateY(-2px);
-      box-shadow: 0 8px 22px rgba(30, 64, 175, 0.32);
+      box-shadow: 0 8px 22px rgba(30, 64, 175, 0.35);
     }
 
     .btn-patient-portal:active {
@@ -177,319 +157,397 @@
     }
 
     /* -------------------------------------------------------------
-       2. Hero Section & Ken Burns Slideshow
+       2. Hero Section - Premium Modern Healthcare Aesthetic
     ------------------------------------------------------------- */
     .hero-wrapper {
       position: relative;
-      background: radial-gradient(circle at 85% 15%, #F0FDFA 0%, #F8FAFC 50%, #FFFFFF 100%);
-      padding: 3.5rem 0 4.5rem 0;
-      min-height: 82vh;
+      background: #FFFFFF;
+      padding: 4rem 0 4.5rem 0;
+      min-height: 84vh;
       display: flex;
       align-items: center;
       overflow: hidden;
       border-bottom: 1px solid var(--border-color);
     }
 
-    .hero-wrapper>.container {
+    .hero-wrapper > .container {
       position: relative;
       z-index: 2;
     }
 
-    /* -------------------------------------------------------------
-       2b. Animated Hero Background (orbs + grid + particles)
-    ------------------------------------------------------------- */
-    .hero-bg-animated {
+    /* Subtle Animated Background */
+    .hero-bg-canvas {
       position: absolute;
       inset: 0;
       z-index: 0;
+      pointer-events: none;
       overflow: hidden;
+    }
+
+    /* Subtle Grid Pattern on left */
+    .hero-grid-subtle {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 520px;
+      height: 100%;
+      background-image:
+        linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+      background-size: 36px 36px;
+      -webkit-mask-image: radial-gradient(ellipse 75% 75% at 20% 35%, #000 25%, transparent 85%);
+      mask-image: radial-gradient(ellipse 75% 75% at 20% 35%, #000 25%, transparent 85%);
+    }
+
+    /* Organic soft shape behind right image */
+    .hero-shape-backdrop {
+      position: absolute;
+      width: 640px;
+      height: 560px;
+      top: -30px;
+      right: -80px;
+      background: radial-gradient(circle at 60% 45%, rgba(204, 251, 241, 0.7) 0%, rgba(224, 242, 254, 0.6) 45%, rgba(240, 253, 250, 0.1) 75%, transparent 100%);
+      border-radius: 46% 54% 58% 42% / 44% 56% 44% 56%;
+      filter: blur(12px);
+      z-index: 0;
+      pointer-events: none;
+      animation: shapeMorph 18s ease-in-out infinite alternate;
+    }
+
+    @keyframes shapeMorph {
+      0% {
+        border-radius: 46% 54% 58% 42% / 44% 56% 44% 56%;
+        transform: translate(0, 0) rotate(0deg);
+      }
+      100% {
+        border-radius: 54% 46% 44% 56% / 52% 48% 52% 48%;
+        transform: translate(-15px, 12px) rotate(3deg);
+      }
+    }
+
+    /* Soft top-left ambient glow */
+    .hero-glow-soft {
+      position: absolute;
+      width: 420px;
+      height: 420px;
+      top: -160px;
+      left: -120px;
+      background: radial-gradient(circle, rgba(224, 242, 254, 0.6) 0%, rgba(240, 253, 250, 0) 70%);
+      filter: blur(50px);
       pointer-events: none;
     }
 
-    .hero-grid-overlay {
-      position: absolute;
-      inset: -1px;
-      background-image:
-        linear-gradient(rgba(15, 23, 42, 0.045) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
-      background-size: 44px 44px;
-      -webkit-mask-image: radial-gradient(ellipse 75% 65% at 60% 20%, #000 35%, transparent 90%);
-      mask-image: radial-gradient(ellipse 75% 65% at 60% 20%, #000 35%, transparent 90%);
-      animation: gridDrift 26s linear infinite;
-    }
-
-    @keyframes gridDrift {
-      0% {
-        background-position: 0 0, 0 0;
-      }
-
-      100% {
-        background-position: 88px 44px, 88px 44px;
-      }
-    }
-
-    .hero-orb {
+    /* Floating micro decorative elements */
+    .hero-decor-dot {
       position: absolute;
       border-radius: 50%;
-      filter: blur(70px);
-      opacity: 0.5;
-      will-change: transform;
-      animation: orbFloat 20s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 1;
     }
 
-    .hero-orb-1 {
-      width: 460px;
-      height: 460px;
-      top: -160px;
-      right: -120px;
-      background: radial-gradient(circle, rgba(30, 64, 175, 0.55), transparent 70%);
-      animation-duration: 24s;
+    .dot-teal {
+      width: 7px;
+      height: 7px;
+      background: #0D9488;
+      box-shadow: 0 0 10px 2px rgba(13, 148, 136, 0.4);
+      animation: floatDot 6s ease-in-out infinite alternate;
     }
 
-    .hero-orb-2 {
-      width: 380px;
-      height: 380px;
-      bottom: -160px;
-      left: -110px;
-      background: radial-gradient(circle, rgba(13, 148, 136, 0.5), transparent 70%);
-      animation-duration: 28s;
-      animation-delay: -6s;
+    .dot-blue {
+      width: 6px;
+      height: 6px;
+      background: #2563EB;
+      box-shadow: 0 0 10px 2px rgba(37, 99, 235, 0.4);
+      animation: floatDot 7s ease-in-out infinite alternate-reverse;
     }
 
-    .hero-orb-3 {
-      width: 280px;
-      height: 280px;
-      top: 38%;
-      left: 52%;
-      background: radial-gradient(circle, rgba(56, 189, 248, 0.4), transparent 70%);
-      animation-duration: 21s;
-      animation-delay: -3s;
-    }
-
-    @keyframes orbFloat {
-
-      0%,
-      100% {
-        transform: translate(0, 0) scale(1);
-      }
-
-      33% {
-        transform: translate(34px, -42px) scale(1.08);
-      }
-
-      66% {
-        transform: translate(-28px, 30px) scale(0.94);
-      }
-    }
-
-    .hero-particle {
+    .hero-decor-sparkle {
       position: absolute;
-      bottom: -20px;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: var(--accent-teal);
-      box-shadow: 0 0 8px 2px rgba(13, 148, 136, 0.5);
-      opacity: 0;
-      animation: particleRise linear infinite;
+      color: rgba(13, 148, 136, 0.35);
+      font-size: 1rem;
+      pointer-events: none;
+      z-index: 1;
+      animation: floatSparkle 8s ease-in-out infinite;
     }
 
-    .hero-particle:nth-child(odd) {
-      background: var(--primary-blue);
-      box-shadow: 0 0 8px 2px rgba(30, 64, 175, 0.45);
+    @keyframes floatDot {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-8px); }
     }
 
-    @keyframes particleRise {
-      0% {
-        transform: translateY(0) translateX(0);
-        opacity: 0;
-      }
-
-      12% {
-        opacity: 0.65;
-      }
-
-      88% {
-        opacity: 0.55;
-      }
-
-      100% {
-        transform: translateY(-560px) translateX(30px);
-        opacity: 0;
-      }
+    @keyframes floatSparkle {
+      0%, 100% { transform: translateY(0) scale(1); opacity: 0.35; }
+      50% { transform: translateY(-6px) scale(1.15); opacity: 0.6; }
     }
 
-    @media (prefers-reduced-motion: reduce) {
-
-      .hero-grid-overlay,
-      .hero-orb,
-      .hero-particle {
-        animation: none !important;
-      }
-    }
-
-    .hero-badge-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
-      border-radius: 20px;
-      background: #EFF6FF;
-      border: 1px solid #BFDBFE;
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--primary-blue);
-      margin-bottom: 1.25rem;
-    }
-
+    /* Hero Typography */
     .hero-main-title {
-      font-size: 3.2rem;
+      font-size: 3.5rem;
       font-weight: 800;
       line-height: 1.15;
       color: var(--primary-navy);
       letter-spacing: -1px;
-      margin-bottom: 1.2rem;
+      margin-bottom: 1.35rem;
     }
 
-    .hero-main-title .text-accent {
-      color: var(--accent-teal);
+    .text-gradient-accent {
+      background: linear-gradient(135deg, #0284C7 0%, #0D9488 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: inline-block;
     }
 
     .hero-lead-text {
-      font-size: 1.08rem;
-      color: var(--text-muted);
-      line-height: 1.65;
-      margin-bottom: 2rem;
-      max-width: 500px;
+      font-size: 1.05rem;
+      color: #475569;
+      line-height: 1.7;
+      margin-bottom: 2.25rem;
+      max-width: 520px;
     }
 
+    /* CTA Group */
     .cta-group {
       display: flex;
       align-items: center;
-      gap: 14px;
-      margin-bottom: 2.5rem;
+      gap: 16px;
+      margin-bottom: 1rem;
     }
 
     .btn-cta-primary {
-      background: var(--primary-blue);
-      color: #FFFFFF;
+      background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%);
+      color: #FFFFFF !important;
       font-weight: 700;
-      font-size: 0.98rem;
-      padding: 0.85rem 1.8rem;
-      border-radius: 14px;
+      font-size: 0.96rem;
+      padding: 0.85rem 1.85rem;
+      border-radius: 50px;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      transition: all 0.25s ease;
-      box-shadow: 0 4px 16px rgba(30, 64, 175, 0.25);
-      position: relative;
-      animation: ctaPulseGlow 3.2s ease-in-out infinite;
-    }
-
-    @keyframes ctaPulseGlow {
-
-      0%,
-      100% {
-        box-shadow: 0 4px 16px rgba(30, 64, 175, 0.25);
-      }
-
-      50% {
-        box-shadow: 0 4px 22px rgba(30, 64, 175, 0.45);
-      }
+      gap: 10px;
+      box-shadow: 0 8px 22px -4px rgba(37, 99, 235, 0.38);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .btn-cta-primary:hover {
-      animation: none;
-      background: var(--primary-blue-hover);
-      color: #FFFFFF;
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(30, 64, 175, 0.35);
+      box-shadow: 0 12px 28px -4px rgba(37, 99, 235, 0.48);
+      color: #FFFFFF !important;
     }
 
-    .btn-cta-primary i {
+    .btn-cta-primary .cta-arrow {
       transition: transform 0.2s ease;
+      font-size: 0.95rem;
     }
 
-    .btn-cta-primary:hover i {
+    .btn-cta-primary:hover .cta-arrow {
       transform: translateX(4px);
     }
 
     .btn-cta-secondary {
       background: #FFFFFF;
-      color: var(--primary-navy);
-      border: 1.5px solid #CBD5E1;
+      color: #0F172A !important;
+      border: 1.5px solid #E2E8F0;
       font-weight: 700;
-      font-size: 0.98rem;
-      padding: 0.85rem 1.8rem;
-      border-radius: 14px;
+      font-size: 0.96rem;
+      padding: 0.85rem 1.85rem;
+      border-radius: 50px;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      transition: all 0.25s ease;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .btn-cta-secondary:hover {
-      border-color: var(--primary-blue);
-      color: var(--primary-blue);
+      border-color: #CBD5E1;
       background: #F8FAFC;
+      color: #1D4ED8 !important;
       transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.07);
     }
 
-    .hero-stats-strip {
-      background: #FFFFFF;
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 1rem 1.5rem;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      max-width: 520px;
+    .btn-cta-secondary .cta-arrow {
+      transition: transform 0.2s ease;
+      font-size: 0.88rem;
     }
 
-    .hero-stat-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    .btn-cta-secondary:hover .cta-arrow {
+      transform: translateX(4px);
     }
 
-    .hero-stat-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: #EFF6FF;
-      color: var(--primary-blue);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
+    /* Hero Photo Stage & Carousel */
+    .hero-photo-stage-wrapper {
+      position: relative;
+      z-index: 2;
     }
 
-    .hero-stat-val {
-      font-size: 1.1rem;
-      font-weight: 800;
-      color: var(--primary-navy);
-      line-height: 1.1;
-    }
-
-    .hero-stat-lbl {
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    /* Hero Slideshow Stage */
     .hero-photo-stage {
       position: relative;
       width: 100%;
       height: 480px;
-      border-radius: 24px;
+      border-radius: 28px;
       overflow: hidden;
-      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
-      border: 4px solid #FFFFFF;
+      box-shadow: 0 24px 50px -10px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(255, 255, 255, 0.6);
+      border: 6px solid #FFFFFF;
+      background: #E2E8F0;
+      transform: translateZ(0);
     }
+
+    .hero-slide {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      opacity: 0;
+      transform: scale(1.03);
+      transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), transform 6s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .hero-slide.active {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Floating Card Top-Right */
+    .hero-floating-card {
+      position: absolute;
+      top: 22px;
+      right: 22px;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 16px;
+      padding: 10px 16px;
+      box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.12);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 10;
+      animation: floatGentle 4.5s ease-in-out infinite alternate;
+      transition: transform 0.25s ease;
+    }
+
+    .hero-floating-card:hover {
+      transform: translateY(-3px) scale(1.02);
+    }
+
+    @keyframes floatGentle {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-6px); }
+    }
+
+    .hero-float-icon-wrap {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: #CCFBF1;
+      color: #0D9488;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      flex-shrink: 0;
+    }
+
+    .hero-float-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #0F172A;
+      line-height: 1.2;
+    }
+
+    .hero-float-sub {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #64748B;
+    }
+
+    .hero-float-arrow {
+      color: #1D4ED8;
+      font-size: 0.8rem;
+      margin-left: 2px;
+    }
+
+    /* Carousel Navigation Controls Pill Bottom-Right */
+    .hero-carousel-controls {
+      position: absolute;
+      bottom: 18px;
+      right: 20px;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 30px;
+      padding: 5px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 12;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+    }
+
+    .hero-nav-arrow {
+      background: transparent;
+      border: none;
+      color: #FFFFFF;
+      font-size: 0.75rem;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      padding: 0;
+    }
+
+    .hero-nav-arrow:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .hero-dots-container {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hero-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.45);
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .hero-dot.active {
+      width: 18px;
+      border-radius: 4px;
+      background: #FFFFFF;
+    }
+
+    /* Staggered Entrance Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(22px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero-anim-1 { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both; }
+    .hero-anim-2 { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both; }
+    .hero-anim-3 { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.30s both; }
+    .hero-anim-4 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both; }
 
     .hero-slide {
       position: absolute;
@@ -1136,7 +1194,7 @@
 
         <!-- Right Side: Phone & Single Unified Patient Portal Button -->
         <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
-          <a href="tel:+919876543210" class="nav-contact-info d-none d-xl-flex">
+          <a href="tel:+919876543210" class="nav-contact-pill d-none d-xl-inline-flex">
             <div class="nav-contact-icon">
               <i class="bi bi-telephone-fill"></i>
             </div>
@@ -1147,8 +1205,7 @@
           <div class="d-flex align-items-center gap-2">
             <a href="{{ url_for('auth.dashboard') }}" class="btn-patient-portal" title="Go to Dashboard">
               <i class="bi bi-person-circle"></i>
-              <span>{{ current_user.name.split(' ')[0] }} ({{ current_user.role.name if current_user.role else 'User'
-                }})</span>
+              <span>{{ current_user.name.split(' ')[0] }} ({{ current_user.role.name if current_user.role else 'User' }})</span>
             </a>
             <a href="{{ url_for('auth.logout') }}"
               class="btn btn-outline-danger btn-sm rounded-pill px-3 py-2 fw-semibold" title="Sign Out">
@@ -1161,6 +1218,7 @@
             data-bs-target="#patientPortalAuthModal">
             <i class="bi bi-shield-lock-fill"></i>
             <span>Login Portal</span>
+            <i class="bi bi-arrow-right ms-1" style="font-size: 0.85rem;"></i>
           </button>
           {% endif %}
         </div>
@@ -1169,105 +1227,96 @@
   </nav>
 
   <!-- ============================================================
-       2. Hero Section with Ken Burns Photo Slideshow
+       2. Hero Section - Premium Modern Healthcare Aesthetic
   ============================================================ -->
   <section class="hero-wrapper">
-    <div class="hero-bg-animated" aria-hidden="true">
-      <div class="hero-grid-overlay"></div>
-      <div class="hero-orb hero-orb-1"></div>
-      <div class="hero-orb hero-orb-2"></div>
-      <div class="hero-orb hero-orb-3"></div>
-      <span class="hero-particle" style="left:8%; animation-duration:13s; animation-delay:0s;"></span>
-      <span class="hero-particle" style="left:18%; animation-duration:16s; animation-delay:-3s;"></span>
-      <span class="hero-particle" style="left:29%; animation-duration:12s; animation-delay:-7s;"></span>
-      <span class="hero-particle" style="left:41%; animation-duration:18s; animation-delay:-2s;"></span>
-      <span class="hero-particle" style="left:54%; animation-duration:14s; animation-delay:-9s;"></span>
-      <span class="hero-particle" style="left:66%; animation-duration:17s; animation-delay:-5s;"></span>
-      <span class="hero-particle" style="left:77%; animation-duration:13.5s; animation-delay:-1s;"></span>
-      <span class="hero-particle" style="left:88%; animation-duration:15s; animation-delay:-6s;"></span>
-      <span class="hero-particle" style="left:95%; animation-duration:19s; animation-delay:-4s;"></span>
+    <!-- Subtle Background Canvas (Grid + Soft Organic Shape + Micro Accents) -->
+    <div class="hero-bg-canvas" aria-hidden="true">
+      <div class="hero-grid-subtle"></div>
+      <div class="hero-shape-backdrop"></div>
+      <div class="hero-glow-soft"></div>
+      <span class="hero-decor-dot dot-teal" style="top: 28%; left: 3.2%;"></span>
+      <span class="hero-decor-dot dot-blue" style="bottom: 16%; left: 4%;"></span>
+      <span class="hero-decor-sparkle" style="top: 34%; right: 46%;"><i class="bi bi-plus-lg"></i></span>
+      <span class="hero-decor-sparkle" style="bottom: 36%; right: 48%; font-size: 1.2rem;"><i class="bi bi-plus-lg"></i></span>
     </div>
+
     <div class="container px-lg-4">
       <div class="row align-items-center g-4 g-xl-5">
 
         <!-- Left Hero Text Column -->
-        <div class="col-lg-6">
-          <div class="hero-badge-pill">
-            <i class="bi bi-shield-check"></i> JCI & NABH Accredited Standards
-          </div>
-
+        <div class="col-lg-6 hero-anim-1">
           <h1 class="hero-main-title">
-            Your Health,<br>
-            Our <span class="text-accent">Priority</span>
+            Better Care Today,<br>
+            <span class="text-gradient-accent">Healthier Tomorrow</span>
           </h1>
 
-          <p class="hero-lead-text">
-            Advanced medical care with compassion, innovation and clinical expertise — connecting patients, doctors, and
-            diagnostics in one unified healthcare ecosystem.
+          <p class="hero-lead-text hero-anim-2">
+            Experience connected, compassionate and advanced healthcare — bringing doctors, diagnostics and digital health together in one seamless platform for you and your family.
           </p>
 
-          <div class="cta-group">
+          <div class="cta-group hero-anim-3">
             <a href="#doctors" class="btn-cta-primary">
-              Book an Appointment <i class="bi bi-arrow-right"></i>
+              <i class="bi bi-calendar2-check-fill"></i>
+              <span>Book an Appointment</span>
+              <i class="bi bi-arrow-right cta-arrow"></i>
             </a>
 
             <a href="#services" class="btn-cta-secondary">
-              Explore Services <i class="bi bi-chevron-right"></i>
+              <span>Explore Services</span>
+              <i class="bi bi-arrow-right cta-arrow"></i>
             </a>
-          </div>
-
-          <!-- Trust Statistics Strip -->
-          <div class="hero-stats-strip">
-            <div class="hero-stat-item">
-              <div class="hero-stat-icon"><i class="bi bi-people-fill"></i></div>
-              <div>
-                <div class="hero-stat-val">20+</div>
-                <div class="hero-stat-lbl">Specialists</div>
-              </div>
-            </div>
-            <div class="hero-stat-item">
-              <div class="hero-stat-icon" style="background:#ECFDF5; color:#059669;"><i
-                  class="bi bi-shield-lock-fill"></i></div>
-              <div>
-                <div class="hero-stat-val">100%</div>
-                <div class="hero-stat-lbl">Encrypted EHR</div>
-              </div>
-            </div>
-            <div class="hero-stat-item">
-              <div class="hero-stat-icon" style="background:#FFFBEB; color:#D97706;"><i class="bi bi-clock-history"></i>
-              </div>
-              <div>
-                <div class="hero-stat-val">24/7</div>
-                <div class="hero-stat-lbl">Emergency Desk</div>
-              </div>
-            </div>
           </div>
         </div>
 
         <!-- Right Hero Photo Slideshow Column -->
-        <div class="col-lg-6">
-          <div class="hero-photo-stage" id="heroPhotoStage">
-            <!-- Slideshow Images -->
-            <img src="{{ url_for('static', filename='images/hero_doctor_patient.jpg') }}"
-              alt="Doctor Patient Consultation" class="hero-slide active">
-            <img src="{{ url_for('static', filename='images/hero_doctor_child.jpg') }}" alt="Pediatric Healthcare Care"
-              class="hero-slide">
-            <img src="{{ url_for('static', filename='images/hero_doctor_elderly.jpg') }}" alt="Senior Geriatric Care"
-              class="hero-slide">
-            <img src="{{ url_for('static', filename='images/hero_laboratory.jpg') }}"
-              alt="Diagnostic Laboratory Testing" class="hero-slide">
-            <img src="{{ url_for('static', filename='images/hero_ultrasound.jpg') }}" alt="Modern Clinical Imaging"
-              class="hero-slide">
-
-
-            <!-- Indicators -->
-            <div class="hero-dots-indicator" id="heroDots">
-              <span class="hero-dot active" onclick="setHeroSlide(0)"></span>
-              <span class="hero-dot" onclick="setHeroSlide(1)"></span>
-              <span class="hero-dot" onclick="setHeroSlide(2)"></span>
-              <span class="hero-dot" onclick="setHeroSlide(3)"></span>
-              <span class="hero-dot" onclick="setHeroSlide(4)"></span>
+        <div class="col-lg-6 hero-anim-4">
+          <div class="hero-photo-stage-wrapper">
+            
+            <!-- Subtle Floating Informational Card -->
+            <div class="hero-floating-card">
+              <div class="hero-float-icon-wrap">
+                <i class="bi bi-people-fill"></i>
+              </div>
+              <div>
+                <div class="hero-float-title">Trusted Healthcare</div>
+                <div class="hero-float-sub">for Your Family</div>
+              </div>
+              <i class="bi bi-chevron-right hero-float-arrow"></i>
             </div>
+
+            <!-- Carousel Photo Stage -->
+            <div class="hero-photo-stage" id="heroPhotoStage">
+              <!-- Slideshow Images (hero_doctor_child.jpg matching reference active visual) -->
+              <img src="{{ url_for('static', filename='images/hero_doctor_child.jpg') }}" alt="Pediatric Healthcare Care"
+                class="hero-slide active">
+              <img src="{{ url_for('static', filename='images/hero_doctor_patient.jpg') }}"
+                alt="Doctor Patient Consultation" class="hero-slide">
+              <img src="{{ url_for('static', filename='images/hero_doctor_elderly.jpg') }}" alt="Senior Geriatric Care"
+                class="hero-slide">
+              <img src="{{ url_for('static', filename='images/hero_laboratory.jpg') }}"
+                alt="Diagnostic Laboratory Testing" class="hero-slide">
+              <img src="{{ url_for('static', filename='images/hero_ultrasound.jpg') }}" alt="Modern Clinical Imaging"
+                class="hero-slide">
+
+              <!-- Unified Carousel Navigation Controls (Arrows + Indicators) -->
+              <div class="hero-carousel-controls">
+                <button type="button" class="hero-nav-arrow" onclick="prevHeroSlide()" aria-label="Previous Slide">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <div class="hero-dots-container" id="heroDots">
+                  <span class="hero-dot active" onclick="setHeroSlide(0)"></span>
+                  <span class="hero-dot" onclick="setHeroSlide(1)"></span>
+                  <span class="hero-dot" onclick="setHeroSlide(2)"></span>
+                  <span class="hero-dot" onclick="setHeroSlide(3)"></span>
+                  <span class="hero-dot" onclick="setHeroSlide(4)"></span>
+                </div>
+                <button type="button" class="hero-nav-arrow" onclick="nextHeroSlide()" aria-label="Next Slide">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -1915,6 +1964,12 @@
       if (!slides.length) return;
       const nextIdx = (currentHeroIdx + 1) % slides.length;
       setHeroSlide(nextIdx);
+    }
+
+    function prevHeroSlide() {
+      if (!slides.length) return;
+      const prevIdx = (currentHeroIdx - 1 + slides.length) % slides.length;
+      setHeroSlide(prevIdx);
     }
 
     function resetHeroTimer() {
