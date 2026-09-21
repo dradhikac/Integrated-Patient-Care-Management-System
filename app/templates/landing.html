@@ -754,12 +754,19 @@
       .hero-anim-1,
       .hero-anim-2,
       .hero-anim-3,
-      .hero-anim-4 {
+      .hero-anim-4,
+      .trust-shape-backdrop,
+      .trust-decor-plus,
+      .trust-pill-badge,
+      .reveal-elem,
+      .reveal-video {
         animation: none !important;
         transform: none !important;
         opacity: 1 !important;
+        transition: none !important;
       }
-      .hero-photo-stage {
+      .hero-photo-stage,
+      .trust-photo-box {
         transition: none !important;
         transform: none !important;
       }
@@ -791,76 +798,378 @@
         gap: 14px;
         max-width: 100%;
       }
+      .trust-section {
+        padding: 4.25rem 0;
+      }
+      .trust-photo-box video {
+        height: 340px;
+      }
+      .trust-shape-backdrop {
+        width: 380px;
+        height: 320px;
+        left: -15px;
+      }
+      .trust-pill-badge {
+        bottom: 14px;
+        left: 14px;
+        padding: 8px 12px;
+      }
     }
 
     /* -------------------------------------------------------------
-       3. Trust & Why Choose Section
+       3. Trust & Why Choose Section - Premium Healthcare SaaS
     ------------------------------------------------------------- */
     .trust-section {
-      padding: 5.5rem 0;
-      background: #FFFFFF;
+      position: relative;
+      padding: 6.5rem 0 6.5rem 0;
+      background: radial-gradient(ellipse 95% 75% at 50% 25%, #FFFFFF 25%, #F8FAFC 70%, #F0F9FF 100%);
       border-bottom: 1px solid var(--border-color);
+      overflow: hidden;
     }
 
+    /* Subtle background canvas for section 3 */
+    .trust-bg-canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .trust-grid-subtle {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 500px;
+      height: 100%;
+      background-image:
+        linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
+      background-size: 36px 36px;
+      -webkit-mask-image: radial-gradient(ellipse 70% 70% at 75% 40%, #000 20%, transparent 80%);
+      mask-image: radial-gradient(ellipse 70% 70% at 75% 40%, #000 20%, transparent 80%);
+    }
+
+    /* Soft ambient cyan/blue glow near video */
+    .trust-glow-soft {
+      position: absolute;
+      width: 480px;
+      height: 480px;
+      top: 15%;
+      left: -60px;
+      background: radial-gradient(circle, rgba(186, 230, 253, 0.45) 0%, rgba(204, 251, 241, 0.22) 50%, transparent 75%);
+      filter: blur(50px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Decorative Plus & Dots */
+    .trust-decor-plus {
+      position: absolute;
+      color: rgba(6, 182, 212, 0.55);
+      font-size: 1.15rem;
+      pointer-events: none;
+      z-index: 1;
+      animation: floatPlus 5.5s ease-in-out infinite alternate;
+    }
+
+    .trust-decor-plus.plus-teal {
+      color: rgba(13, 148, 136, 0.45);
+      font-size: 1.25rem;
+    }
+
+    .trust-decor-dot {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Video Column & Stage Container */
+    .trust-video-wrapper {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Organic background shape behind the video */
+    .trust-shape-backdrop {
+      position: absolute;
+      width: 540px;
+      height: 480px;
+      top: -25px;
+      left: -35px;
+      background: radial-gradient(ellipse at 48% 52%, rgba(103, 232, 249, 0.55) 0%, rgba(165, 243, 252, 0.42) 45%, rgba(224, 242, 254, 0.22) 75%, transparent 100%);
+      border-radius: 48% 52% 44% 56% / 54% 46% 54% 46%;
+      filter: blur(14px);
+      z-index: 0;
+      pointer-events: none;
+      animation: videoShapeMorph 11s ease-in-out infinite alternate;
+    }
+
+    @keyframes videoShapeMorph {
+      0% {
+        border-radius: 48% 52% 44% 56% / 54% 46% 54% 46%;
+        transform: translate(0, 0) rotate(0deg);
+      }
+      50% {
+        border-radius: 54% 46% 52% 48% / 46% 54% 48% 52%;
+        transform: translate(10px, -12px) scale(1.025) rotate(-1.5deg);
+      }
+      100% {
+        border-radius: 44% 56% 48% 52% / 52% 48% 46% 54%;
+        transform: translate(14px, 8px) scale(1.015) rotate(1deg);
+      }
+    }
+
+    /* Cinematic Video Card */
     .trust-photo-box {
       position: relative;
-      border-radius: 22px;
+      border-radius: 28px;
       overflow: hidden;
-      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
-      border: 3px solid #FFFFFF;
+      box-shadow: 0 22px 50px -10px rgba(15, 23, 42, 0.13), 0 0 0 1px rgba(226, 232, 240, 0.8);
+      border: 5px solid #FFFFFF;
+      background: #0F172A;
+      transform: translateZ(0);
+      will-change: transform, box-shadow;
+      transition: transform 320ms cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 320ms cubic-bezier(0.25, 0.8, 0.25, 1);
+      z-index: 1;
     }
 
-    .trust-photo-box img,
+    .trust-photo-box:hover {
+      transform: translateY(-4px) scale(1.008);
+      box-shadow: 0 30px 65px -10px rgba(15, 23, 42, 0.18), 0 0 20px rgba(103, 232, 249, 0.25);
+    }
+
     .trust-photo-box video {
       width: 100%;
       height: 440px;
       object-fit: cover;
       display: block;
-      transition: transform 0.5s ease;
+      border-radius: 22px;
+      transform: translateZ(0);
     }
 
-    .trust-photo-box:hover img {
-      transform: scale(1.03);
+    /* Subtle bottom gradient overlay on video */
+    .trust-video-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 22px;
+      background: linear-gradient(180deg, transparent 65%, rgba(15, 23, 42, 0.38) 100%);
+      pointer-events: none;
+      z-index: 2;
     }
 
+    /* Small Understated Video Tag */
+    .trust-video-tag {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 30px;
+      padding: 5px 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      color: #FFFFFF;
+      text-transform: uppercase;
+      z-index: 3;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .trust-tag-pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 8px #10B981;
+    }
+
+    /* Floating Video Information Card */
     .trust-pill-badge {
       position: absolute;
-      bottom: 20px;
+      bottom: 22px;
       left: 20px;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(8px);
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 12px 18px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      padding: 10px 16px;
+      box-shadow: 0 12px 30px -4px rgba(15, 23, 42, 0.15);
+      z-index: 4;
+      animation: floatTrustCard 4.5s ease-in-out infinite;
+      cursor: default;
+      transition: transform 0.25s ease;
     }
 
+    .trust-pill-badge:hover {
+      transform: scale(1.02);
+    }
+
+    @keyframes floatTrustCard {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-6px);
+      }
+    }
+
+    .trust-badge-icon-wrap {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #CCFBF1;
+      color: #0D9488;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .trust-badge-title {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #0F172A;
+      line-height: 1.25;
+    }
+
+    .trust-badge-sub {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: #64748B;
+      line-height: 1.25;
+    }
+
+    /* Section Label Pill */
+    .section-label-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #EFF6FF;
+      color: #1D4ED8;
+      border: 1px solid #DBEAFE;
+      border-radius: 30px;
+      padding: 5px 14px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .label-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #2563EB;
+    }
+
+    /* Section Heading */
+    .trust-main-heading {
+      font-size: clamp(2rem, 3.2vw, 2.65rem);
+      font-weight: 800;
+      line-height: 1.2;
+      color: var(--primary-navy);
+      letter-spacing: -0.6px;
+      margin-bottom: 1rem;
+    }
+
+    .trust-lead-desc {
+      font-size: 1.02rem;
+      color: #475569;
+      line-height: 1.68;
+      margin-bottom: 2rem;
+      max-width: 580px;
+    }
+
+    /* Four Feature Cards in 2x2 Grid */
     .trust-point-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 18px;
+      padding: 18px 20px;
+      height: 100%;
       display: flex;
       align-items: flex-start;
-      gap: 16px;
-      padding: 16px;
-      border-radius: 14px;
-      transition: all 0.22s ease;
-      border: 1px solid transparent;
+      gap: 14px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+      transition: transform 260ms ease, box-shadow 260ms ease, border-color 260ms ease;
     }
 
     .trust-point-card:hover {
-      background: #F8FAFC;
-      border-color: var(--border-color);
-      transform: translateY(-2px);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 26px -4px rgba(15, 23, 42, 0.08);
+      border-color: #BFDBFE;
     }
 
     .trust-point-icon {
-      width: 44px;
-      height: 44px;
+      width: 42px;
+      height: 42px;
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       flex-shrink: 0;
+      transition: transform 260ms ease;
     }
+
+    .trust-point-card:hover .trust-point-icon {
+      transform: scale(1.08);
+    }
+
+    .trust-point-title {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: #0F172A;
+      margin-bottom: 3px;
+      line-height: 1.25;
+    }
+
+    .trust-point-desc {
+      font-size: 0.78rem;
+      color: #64748B;
+      line-height: 1.45;
+      margin: 0;
+    }
+
+    /* Staggered Scroll Reveal Transitions */
+    .reveal-elem {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .scroll-reveal.revealed .reveal-elem {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-video {
+      opacity: 0;
+      transform: translateY(26px) scale(0.985);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .scroll-reveal.revealed .reveal-video {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .scroll-reveal.revealed .rev-d1 { transition-delay: 0.08s; }
+    .scroll-reveal.revealed .rev-d2 { transition-delay: 0.16s; }
+    .scroll-reveal.revealed .rev-d3 { transition-delay: 0.24s; }
+    .scroll-reveal.revealed .rev-d4 { transition-delay: 0.32s; }
+    .scroll-reveal.revealed .rev-d5 { transition-delay: 0.40s; }
+    .scroll-reveal.revealed .rev-d6 { transition-delay: 0.48s; }
+    .scroll-reveal.revealed .rev-d7 { transition-delay: 0.56s; }
 
     /* -------------------------------------------------------------
        4. Doctors Section (Center-Focused 3D Carousel)
@@ -1547,102 +1856,139 @@
   </section>
 
   <!-- ============================================================
-       3. Trust & Healthcare Introduction Section
+       3. Trust & Healthcare Introduction Section (Why Choose CareHub)
   ============================================================ -->
   <section class="trust-section scroll-reveal" id="about">
-    <div class="container px-lg-4">
+    <!-- Subtle Background Canvas (Grid + Glow + Micro Accents) -->
+    <div class="trust-bg-canvas" aria-hidden="true">
+      <div class="trust-grid-subtle"></div>
+      <div class="trust-glow-soft"></div>
+      <span class="trust-decor-plus" style="top: 14%; left: 4%;"><i class="bi bi-plus-lg"></i></span>
+      <span class="trust-decor-plus plus-teal" style="bottom: 18%; right: 4%;"><i class="bi bi-plus-lg"></i></span>
+      <span class="trust-decor-dot dot-teal" style="top: 28%; right: 7%;"></span>
+      <span class="trust-decor-dot dot-blue" style="bottom: 14%; left: 3%;"></span>
+    </div>
+
+    <div class="container px-lg-4 position-relative" style="z-index: 2;">
       <div class="row align-items-center g-4 g-xl-5">
 
-        <!-- Left Video with Depth Badge -->
-        <div class="col-lg-5">
-          <div class="trust-photo-box">
-            <video autoplay loop muted playsinline
-              poster="{{ url_for('static', filename='images/hero_doctor_elderly.jpg') }}">
-              <source src="{{ url_for('static', filename='videos/hero_video.mp4') }}" type="video/mp4">
-              Your browser does not support the video tag.
-            </video>
-            <div class="trust-pill-badge">
-              <div class="d-flex align-items-center gap-3">
-                <div
-                  style="width: 40px; height: 40px; border-radius: 10px; background: #EFF6FF; color: #1E40AF; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
-                  <i class="bi bi-star-fill text-warning"></i>
-                </div>
-                <div>
-                  <div class="fw-bold text-dark" style="font-size: 0.9rem;">4.9 / 5.0 Patient Trust</div>
-                  <div class="text-muted" style="font-size: 0.75rem;">Verified Clinical Outcomes</div>
+        <!-- Left Video with Depth Layers & Floating Card -->
+        <div class="col-lg-5 reveal-video">
+          <div class="trust-video-wrapper">
+            <!-- Organic shape backdrop behind video -->
+            <div class="trust-shape-backdrop" aria-hidden="true"></div>
+
+            <!-- Main Cinematic Video Card -->
+            <div class="trust-photo-box">
+              <video autoplay loop muted playsinline
+                poster="{{ url_for('static', filename='images/hero_doctor_elderly.jpg') }}">
+                <source src="{{ url_for('static', filename='videos/hero_video.mp4') }}" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+              
+              <!-- Subtle bottom gradient overlay for contrast -->
+              <div class="trust-video-overlay" aria-hidden="true"></div>
+
+              <!-- Small Understated Editorial Tag -->
+              <div class="trust-video-tag">
+                <span class="trust-tag-pulse"></span>
+                <span>The CareHub Experience</span>
+              </div>
+
+              <!-- Floating Information Card (Patient-Centered Value Proposition) -->
+              <div class="trust-pill-badge">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="trust-badge-icon-wrap">
+                    <i class="bi bi-heart-pulse-fill"></i>
+                  </div>
+                  <div>
+                    <div class="trust-badge-title">Patient-Centered Care</div>
+                    <div class="trust-badge-sub">Every step, connected.</div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Right Value Propositions -->
+        <!-- Right Value Propositions & Clinical Pillars -->
         <div class="col-lg-7">
           <div class="ps-lg-3">
-            <span class="badge bg-primary-subtle text-primary px-3 py-1.5 rounded-pill fw-bold text-uppercase mb-2"
-              style="font-size: 0.75rem;">
-              Why Choose CareHub
-            </span>
-            <h2 class="fw-bold text-dark mb-3" style="font-size: 2.2rem; letter-spacing: -0.5px;">
-              Compassionate Healthcare Powered by Clinical Precision
+            
+            <!-- Section Label Pill -->
+            <div class="reveal-elem rev-d1 mb-3">
+              <div class="section-label-badge">
+                <span class="label-dot"></span>
+                <span>Why Choose CareHub</span>
+              </div>
+            </div>
+
+            <!-- Headline with Accent Highlight -->
+            <h2 class="trust-main-heading reveal-elem rev-d2">
+              Compassionate Healthcare<br>
+              Powered by <span class="text-gradient-accent">Clinical Precision</span>
             </h2>
-            <p class="text-muted mb-4" style="font-size: 1.02rem;">
-              We combine world-class medical specialists with state-of-the-art diagnostic technology to deliver
-              personalized, dignifying care for every patient and family.
+
+            <!-- Supporting Description -->
+            <p class="trust-lead-desc reveal-elem rev-d3">
+              We unite dedicated medical specialists with advanced diagnostics and integrated digital health to deliver empathetic, personalized, and dignifying care for you and your family.
             </p>
 
+            <!-- 4 Feature Value Cards in 2x2 Grid -->
             <div class="row g-3">
-              <div class="col-sm-6">
+              
+              <!-- Feature 1: Patient-First Philosophy -->
+              <div class="col-sm-6 reveal-elem rev-d4">
                 <div class="trust-point-card">
                   <div class="trust-point-icon" style="background: #EFF6FF; color: #1E40AF;">
                     <i class="bi bi-heart-pulse-fill"></i>
                   </div>
                   <div>
-                    <h6 class="fw-bold text-dark mb-1">Patient-First Philosophy</h6>
-                    <p class="text-muted small mb-0">Empathetic doctor consultations tailored to your individual health
-                      journey.</p>
+                    <h6 class="trust-point-title">Patient-First Philosophy</h6>
+                    <p class="trust-point-desc">Empathetic doctor consultations tailored to your individual health journey.</p>
                   </div>
                 </div>
               </div>
 
-              <div class="col-sm-6">
+              <!-- Feature 2: Integrated Digital Health -->
+              <div class="col-sm-6 reveal-elem rev-d5">
                 <div class="trust-point-card">
-                  <div class="trust-point-icon" style="background: #ECFDF5; color: #059669;">
+                  <div class="trust-point-icon" style="background: #CCFBF1; color: #0D9488;">
                     <i class="bi bi-shield-check"></i>
                   </div>
                   <div>
-                    <h6 class="fw-bold text-dark mb-1">Integrated Digital Health</h6>
-                    <p class="text-muted small mb-0">Encrypted medical records, digital QR prescriptions, and online lab
-                      reports.</p>
+                    <h6 class="trust-point-title">Integrated Digital Health</h6>
+                    <p class="trust-point-desc">Encrypted medical records, digital QR prescriptions, and online lab reports.</p>
                   </div>
                 </div>
               </div>
 
-              <div class="col-sm-6">
+              <!-- Feature 3: Board-Certified Specialists -->
+              <div class="col-sm-6 reveal-elem rev-d6">
                 <div class="trust-point-card">
-                  <div class="trust-point-icon" style="background: #F0FDFA; color: #0D9488;">
-                    <i class="bi bi-person-check-fill"></i>
+                  <div class="trust-point-icon" style="background: #E0F2FE; color: #0284C7;">
+                    <i class="bi bi-person-badge-fill"></i>
                   </div>
                   <div>
-                    <h6 class="fw-bold text-dark mb-1">Board-Certified Specialists</h6>
-                    <p class="text-muted small mb-0">Leading surgeons, physicians, and pediatric specialists under one
-                      roof.</p>
+                    <h6 class="trust-point-title">Board-Certified Specialists</h6>
+                    <p class="trust-point-desc">Leading surgeons, physicians, and pediatric specialists under one roof.</p>
                   </div>
                 </div>
               </div>
 
-              <div class="col-sm-6">
+              <!-- Feature 4: 24/7 Rapid Emergency -->
+              <div class="col-sm-6 reveal-elem rev-d7">
                 <div class="trust-point-card">
-                  <div class="trust-point-icon" style="background: #FFFBEB; color: #D97706;">
+                  <div class="trust-point-icon" style="background: #FEF3C7; color: #D97706;">
                     <i class="bi bi-truck-front-fill"></i>
                   </div>
                   <div>
-                    <h6 class="fw-bold text-dark mb-1">24/7 Rapid Emergency</h6>
-                    <p class="text-muted small mb-0">Dedicated trauma resuscitation, ambulance dispatch, and critical
-                      care units.</p>
+                    <h6 class="trust-point-title">24/7 Rapid Emergency</h6>
+                    <p class="trust-point-desc">Dedicated trauma resuscitation, ambulance dispatch, and critical care units.</p>
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
         </div>
