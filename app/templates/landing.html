@@ -210,10 +210,10 @@
     /* Organic soft shape behind right image */
     .hero-shape-backdrop {
       position: absolute;
-      width: 680px;
-      height: 570px;
-      top: -30px;
-      right: -60px;
+      width: 580px;
+      height: 460px;
+      top: -20px;
+      right: -30px;
       background: radial-gradient(ellipse at 56% 48%, rgba(103, 232, 249, 0.62) 0%, rgba(165, 243, 252, 0.48) 42%, rgba(224, 242, 254, 0.28) 72%, transparent 100%);
       border-radius: 46% 54% 58% 42% / 44% 56% 44% 56%;
       filter: blur(14px);
@@ -241,10 +241,10 @@
     /* Soft ambient cyan/blue glow around hero image */
     .hero-glow-soft {
       position: absolute;
-      width: 520px;
-      height: 520px;
-      top: 10px;
-      right: -10px;
+      width: 440px;
+      height: 440px;
+      top: 0px;
+      right: 10px;
       background: radial-gradient(circle, rgba(186, 230, 253, 0.45) 0%, rgba(204, 251, 241, 0.25) 50%, transparent 75%);
       filter: blur(45px);
       pointer-events: none;
@@ -489,8 +489,8 @@
     }
 
     .hero-feature-icon {
-      width: 40px;
-      height: 40px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
       background: #E0F2FE;
       color: #0284C7;
@@ -501,14 +501,20 @@
       flex-shrink: 0;
     }
 
+    .hero-feature-icon svg {
+      width: 20px;
+      height: 20px;
+      display: block;
+    }
+
     .hero-feature-item:nth-child(2) .hero-feature-icon {
       background: #CCFBF1;
       color: #0D9488;
     }
 
     .hero-feature-item:nth-child(3) .hero-feature-icon {
-      background: #EFF6FF;
-      color: #1D4ED8;
+      background: #CCFBF1;
+      color: #0D9488;
     }
 
     .hero-feature-title {
@@ -527,7 +533,7 @@
     }
 
     /* -------------------------------------------------------------
-       Hero Photo Stage & Carousel (Right Column)
+       Hero Photo Stage & Carousel (Right Column - Compact & Sleek)
     ------------------------------------------------------------- */
     .hero-photo-stage-wrapper {
       position: relative;
@@ -537,11 +543,13 @@
     .hero-photo-stage {
       position: relative;
       width: 100%;
-      height: 480px;
-      border-radius: 28px;
+      max-width: 520px;
+      height: 380px;
+      margin-left: auto;
+      border-radius: 24px;
       overflow: hidden;
-      box-shadow: 0 24px 50px -10px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(255, 255, 255, 0.8);
-      border: 6px solid #FFFFFF;
+      box-shadow: 0 18px 40px -10px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.8);
+      border: 5px solid #FFFFFF;
       background: #E2E8F0;
       transform: translateZ(0);
       will-change: transform;
@@ -573,11 +581,11 @@
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.95);
       border-radius: 16px;
-      padding: 10px 16px;
+      padding: 9px 15px;
       box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.12);
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 11px;
       z-index: 10;
       cursor: default;
       transition: transform 0.25s ease;
@@ -589,8 +597,8 @@
 
     /* Top-Right Floating Card */
     .hero-float-top-right {
-      top: 22px;
-      right: 22px;
+      top: 16px;
+      right: 16px;
       animation: floatCardTop 4.5s ease-in-out infinite;
     }
 
@@ -605,8 +613,8 @@
 
     /* Lower-Left Floating Card */
     .hero-float-lower-left {
-      bottom: 24px;
-      left: -26px;
+      bottom: 18px;
+      left: -20px;
       animation: floatCardBottom 5.5s ease-in-out 1.2s infinite;
     }
 
@@ -1405,8 +1413,8 @@
     <div class="container px-lg-4">
       <div class="row align-items-center g-4 g-xl-5">
 
-        <!-- Left Hero Text Column (approx 45% desktop visual weight) -->
-        <div class="col-lg-5 col-xl-5 hero-anim-1">
+        <!-- Left Hero Text Column -->
+        <div class="col-lg-6 col-xl-6 hero-anim-1">
           <h1 class="hero-main-title">
             Better Care Today,<br>
             <span class="text-gradient-accent">Healthier Tomorrow</span>
@@ -1458,7 +1466,10 @@
 
             <div class="hero-feature-item">
               <div class="hero-feature-icon">
-                <i class="bi bi-shield-check-fill"></i>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  <polyline points="9 12 11 14 15 10"></polyline>
+                </svg>
               </div>
               <div>
                 <div class="hero-feature-title">Secure<br class="d-none d-sm-inline"> &amp; Private</div>
@@ -1468,8 +1479,8 @@
           </div>
         </div>
 
-        <!-- Right Hero Photo Slideshow Column (approx 55% desktop visual weight) -->
-        <div class="col-lg-7 col-xl-7 hero-anim-4">
+        <!-- Right Hero Photo Slideshow Column (Smaller, Compact & Sleek) -->
+        <div class="col-lg-6 col-xl-6 hero-anim-4">
           <div class="hero-photo-stage-wrapper">
             
             <!-- Top-Right Floating Card: Trusted Healthcare -->
