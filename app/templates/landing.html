@@ -141,15 +141,23 @@
       align-items: center;
       gap: 8px;
       box-shadow: 0 4px 14px rgba(30, 64, 175, 0.25);
-      transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+      transition: transform 260ms ease, box-shadow 260ms ease, background 260ms ease;
       cursor: pointer;
+    }
+
+    .btn-patient-portal .portal-arrow {
+      transition: transform 260ms ease;
     }
 
     .btn-patient-portal:hover {
       background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%);
       color: #FFFFFF !important;
       transform: translateY(-2px);
-      box-shadow: 0 8px 22px rgba(30, 64, 175, 0.35);
+      box-shadow: 0 8px 24px rgba(30, 64, 175, 0.35);
+    }
+
+    .btn-patient-portal:hover .portal-arrow {
+      transform: translateX(4px);
     }
 
     .btn-patient-portal:active {
@@ -162,7 +170,7 @@
     .hero-wrapper {
       position: relative;
       background: #FFFFFF;
-      padding: 4rem 0 4.5rem 0;
+      padding: 3.5rem 0 4.25rem 0;
       min-height: 84vh;
       display: flex;
       align-items: center;
@@ -175,7 +183,7 @@
       z-index: 2;
     }
 
-    /* Subtle Animated Background */
+    /* Subtle Animated Background Canvas */
     .hero-bg-canvas {
       position: absolute;
       inset: 0;
@@ -184,17 +192,17 @@
       overflow: hidden;
     }
 
-    /* Subtle Grid Pattern on left */
+    /* Subtle Grid Pattern on left side */
     .hero-grid-subtle {
       position: absolute;
       top: 0;
       left: 0;
-      width: 520px;
+      width: 540px;
       height: 100%;
       background-image:
         linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
         linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
-      background-size: 36px 36px;
+      background-size: 38px 38px;
       -webkit-mask-image: radial-gradient(ellipse 75% 75% at 20% 35%, #000 25%, transparent 85%);
       mask-image: radial-gradient(ellipse 75% 75% at 20% 35%, #000 25%, transparent 85%);
     }
@@ -202,42 +210,92 @@
     /* Organic soft shape behind right image */
     .hero-shape-backdrop {
       position: absolute;
-      width: 640px;
-      height: 560px;
+      width: 680px;
+      height: 570px;
       top: -30px;
-      right: -80px;
-      background: radial-gradient(circle at 60% 45%, rgba(204, 251, 241, 0.7) 0%, rgba(224, 242, 254, 0.6) 45%, rgba(240, 253, 250, 0.1) 75%, transparent 100%);
+      right: -60px;
+      background: radial-gradient(ellipse at 56% 48%, rgba(103, 232, 249, 0.62) 0%, rgba(165, 243, 252, 0.48) 42%, rgba(224, 242, 254, 0.28) 72%, transparent 100%);
       border-radius: 46% 54% 58% 42% / 44% 56% 44% 56%;
-      filter: blur(12px);
+      filter: blur(14px);
       z-index: 0;
       pointer-events: none;
-      animation: shapeMorph 18s ease-in-out infinite alternate;
+      animation: shapeMorph 10s ease-in-out infinite alternate;
+      transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
     @keyframes shapeMorph {
       0% {
         border-radius: 46% 54% 58% 42% / 44% 56% 44% 56%;
-        transform: translate(0, 0) rotate(0deg);
+        transform: translate(0, 0) scale(1) rotate(0deg);
+      }
+      50% {
+        border-radius: 52% 48% 46% 54% / 50% 48% 52% 50%;
+        transform: translate(-10px, -12px) scale(1.03) rotate(1.5deg);
       }
       100% {
-        border-radius: 54% 46% 44% 56% / 52% 48% 52% 48%;
-        transform: translate(-15px, 12px) rotate(3deg);
+        border-radius: 56% 44% 42% 58% / 54% 46% 54% 46%;
+        transform: translate(-15px, 10px) scale(1.02) rotate(-1deg);
       }
     }
 
-    /* Soft top-left ambient glow */
+    /* Soft ambient cyan/blue glow around hero image */
     .hero-glow-soft {
       position: absolute;
-      width: 420px;
-      height: 420px;
-      top: -160px;
-      left: -120px;
-      background: radial-gradient(circle, rgba(224, 242, 254, 0.6) 0%, rgba(240, 253, 250, 0) 70%);
-      filter: blur(50px);
+      width: 520px;
+      height: 520px;
+      top: 10px;
+      right: -10px;
+      background: radial-gradient(circle, rgba(186, 230, 253, 0.45) 0%, rgba(204, 251, 241, 0.25) 50%, transparent 75%);
+      filter: blur(45px);
       pointer-events: none;
+      z-index: 0;
     }
 
-    /* Floating micro decorative elements */
+    /* Decorative Dot Matrix in top-right behind image */
+    .hero-decor-dot-matrix {
+      position: absolute;
+      top: 28px;
+      right: 32px;
+      width: 140px;
+      height: 72px;
+      background-image: radial-gradient(rgba(13, 148, 136, 0.28) 2px, transparent 2px);
+      background-size: 14px 14px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Decorative Medical Pluses */
+    .hero-decor-plus {
+      position: absolute;
+      color: rgba(6, 182, 212, 0.6);
+      font-size: 1.25rem;
+      font-weight: 300;
+      pointer-events: none;
+      z-index: 1;
+      animation: floatPlus 5s ease-in-out infinite alternate;
+    }
+
+    .hero-decor-plus.plus-sm {
+      font-size: 1rem;
+      color: rgba(13, 148, 136, 0.45);
+    }
+
+    .hero-decor-plus.plus-blue {
+      color: rgba(37, 99, 235, 0.5);
+    }
+
+    @keyframes floatPlus {
+      0% {
+        opacity: 0.45;
+        transform: translateY(0);
+      }
+      100% {
+        opacity: 0.85;
+        transform: translateY(-6px);
+      }
+    }
+
+    /* Floating micro decorative dots */
     .hero-decor-dot {
       position: absolute;
       border-radius: 50%;
@@ -261,30 +319,16 @@
       animation: floatDot 7s ease-in-out infinite alternate-reverse;
     }
 
-    .hero-decor-sparkle {
-      position: absolute;
-      color: rgba(13, 148, 136, 0.35);
-      font-size: 1rem;
-      pointer-events: none;
-      z-index: 1;
-      animation: floatSparkle 8s ease-in-out infinite;
-    }
-
     @keyframes floatDot {
       0% { transform: translateY(0); }
-      100% { transform: translateY(-8px); }
-    }
-
-    @keyframes floatSparkle {
-      0%, 100% { transform: translateY(0) scale(1); opacity: 0.35; }
-      50% { transform: translateY(-6px) scale(1.15); opacity: 0.6; }
+      100% { transform: translateY(-7px); }
     }
 
     /* Hero Typography */
     .hero-main-title {
-      font-size: 3.5rem;
+      font-size: clamp(2.4rem, 3.8vw, 3.45rem);
       font-weight: 800;
-      line-height: 1.15;
+      line-height: 1.14;
       color: var(--primary-navy);
       letter-spacing: -1px;
       margin-bottom: 1.35rem;
@@ -301,9 +345,9 @@
     .hero-lead-text {
       font-size: 1.05rem;
       color: #475569;
-      line-height: 1.7;
-      margin-bottom: 2.25rem;
-      max-width: 520px;
+      line-height: 1.68;
+      margin-bottom: 2rem;
+      max-width: 530px;
     }
 
     /* CTA Group */
@@ -311,9 +355,10 @@
       display: flex;
       align-items: center;
       gap: 16px;
-      margin-bottom: 1rem;
+      flex-wrap: wrap;
     }
 
+    /* Book an Appointment Primary CTA with Ambient Pulsing Glow */
     .btn-cta-primary {
       background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%);
       color: #FFFFFF !important;
@@ -321,29 +366,55 @@
       font-size: 0.96rem;
       padding: 0.85rem 1.85rem;
       border-radius: 50px;
+      border: none;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      box-shadow: 0 8px 22px -4px rgba(37, 99, 235, 0.38);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 18px rgba(37, 99, 235, 0.38);
+      animation: ctaPulseGlow 2.8s ease-in-out infinite;
+      transition: transform 250ms ease, box-shadow 250ms ease, background 250ms ease;
+      cursor: pointer;
+    }
+
+    @keyframes ctaPulseGlow {
+      0%, 100% {
+        box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+      }
+      50% {
+        box-shadow: 0 6px 26px rgba(37, 99, 235, 0.58), 0 0 14px rgba(56, 189, 248, 0.35);
+      }
     }
 
     .btn-cta-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 28px -4px rgba(37, 99, 235, 0.48);
+      transform: translateY(-2.5px);
+      box-shadow: 0 10px 30px rgba(37, 99, 235, 0.55), 0 0 18px rgba(56, 189, 248, 0.4);
+      background: linear-gradient(135deg, #1E40AF 0%, #1D4ED8 100%);
       color: #FFFFFF !important;
     }
 
+    .btn-cta-primary:active {
+      transform: translateY(1px);
+    }
+
     .btn-cta-primary .cta-arrow {
-      transition: transform 0.2s ease;
+      transition: transform 250ms ease;
       font-size: 0.95rem;
     }
 
     .btn-cta-primary:hover .cta-arrow {
-      transform: translateX(4px);
+      transform: translateX(5px);
     }
 
+    .btn-cta-primary i:first-child {
+      transition: transform 250ms ease;
+    }
+
+    .btn-cta-primary:hover i:first-child {
+      transform: scale(1.08);
+    }
+
+    /* Explore Services Secondary CTA */
     .btn-cta-secondary {
       background: #FFFFFF;
       color: #0F172A !important;
@@ -357,7 +428,7 @@
       align-items: center;
       gap: 8px;
       box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 250ms ease, box-shadow 250ms ease, border-color 250ms ease, background 250ms ease, color 250ms ease;
     }
 
     .btn-cta-secondary:hover {
@@ -365,11 +436,15 @@
       background: #F8FAFC;
       color: #1D4ED8 !important;
       transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.07);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    }
+
+    .btn-cta-secondary:active {
+      transform: translateY(1px);
     }
 
     .btn-cta-secondary .cta-arrow {
-      transition: transform 0.2s ease;
+      transition: transform 250ms ease;
       font-size: 0.88rem;
     }
 
@@ -377,7 +452,83 @@
       transform: translateX(4px);
     }
 
-    /* Hero Photo Stage & Carousel */
+    /* -------------------------------------------------------------
+       Feature Strip under CTA (Non-numeric value propositions)
+    ------------------------------------------------------------- */
+    .hero-feature-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 2.2rem;
+      padding-top: 1.8rem;
+      border-top: 1px solid rgba(226, 232, 240, 0.8);
+      max-width: 540px;
+    }
+
+    .hero-feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      opacity: 0;
+      animation: featureItemFadeIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .hero-feature-item:nth-child(1) { animation-delay: 0.65s; }
+    .hero-feature-item:nth-child(2) { animation-delay: 0.75s; }
+    .hero-feature-item:nth-child(3) { animation-delay: 0.85s; }
+
+    @keyframes featureItemFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero-feature-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #E0F2FE;
+      color: #0284C7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      flex-shrink: 0;
+    }
+
+    .hero-feature-item:nth-child(2) .hero-feature-icon {
+      background: #CCFBF1;
+      color: #0D9488;
+    }
+
+    .hero-feature-item:nth-child(3) .hero-feature-icon {
+      background: #EFF6FF;
+      color: #1D4ED8;
+    }
+
+    .hero-feature-title {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #0F172A;
+      line-height: 1.25;
+      margin-bottom: 2px;
+    }
+
+    .hero-feature-desc {
+      font-size: 0.74rem;
+      color: #64748B;
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    /* -------------------------------------------------------------
+       Hero Photo Stage & Carousel (Right Column)
+    ------------------------------------------------------------- */
     .hero-photo-stage-wrapper {
       position: relative;
       z-index: 2;
@@ -389,10 +540,12 @@
       height: 480px;
       border-radius: 28px;
       overflow: hidden;
-      box-shadow: 0 24px 50px -10px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(255, 255, 255, 0.6);
+      box-shadow: 0 24px 50px -10px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(255, 255, 255, 0.8);
       border: 6px solid #FFFFFF;
       background: #E2E8F0;
       transform: translateZ(0);
+      will-change: transform;
+      transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
     .hero-slide {
@@ -404,7 +557,7 @@
       object-position: center;
       opacity: 0;
       transform: scale(1.03);
-      transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), transform 6s cubic-bezier(0.25, 0.8, 0.25, 1);
+      transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1), transform 5s ease-out;
     }
 
     .hero-slide.active {
@@ -412,15 +565,13 @@
       transform: scale(1);
     }
 
-    /* Floating Card Top-Right */
+    /* Floating Informational Cards */
     .hero-floating-card {
       position: absolute;
-      top: 22px;
-      right: 22px;
       background: rgba(255, 255, 255, 0.96);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.95);
       border-radius: 16px;
       padding: 10px 16px;
       box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.12);
@@ -428,17 +579,44 @@
       align-items: center;
       gap: 12px;
       z-index: 10;
-      animation: floatGentle 4.5s ease-in-out infinite alternate;
+      cursor: default;
       transition: transform 0.25s ease;
     }
 
     .hero-floating-card:hover {
-      transform: translateY(-3px) scale(1.02);
+      transform: scale(1.02);
     }
 
-    @keyframes floatGentle {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(-6px); }
+    /* Top-Right Floating Card */
+    .hero-float-top-right {
+      top: 22px;
+      right: 22px;
+      animation: floatCardTop 4.5s ease-in-out infinite;
+    }
+
+    @keyframes floatCardTop {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-5px);
+      }
+    }
+
+    /* Lower-Left Floating Card */
+    .hero-float-lower-left {
+      bottom: 24px;
+      left: -26px;
+      animation: floatCardBottom 5.5s ease-in-out 1.2s infinite;
+    }
+
+    @keyframes floatCardBottom {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(5px);
+      }
     }
 
     .hero-float-icon-wrap {
@@ -452,6 +630,11 @@
       justify-content: center;
       font-size: 1.15rem;
       flex-shrink: 0;
+    }
+
+    .hero-float-icon-wrap.icon-heart {
+      background: #CCFBF1;
+      color: #0D9488;
     }
 
     .hero-float-title {
@@ -478,12 +661,12 @@
       position: absolute;
       bottom: 18px;
       right: 20px;
-      background: rgba(15, 23, 42, 0.65);
+      background: rgba(15, 23, 42, 0.6);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 30px;
-      padding: 5px 10px;
+      padding: 5px 12px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -503,12 +686,13 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: background 0.2s ease;
+      transition: background 0.2s ease, transform 0.2s ease;
       padding: 0;
     }
 
     .hero-nav-arrow:hover {
       background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.1);
     }
 
     .hero-dots-container {
@@ -523,20 +707,20 @@
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.45);
       cursor: pointer;
-      transition: all 0.25s ease;
+      transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.3s ease, background 0.3s ease;
     }
 
     .hero-dot.active {
-      width: 18px;
+      width: 22px;
       border-radius: 4px;
       background: #FFFFFF;
     }
 
     /* Staggered Entrance Animations */
-    @keyframes fadeInUp {
+    @keyframes heroFadeInUp {
       from {
         opacity: 0;
-        transform: translateY(22px);
+        transform: translateY(20px);
       }
       to {
         opacity: 1;
@@ -544,91 +728,61 @@
       }
     }
 
-    .hero-anim-1 { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both; }
-    .hero-anim-2 { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both; }
-    .hero-anim-3 { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.30s both; }
-    .hero-anim-4 { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both; }
+    .hero-anim-1 { animation: heroFadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both; }
+    .hero-anim-2 { animation: heroFadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both; }
+    .hero-anim-3 { animation: heroFadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.30s both; }
+    .hero-anim-4 { animation: heroFadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both; }
 
-    .hero-slide {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0;
-      transform: scale(1.04);
-      transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), transform 6s cubic-bezier(0.25, 0.8, 0.25, 1);
+    /* Accessibility: Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      .hero-shape-backdrop,
+      .hero-decor-plus,
+      .dot-teal,
+      .dot-blue,
+      .btn-cta-primary,
+      .hero-float-top-right,
+      .hero-float-lower-left,
+      .hero-feature-item,
+      .hero-anim-1,
+      .hero-anim-2,
+      .hero-anim-3,
+      .hero-anim-4 {
+        animation: none !important;
+        transform: none !important;
+        opacity: 1 !important;
+      }
+      .hero-photo-stage {
+        transition: none !important;
+        transform: none !important;
+      }
     }
 
-    .hero-slide.active {
-      opacity: 1;
-      transform: scale(1);
-    }
-
-    /* Subtle Floating Badges in Hero */
-    .hero-floating-card {
-      position: absolute;
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 12px 18px;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      z-index: 10;
-      transition: transform 0.3s ease;
-    }
-
-    .hero-floating-card:hover {
-      transform: translateY(-4px);
-    }
-
-    .hero-float-top {
-      top: 24px;
-      right: 24px;
-    }
-
-    .hero-float-bottom {
-      bottom: 24px;
-      left: 24px;
-    }
-
-    .hero-float-icon {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.15rem;
-      flex-shrink: 0;
-    }
-
-    /* Slideshow Dots Indicator */
-    .hero-dots-indicator {
-      position: absolute;
-      bottom: 14px;
-      right: 24px;
-      display: flex;
-      gap: 6px;
-      z-index: 12;
-    }
-
-    .hero-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.6);
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .hero-dot.active {
-      width: 24px;
-      border-radius: 6px;
-      background: #FFFFFF;
+    /* Responsive adjustments */
+    @media (max-width: 991px) {
+      .hero-wrapper {
+        padding: 3rem 0 3.5rem 0;
+      }
+      .hero-main-title {
+        font-size: 2.5rem;
+      }
+      .hero-photo-stage {
+        height: 380px;
+        margin-top: 1rem;
+      }
+      .hero-float-lower-left {
+        left: 12px;
+        bottom: 16px;
+      }
+      .hero-shape-backdrop {
+        width: 480px;
+        height: 400px;
+        right: -40px;
+      }
+      .hero-feature-strip {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        max-width: 100%;
+      }
     }
 
     /* -------------------------------------------------------------
@@ -1218,7 +1372,7 @@
             data-bs-target="#patientPortalAuthModal">
             <i class="bi bi-shield-lock-fill"></i>
             <span>Login Portal</span>
-            <i class="bi bi-arrow-right ms-1" style="font-size: 0.85rem;"></i>
+            <i class="bi bi-arrow-right portal-arrow ms-1" style="font-size: 0.85rem;"></i>
           </button>
           {% endif %}
         </div>
@@ -1235,17 +1389,24 @@
       <div class="hero-grid-subtle"></div>
       <div class="hero-shape-backdrop"></div>
       <div class="hero-glow-soft"></div>
+      <div class="hero-decor-dot-matrix d-none d-md-block"></div>
+      
+      <!-- Subtle Decorative Elements Matching Visual Target -->
       <span class="hero-decor-dot dot-teal" style="top: 28%; left: 3.2%;"></span>
       <span class="hero-decor-dot dot-blue" style="bottom: 16%; left: 4%;"></span>
-      <span class="hero-decor-sparkle" style="top: 34%; right: 46%;"><i class="bi bi-plus-lg"></i></span>
-      <span class="hero-decor-sparkle" style="bottom: 36%; right: 48%; font-size: 1.2rem;"><i class="bi bi-plus-lg"></i></span>
+      
+      <!-- Subtle Medical Plus Signs -->
+      <span class="hero-decor-plus" style="top: 14%; right: 48%;"><i class="bi bi-plus-lg"></i></span>
+      <span class="hero-decor-plus plus-sm" style="top: 48%; left: 47%;"><i class="bi bi-plus-lg"></i></span>
+      <span class="hero-decor-plus" style="top: 34%; right: 2%;"><i class="bi bi-plus-lg"></i></span>
+      <span class="hero-decor-plus plus-blue" style="bottom: 18%; right: 2.5%;"><i class="bi bi-plus-lg"></i></span>
     </div>
 
     <div class="container px-lg-4">
       <div class="row align-items-center g-4 g-xl-5">
 
-        <!-- Left Hero Text Column -->
-        <div class="col-lg-6 hero-anim-1">
+        <!-- Left Hero Text Column (approx 45% desktop visual weight) -->
+        <div class="col-lg-5 col-xl-5 hero-anim-1">
           <h1 class="hero-main-title">
             Better Care Today,<br>
             <span class="text-gradient-accent">Healthier Tomorrow</span>
@@ -1255,6 +1416,7 @@
             Experience connected, compassionate and advanced healthcare — bringing doctors, diagnostics and digital health together in one seamless platform for you and your family.
           </p>
 
+          <!-- Primary & Secondary CTA Buttons -->
           <div class="cta-group hero-anim-3">
             <a href="#doctors" class="btn-cta-primary">
               <i class="bi bi-calendar2-check-fill"></i>
@@ -1267,14 +1429,51 @@
               <i class="bi bi-arrow-right cta-arrow"></i>
             </a>
           </div>
+
+          <!-- Feature Strip under CTA: 3 Compact Non-Numeric Value Propositions -->
+          <div class="hero-feature-strip">
+            <div class="hero-feature-item">
+              <div class="hero-feature-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4.5 3v6a7.5 7.5 0 0 0 15 0V3"></path>
+                  <line x1="12" y1="16.5" x2="12" y2="21"></line>
+                  <circle cx="12" cy="21" r="1.5"></circle>
+                </svg>
+              </div>
+              <div>
+                <div class="hero-feature-title">Expert<br class="d-none d-sm-inline"> Doctors</div>
+                <p class="hero-feature-desc">Qualified specialists across departments</p>
+              </div>
+            </div>
+
+            <div class="hero-feature-item">
+              <div class="hero-feature-icon">
+                <i class="bi bi-calendar2-check-fill"></i>
+              </div>
+              <div>
+                <div class="hero-feature-title">Easy<br class="d-none d-sm-inline"> Appointments</div>
+                <p class="hero-feature-desc">Book care at your convenience</p>
+              </div>
+            </div>
+
+            <div class="hero-feature-item">
+              <div class="hero-feature-icon">
+                <i class="bi bi-shield-check-fill"></i>
+              </div>
+              <div>
+                <div class="hero-feature-title">Secure<br class="d-none d-sm-inline"> &amp; Private</div>
+                <p class="hero-feature-desc">Your health data always protected</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Right Hero Photo Slideshow Column -->
-        <div class="col-lg-6 hero-anim-4">
+        <!-- Right Hero Photo Slideshow Column (approx 55% desktop visual weight) -->
+        <div class="col-lg-7 col-xl-7 hero-anim-4">
           <div class="hero-photo-stage-wrapper">
             
-            <!-- Subtle Floating Informational Card -->
-            <div class="hero-floating-card">
+            <!-- Top-Right Floating Card: Trusted Healthcare -->
+            <div class="hero-floating-card hero-float-top-right">
               <div class="hero-float-icon-wrap">
                 <i class="bi bi-people-fill"></i>
               </div>
@@ -1285,19 +1484,31 @@
               <i class="bi bi-chevron-right hero-float-arrow"></i>
             </div>
 
+            <!-- Lower-Left Floating Card: Care at Every Step -->
+            <div class="hero-floating-card hero-float-lower-left">
+              <div class="hero-float-icon-wrap icon-heart">
+                <i class="bi bi-heart-fill"></i>
+              </div>
+              <div>
+                <div class="hero-float-title">Care at Every Step</div>
+                <div class="hero-float-sub">of Your Journey</div>
+              </div>
+              <i class="bi bi-chevron-right hero-float-arrow"></i>
+            </div>
+
             <!-- Carousel Photo Stage -->
             <div class="hero-photo-stage" id="heroPhotoStage">
-              <!-- Slideshow Images (hero_doctor_child.jpg matching reference active visual) -->
-              <img src="{{ url_for('static', filename='images/hero_doctor_child.jpg') }}" alt="Pediatric Healthcare Care"
+              <!-- Slideshow Images: Ultrasound doctor & patient matching the reference target -->
+              <img src="{{ url_for('static', filename='images/hero_ultrasound.jpg') }}" alt="Modern Clinical Ultrasound Imaging"
                 class="hero-slide active">
               <img src="{{ url_for('static', filename='images/hero_doctor_patient.jpg') }}"
                 alt="Doctor Patient Consultation" class="hero-slide">
+              <img src="{{ url_for('static', filename='images/hero_doctor_child.jpg') }}" alt="Pediatric Healthcare Care"
+                class="hero-slide">
               <img src="{{ url_for('static', filename='images/hero_doctor_elderly.jpg') }}" alt="Senior Geriatric Care"
                 class="hero-slide">
               <img src="{{ url_for('static', filename='images/hero_laboratory.jpg') }}"
                 alt="Diagnostic Laboratory Testing" class="hero-slide">
-              <img src="{{ url_for('static', filename='images/hero_ultrasound.jpg') }}" alt="Modern Clinical Imaging"
-                class="hero-slide">
 
               <!-- Unified Carousel Navigation Controls (Arrows + Indicators) -->
               <div class="hero-carousel-controls">
@@ -1980,6 +2191,54 @@
     }
 
     /* ============================================================
+       Subtle Hero Mouse Parallax (3-5px depth, smooth rAF)
+    ============================================================ */
+    function initHeroParallax() {
+      const hero = document.querySelector('.hero-wrapper');
+      const photoStage = document.getElementById('heroPhotoStage');
+      const shapeBackdrop = document.querySelector('.hero-shape-backdrop');
+      if (!hero || !photoStage || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (window.matchMedia('(hover: none)').matches || window.innerWidth < 992) return;
+
+      let mouseX = 0, mouseY = 0;
+      let curX = 0, curY = 0;
+      let rafId = null;
+
+      function onFrame() {
+        curX += (mouseX - curX) * 0.08;
+        curY += (mouseY - curY) * 0.08;
+
+        photoStage.style.transform = `translate3d(${curX * 4.5}px, ${curY * 4.5}px, 0)`;
+        if (shapeBackdrop) {
+          shapeBackdrop.style.transform = `translate3d(${curX * -9}px, ${curY * -9}px, 0)`;
+        }
+
+        if (Math.abs(mouseX - curX) > 0.001 || Math.abs(mouseY - curY) > 0.001) {
+          rafId = requestAnimationFrame(onFrame);
+        } else {
+          rafId = null;
+        }
+      }
+
+      hero.addEventListener('mousemove', (e) => {
+        const rect = hero.getBoundingClientRect();
+        mouseX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+        mouseY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+        if (!rafId) {
+          rafId = requestAnimationFrame(onFrame);
+        }
+      }, { passive: true });
+
+      hero.addEventListener('mouseleave', () => {
+        mouseX = 0;
+        mouseY = 0;
+        if (!rafId) {
+          rafId = requestAnimationFrame(onFrame);
+        }
+      });
+    }
+
+    /* ============================================================
        3D Doctors Carousel Implementation
     ============================================================ */
     let doctorData = [];
@@ -2380,6 +2639,7 @@
     ============================================================ */
     document.addEventListener('DOMContentLoaded', function () {
       resetHeroTimer();
+      initHeroParallax();
       loadDoctorsCarousel();
       switchDept('opd');
 
