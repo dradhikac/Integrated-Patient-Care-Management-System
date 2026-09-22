@@ -48,21 +48,30 @@
                 </div>
               </td>
               <td>
-                <span class="badge bg-light text-dark border">{{ doc.department or 'General OPD' }}</span>
+                <span class="badge bg-light text-dark border">{{ (doc.doctor_profile[0].department if doc.doctor_profile else None) or doc.department or 'General OPD' }}</span>
               </td>
               <td>
-                <span class="small fw-semibold text-slate-900">Monday - Saturday</span>
-              </td>
-              <td>
-                <span class="small text-muted font-monospace"><i class="bi bi-clock me-1 text-primary"></i> 09:00 AM - 01:00 PM</span>
-              </td>
-              <td>
-                <span class="fw-bold text-slate-900 font-monospace">₹500</span>
-              </td>
-              <td>
-                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
-                  <span class="pulse-dot-green me-1"></span> Available Today
+                <span class="small fw-semibold text-slate-900">
+                  {{ doc.doctor_profile[0].available_days if doc.doctor_profile else '24/7 (6 Days/Week)' }}
                 </span>
+              </td>
+              <td>
+                <span class="small text-muted font-monospace"><i class="bi bi-clock me-1 text-primary"></i> 24 Hours (Round-the-Clock)</span>
+              </td>
+              <td>
+                <span class="fw-bold text-slate-900 font-monospace">₹{{ doc.doctor_profile[0].consultation_fee|int if doc.doctor_profile else 500 }}</span>
+              </td>
+              <td>
+                {% set is_active_today = doc.availabilities|selectattr('day_of_week', 'equalto', today_weekday)|selectattr('is_active', 'equalto', true)|list|length > 0 %}
+                {% if is_active_today %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1">
+                  <span class="pulse-dot-green me-1"></span> Available Today (24/7)
+                </span>
+                {% else %}
+                <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-1">
+                  <i class="bi bi-moon me-1"></i> Weekly Day Off
+                </span>
+                {% endif %}
               </td>
               <td class="text-end pe-4">
                 <a href="{{ url_for('reception.book_appointment_rec') }}?doctor_id={{ doc.id }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">

@@ -70,7 +70,8 @@ class AppointmentTestCase(unittest.TestCase):
         self.app_context.pop()
 
     def test_slot_generator_and_holiday(self):
-        target_date = date(2026, 9, 10) # Thursday
+        # Choose future Thursday
+        target_date = date.today() + timedelta(days=(3 - date.today().weekday()) % 7 + 7)
         
         # Test normal slot generation
         slot_data = generate_doctor_slots(self.doctor.id, target_date)
@@ -94,7 +95,7 @@ class AppointmentTestCase(unittest.TestCase):
         self.assertEqual(len(holiday_slot_data['slots']), 0)
 
     def test_appointment_booking_and_auto_waitlist_promotion(self):
-        target_date = date(2026, 9, 15)
+        target_date = date.today() + timedelta(days=5)
         slot_t = time(10, 0)
 
         # Book Appointment for Patient 1

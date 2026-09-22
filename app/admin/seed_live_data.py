@@ -109,24 +109,37 @@ def seed_full_hospital_data():
             doc.is_active = True
     db.session.commit()
 
-    # 5. Doctor Availability / Clinic Schedules (Monday - Sunday for all doctors)
+    # 5. Doctor Availability / Clinic Schedules (24/7 round-the-clock, 1 staggered day off per week)
+    off_days = {
+        'DOC-001': (6, "Monday - Saturday (24/7) · Off: Sunday"),      # Dr. Rajesh Sharma: Off Sunday
+        'DOC-101': (0, "Tuesday - Sunday (24/7) · Off: Monday"),      # Dr. Ananya Sharma: Off Monday
+        'DOC-102': (1, "Wednesday - Monday (24/7) · Off: Tuesday"),   # Dr. Rahul Verma: Off Tuesday
+        'DOC-103': (2, "Thursday - Tuesday (24/7) · Off: Wednesday"), # Dr. Priya Nair: Off Wednesday
+        'DOC-104': (3, "Friday - Wednesday (24/7) · Off: Thursday"),  # Dr. Arjun Mehta: Off Thursday
+        'DOC-105': (4, "Saturday - Thursday (24/7) · Off: Friday"),   # Dr. Kavya Rao: Off Friday
+        'DOC-106': (5, "Sunday - Friday (24/7) · Off: Saturday"),     # Dr. Vikram Desai: Off Saturday
+    }
     for doc_u in doctor_users:
-        for day_num in range(7):  # 0=Monday to 6=Sunday
-            avail = DoctorAvailability.query.filter_by(doctor_id=doc_u.id, day_of_week=day_num).first()
-            if not avail:
-                avail = DoctorAvailability(
-                    doctor_id=doc_u.id,
-                    day_of_week=day_num,
-                    start_time=time(9, 0),
-                    end_time=time(23, 0),
-                    slot_duration_minutes=15,
-                    is_active=True
-                )
-                db.session.add(avail)
-            else:
-                avail.start_time = time(9, 0)
-                avail.end_time = time(23, 0)
-                avail.is_active = True
+        doc_prof = Doctor.query.filter_by(doctor_code=doc_u.user_code).first()
+        sched_cfg = off_days.get(doc_u.user_code, (6, "Monday - Saturday (24/7) · Off: Sunday"))
+        off_day_idx = sched_cfg[0]
+        if doc_prof:
+            doc_prof.available_days = sched_cfg[1]
+
+        # Reset and add 6 active 24/7 days
+        DoctorAvailability.query.filter_by(doctor_id=doc_u.id).delete()
+        for day_num in range(7):
+            if day_num == off_day_idx:
+                continue
+            avail = DoctorAvailability(
+                doctor_id=doc_u.id,
+                day_of_week=day_num,
+                start_time=time(0, 0),
+                end_time=time(0, 0),
+                slot_duration_minutes=15,
+                is_active=True
+            )
+            db.session.add(avail)
     db.session.commit()
 
     # 6. Medicines Formulary

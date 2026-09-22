@@ -129,7 +129,10 @@ def get_doctor_clinic_windows(doctor_id: int, target_date: date):
 
     shift_start_str = shift_start.strftime('%I:%M %p')
     shift_end_str = 'Midnight' if shift_end == time(0, 0) else shift_end.strftime('%I:%M %p')
-    clinic_hours_str = f"{shift_start_str} – {shift_end_str}"
+    if shift_start == time(0, 0) and shift_end == time(0, 0):
+        clinic_hours_str = "24 Hours (Round-the-Clock)"
+    else:
+        clinic_hours_str = f"{shift_start_str} – {shift_end_str}"
 
     # 3. Live Clinic Status (if target_date is today)
     today = date.today()
@@ -172,26 +175,32 @@ def get_doctor_clinic_windows(doctor_id: int, target_date: date):
     step = timedelta(minutes=15)
     arrival_windows = []
     slots_compat = []
+    slot_count = 0
     
     while current_dt < end_dt:
         window_time = current_dt.time()
         time_str = current_dt.strftime('%I:%M %p')
         time_24h = current_dt.strftime('%H:%M')
         time_raw = current_dt.strftime('%H:%M:%S')
+        slot_count += 1
 
         # Recommended reporting time (10 min prior)
         rec_arrival_dt = current_dt - timedelta(minutes=10)
         rec_arrival_str = rec_arrival_dt.strftime('%I:%M %p')
 
         is_past = (current_dt < now_dt) if is_today else (target_date < today)
-        if is_past:
-            current_dt += step
-            continue
-
+        is_emergency = (slot_count % 6 == 0)
         is_booked = window_time in booked_times
-        if is_booked:
+
+        if is_past:
+            is_avail = False
+            reason = 'Past'
+        elif is_booked:
             is_avail = False
             reason = 'Booked'
+        elif is_emergency:
+            is_avail = False
+            reason = 'Emergency Held'
         else:
             is_avail = True
             reason = 'Available'
@@ -204,10 +213,13 @@ def get_doctor_clinic_windows(doctor_id: int, target_date: date):
             'recommended_arrival': rec_arrival_str,
             'is_available': is_avail,
             'is_booked': not is_avail,
-            'is_past': False,
+            'is_emergency_reserved': is_emergency,
+            'is_past': is_past,
             'reason': reason
         }
-        arrival_windows.append(w_dict)
+
+        if not is_past:
+            arrival_windows.append(w_dict)
         slots_compat.append(w_dict)
 
         current_dt += step

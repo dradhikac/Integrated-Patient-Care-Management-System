@@ -121,6 +121,7 @@ def public_search_doctors(department_or_specialty=None, query=None):
 def public_check_doctor_availability(doctor_id: int, target_date_str: str):
     """
     Checks if a doctor is working on a specific date (YYYY-MM-DD) and returns clinic hours.
+    All CareHub doctors work 24/7 round-the-clock on their active days and have 1 off day per week.
     """
     try:
         target_date = datetime.strptime(target_date_str, '%Y-%m-%d').date()
@@ -131,18 +132,23 @@ def public_check_doctor_availability(doctor_id: int, target_date_str: str):
         return {'available': False, 'reason': 'Cannot book appointments for past dates.'}
 
     windows = get_doctor_clinic_windows(doctor_id, target_date)
+    has_avail = windows.get('has_availability', False)
+    weekday_name = target_date.strftime('%A')
     return {
         'doctor_id': doctor_id,
         'date': target_date_str,
+        'day_of_week': weekday_name,
         'is_holiday': windows.get('is_holiday', False),
         'holiday_reason': windows.get('holiday_reason'),
-        'has_availability': windows.get('has_availability', False),
-        'clinic_hours': windows.get('clinic_hours_str', 'Not Scheduled')
+        'has_availability': has_avail,
+        'clinic_hours': windows.get('clinic_hours_str', 'Day Off'),
+        'message': "Available 24/7 (Round-the-clock)" if has_avail else f"Doctor has their weekly day off on {weekday_name}."
     }
 
 def public_find_available_slots(doctor_id: int, target_date_str: str):
     """
     Returns actual 15-minute available arrival slots for a doctor on a given date (YYYY-MM-DD).
+    Supports 24/7 round-the-clock slots and flags weekly off-days.
     """
     try:
         target_date = datetime.strptime(target_date_str, '%Y-%m-%d').date()
@@ -153,11 +159,28 @@ def public_find_available_slots(doctor_id: int, target_date_str: str):
         return {'error': 'Cannot query slots for past dates.', 'slots': []}
 
     windows = get_doctor_clinic_windows(doctor_id, target_date)
+    weekday_name = target_date.strftime('%A')
     
     if windows.get('is_holiday'):
         return {
             'is_holiday': True,
             'holiday_reason': windows.get('holiday_reason'),
+            'slots': []
+        }
+
+    if not windows.get('has_availability'):
+        doc_obj = Doctor.query.filter((Doctor.user_id == doctor_id) | (Doctor.id == doctor_id)).first()
+        doc_name = doc_obj.name if doc_obj else f"Doctor ID {doctor_id}"
+        return {
+            'doctor_id': doctor_id,
+            'doctor_name': doc_name,
+            'date': target_date_str,
+            'day_of_week': weekday_name,
+            'has_availability': False,
+            'status': 'DAY_OFF',
+            'clinic_hours': windows.get('clinic_hours_str', 'Day Off'),
+            'message': f"{doc_name} is off on {weekday_name} (Weekly Day Off). They are available 24/7 on all other days. Please select another date or choose another doctor in this department.",
+            'available_slots_count': 0,
             'slots': []
         }
 
@@ -170,12 +193,22 @@ def public_find_available_slots(doctor_id: int, target_date_str: str):
                 'recommended_reporting_time': w.get('recommended_arrival_str')
             })
 
+    # Convenient time suggestions for quick selection
+    convenient_suggestions = {
+        'morning': [s for s in ['09:00 AM', '10:30 AM', '11:15 AM'] if any(x['time_12h'] == s for x in slots)],
+        'afternoon': [s for s in ['02:00 PM', '03:30 PM', '05:00 PM'] if any(x['time_12h'] == s for x in slots)],
+        'evening_night': [s for s in ['07:30 PM', '09:00 PM', '11:00 PM'] if any(x['time_12h'] == s for x in slots)]
+    }
+
     return {
         'doctor_id': doctor_id,
         'date': target_date_str,
+        'day_of_week': weekday_name,
+        'has_availability': True,
         'clinic_hours': windows.get('clinic_hours_str'),
         'available_slots_count': len(slots),
-        'slots': slots
+        'convenient_suggestions': convenient_suggestions,
+        'popular_slots': [s['time_12h'] for s in slots[:16]]
     }
 
 def public_book_appointment(patient_name: str, patient_mobile: str, patient_email: str = None,
