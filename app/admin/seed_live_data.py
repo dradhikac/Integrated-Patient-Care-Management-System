@@ -74,7 +74,7 @@ def seed_full_hospital_data():
 
     # 4. Doctors
     doctors_info = [
-        ('DOC-001', 'Dr. Rajesh Sharma', 'doctor@ipcms.com', 'General Medicine & Cardiology', 'MBBS, MD (General Medicine)', '15+ Years', 'Cardiology & Heart Institute', 'Senior consultant physician and cardiologist with 15+ years of clinical excellence in patient care.', 600.0, '/static/images/doctors/dr_rajesh_sharma.jpg'),
+        ('DOC-001', 'Dr. Rajesh Sharma', 'doctor@ipcms.com', 'General Physician', 'MBBS, MD (General Medicine)', '15+ Years', 'General Medicine', 'Senior consultant physician with 15+ years of clinical excellence in general medicine and comprehensive patient care.', 600.0, '/static/images/doctors/dr_rajesh_sharma.jpg'),
         ('DOC-101', 'Dr. Ananya Sharma', 'ananya.sharma@medicore.com', 'Cardiologist', 'MBBS, MD, DM (Cardiology)', '12+ Years', 'Cardiology & Heart Institute', 'Specialist in non-invasive cardiology and heart health.', 800.0, '/static/images/doctors/dr_ananya_sharma.jpg'),
         ('DOC-102', 'Dr. Rahul Verma', 'rahul.verma@medicore.com', 'Neurologist', 'MBBS, MD, DM (Neurology)', '15+ Years', 'Neurology & Spine Care', 'Senior consultant neurologist specializing in stroke and epilepsy.', 1000.0, '/static/images/doctors/dr_rahul_verma.jpg'),
         ('DOC-103', 'Dr. Priya Nair', 'priya.nair@medicore.com', 'Gynecologist & Obstetrician', 'MBBS, MD (Obstetrics & Gynecology)', '10+ Years', 'Obstetrics & Gynecology', 'Expert in maternal healthcare and laparoscopic surgeries.', 900.0, '/static/images/doctors/dr_priya_nair.jpg'),

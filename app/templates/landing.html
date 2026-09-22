@@ -3057,8 +3057,14 @@
               <input type="date" class="form-control rounded-3" id="quickBookingDate" onchange="fetchQuickSlots()">
             </div>
             <div class="col-md-7">
-              <label class="form-label fw-semibold small">Available Time Slot *</label>
-              <div id="quickSlotGrid" class="d-flex flex-wrap gap-2 pt-1">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label fw-semibold small mb-0">Available Time Slot *</label>
+                <div class="btn-group btn-group-sm" role="group" id="slotFilterGroup" style="transform: scale(0.9); transform-origin: right center;">
+                  <button type="button" class="btn btn-outline-primary active py-0 px-2 fw-semibold" id="btnFilterAvail" onclick="toggleQuickSlotFilter(true)">Available (<span id="quickAvailCount">0</span>)</button>
+                  <button type="button" class="btn btn-outline-secondary py-0 px-2 fw-semibold" id="btnFilterAll" onclick="toggleQuickSlotFilter(false)">All Slots</button>
+                </div>
+              </div>
+              <div id="quickSlotGrid" class="d-flex flex-wrap gap-2 pt-1" style="max-height: 220px; overflow-y: auto; padding-right: 4px; border: 1px solid #F1F5F9; border-radius: 8px; padding: 8px; background: #FAFBFD;">
                 <div class="text-muted small">Select a date to view available slots.</div>
               </div>
             </div>
@@ -3541,6 +3547,8 @@
     ============================================================ */
     let quickDoctorObj = null;
     let selectedQuickSlotTime = null;
+    let cachedQuickSlots = [];
+    let showOnlyAvailableSlots = true;
 
     function openQuickBooking(doctorId) {
       fetch(`/api/doctors/${doctorId}`)
@@ -3550,7 +3558,8 @@
             quickDoctorObj = data.doctor;
             document.getElementById('quickDocId').value = doctorId;
             document.getElementById('quickDocName').innerText = quickDoctorObj.name;
-            document.getElementById('quickDocSpec').innerText = quickDoctorObj.specialization;
+            const docSubtitle = (quickDoctorObj.department ? quickDoctorObj.department + ' · ' : '') + (quickDoctorObj.specialization || '');
+            document.getElementById('quickDocSpec').innerText = docSubtitle;
             document.getElementById('quickDocEdu').innerText = quickDoctorObj.education;
             document.getElementById('quickDocImage').src = quickDoctorObj.image_url;
 
@@ -3559,12 +3568,36 @@
             dateInput.value = todayStr;
             dateInput.min = todayStr;
 
+            showOnlyAvailableSlots = true;
+            document.getElementById('btnFilterAvail').classList.add('active', 'btn-outline-primary');
+            document.getElementById('btnFilterAvail').classList.remove('btn-outline-secondary');
+            document.getElementById('btnFilterAll').classList.remove('active', 'btn-outline-primary');
+            document.getElementById('btnFilterAll').classList.add('btn-outline-secondary');
+
             fetchQuickSlots();
 
             const modal = new bootstrap.Modal(document.getElementById('quickBookingModal'));
             modal.show();
           }
         });
+    }
+
+    function toggleQuickSlotFilter(onlyAvail) {
+      showOnlyAvailableSlots = onlyAvail;
+      const btnAvail = document.getElementById('btnFilterAvail');
+      const btnAll = document.getElementById('btnFilterAll');
+      if (onlyAvail) {
+        btnAvail.classList.add('active', 'btn-outline-primary');
+        btnAvail.classList.remove('btn-outline-secondary');
+        btnAll.classList.remove('active', 'btn-outline-primary');
+        btnAll.classList.add('btn-outline-secondary');
+      } else {
+        btnAll.classList.add('active', 'btn-outline-primary');
+        btnAll.classList.remove('btn-outline-secondary');
+        btnAvail.classList.remove('active', 'btn-outline-primary');
+        btnAvail.classList.add('btn-outline-secondary');
+      }
+      renderQuickSlotsList();
     }
 
     function fetchQuickSlots() {
@@ -3580,33 +3613,63 @@
       fetch(`/api/doctors/${docId}/availability?date=${dateVal}`)
         .then(res => res.json())
         .then(data => {
-          grid.innerHTML = '';
           if (data.is_holiday) {
             grid.innerHTML = `<div class="alert alert-warning py-1 px-2 small w-100 mb-0">Holiday: ${data.holiday_reason}</div>`;
+            document.getElementById('quickAvailCount').innerText = '0';
+            cachedQuickSlots = [];
             return;
           }
-          if (!data.slots || data.slots.length === 0) {
-            grid.innerHTML = '<div class="text-muted small p-2">No available slots on this day.</div>';
-            return;
-          }
-          data.slots.forEach(slot => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = `btn btn-sm ${slot.is_available ? 'btn-outline-primary' : 'btn-light text-muted border-0'} rounded-pill px-2.5 py-1 small fw-semibold`;
-            btn.innerText = slot.time_12h;
-            if (!slot.is_available) {
-              btn.disabled = true;
-            } else {
-              btn.onclick = () => {
-                document.querySelectorAll('#quickSlotGrid .btn').forEach(b => b.classList.remove('btn-primary', 'active', 'text-white'));
-                btn.classList.add('btn-primary', 'active', 'text-white');
-                selectedQuickSlotTime = slot.time_24h;
-                document.getElementById('quickConfirmBtn').disabled = false;
-              };
-            }
-            grid.appendChild(btn);
-          });
+          cachedQuickSlots = data.slots || [];
+          const availCount = cachedQuickSlots.filter(s => s.is_available).length;
+          document.getElementById('quickAvailCount').innerText = availCount;
+          renderQuickSlotsList();
         });
+    }
+
+    function renderQuickSlotsList() {
+      const grid = document.getElementById('quickSlotGrid');
+      grid.innerHTML = '';
+
+      if (!cachedQuickSlots || cachedQuickSlots.length === 0) {
+        grid.innerHTML = '<div class="text-muted small p-2">No available slots on this day.</div>';
+        return;
+      }
+
+      const slotsToRender = showOnlyAvailableSlots 
+        ? cachedQuickSlots.filter(s => s.is_available) 
+        : cachedQuickSlots;
+
+      if (slotsToRender.length === 0) {
+        if (showOnlyAvailableSlots) {
+          grid.innerHTML = `<div class="text-muted small p-2 w-100">
+            No remaining slots available today. 
+            <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none" onclick="toggleQuickSlotFilter(false)">View all slots</button> or choose another date.
+          </div>`;
+        } else {
+          grid.innerHTML = '<div class="text-muted small p-2">No slots configured for this date.</div>';
+        }
+        return;
+      }
+
+      slotsToRender.forEach(slot => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        const isSelected = selectedQuickSlotTime === slot.time_24h;
+        btn.className = `btn btn-sm ${slot.is_available ? (isSelected ? 'btn-primary active text-white' : 'btn-outline-primary') : 'btn-light text-muted border-0 opacity-50'} rounded-pill px-2.5 py-1 small fw-semibold`;
+        btn.innerText = slot.time_12h;
+        if (!slot.is_available) {
+          btn.disabled = true;
+          btn.title = slot.reason || 'Slot not available';
+        } else {
+          btn.onclick = () => {
+            document.querySelectorAll('#quickSlotGrid .btn').forEach(b => b.classList.remove('btn-primary', 'active', 'text-white'));
+            btn.classList.add('btn-primary', 'active', 'text-white');
+            selectedQuickSlotTime = slot.time_24h;
+            document.getElementById('quickConfirmBtn').disabled = false;
+          };
+        }
+        grid.appendChild(btn);
+      });
     }
 
     function submitQuickBooking(event) {
