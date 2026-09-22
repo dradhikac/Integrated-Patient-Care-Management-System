@@ -32,7 +32,7 @@
   }
 
   function initWelcomeMessage() {
-    const welcomeText = "Hello! I'm the CareHub AI Appointment Assistant. I can help you find an available doctor and book a new appointment.";
+    const welcomeText = "Hi! I'm Maya, your CareHub Booking Concierge. I can help you find and book an appointment.\n\nHave you used CareHub before?\n[Yes, I'm already a CareHub patient] [No, I'm new to CareHub]";
     appendMessage('assistant', welcomeText);
   }
 
@@ -46,12 +46,18 @@
     let formatted = escapeHtml(text)
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
       .replace(/\n\n/g, '</p><p>')
-      .replace(/\n- (.*?)/g, '<li>$1</li>')
+      .replace(/\n[•\-] (.*?)/g, '<li>$1</li>')
       .replace(/\n/g, '<br>');
 
     if (formatted.includes('<li>')) {
       formatted = formatted.replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>');
+    }
+
+    // Convert bracketed options [Option Label] into clickable choice pills in assistant messages
+    if (role === 'assistant') {
+      formatted = formatted.replace(/\[([^[\]\n]{1,60})\]/g, '<button type="button" class="carehub-ai-choice-btn" data-choice="$1">$1</button>');
     }
 
     msgDiv.innerHTML = `<p>${formatted}</p>`;
@@ -153,11 +159,23 @@
     }
   });
 
+  // Handle choice button clicks inside chat messages
+  messagesEl.addEventListener('click', function (e) {
+    const btn = e.target.closest('.carehub-ai-choice-btn');
+    if (btn) {
+      const choice = btn.getAttribute('data-choice');
+      if (choice && !isProcessing) {
+        handleSendMessage(choice);
+      }
+    }
+  });
+
   // Chip quick action buttons
   if (chipContainer) {
     chipContainer.addEventListener('click', function (e) {
-      if (e.target.classList.contains('carehub-ai-chip')) {
-        const query = e.target.getAttribute('data-query');
+      if (e.target.classList.contains('carehub-ai-chip') || e.target.closest('.carehub-ai-chip')) {
+        const chip = e.target.classList.contains('carehub-ai-chip') ? e.target : e.target.closest('.carehub-ai-chip');
+        const query = chip.getAttribute('data-query');
         if (query) {
           handleSendMessage(query);
         }

@@ -11,6 +11,44 @@ from app.appointments.models import Appointment, Holiday
 from app.queue.queue_engine import get_doctor_clinic_windows
 from app.patients.duplicate_check import check_for_duplicates
 from app.notifications.models import Notification
+from app.notifications.reception_notifications import create_reception_notification
+
+def public_lookup_patient(contact_info: str):
+    """
+    Looks up a returning CareHub patient by mobile phone number or email address.
+    Confirms existing account status without exposing sensitive EHR records on the public website.
+    """
+    if not contact_info or len(contact_info.strip()) < 3:
+        return {'found': False, 'message': 'Please provide a valid phone number or email address.'}
+
+    clean_info = contact_info.strip()
+    digits = ''.join(c for c in clean_info if c.isdigit())
+
+    patient = None
+    if len(digits) >= 10:
+        patient = Patient.query.filter(Patient.mobile.like(f"%{digits[-10:]}%")).first()
+
+    if not patient and '@' in clean_info:
+        patient = Patient.query.filter(Patient.email.ilike(clean_info)).first()
+
+    if patient:
+        masked_mobile = f"{patient.mobile[:2]}******{patient.mobile[-2:]}" if patient.mobile and len(patient.mobile) >= 4 else patient.mobile
+        masked_email = f"{patient.email[:2]}***@{patient.email.split('@')[-1]}" if patient.email and '@' in patient.email else None
+        return {
+            'found': True,
+            'patient_id': patient.id,
+            'patient_code': patient.patient_code,
+            'patient_name': patient.full_name,
+            'first_name': patient.first_name,
+            'masked_mobile': masked_mobile,
+            'masked_email': masked_email,
+            'message': f"CareHub account found for {patient.full_name}."
+        }
+    else:
+        return {
+            'found': False,
+            'message': "I couldn't find a matching CareHub account with that information. Would you like to try another phone number or email, or continue as a new patient?"
+        }
 
 def public_get_departments():
     """Returns list of active clinical departments at CareHub."""
@@ -140,11 +178,14 @@ def public_find_available_slots(doctor_id: int, target_date_str: str):
         'slots': slots
     }
 
-def public_book_appointment(patient_name: str, patient_mobile: str, patient_email: str,
-                            doctor_id: int, appointment_date_str: str, slot_time_str: str,
-                            reason: str = None, confirmed: bool = False):
+def public_book_appointment(patient_name: str, patient_mobile: str, patient_email: str = None,
+                            doctor_id: int = 0, appointment_date_str: str = '', slot_time_str: str = '',
+                            reason: str = None, confirmed: bool = False,
+                            booked_for: str = 'Myself', patient_status: str = None,
+                            date_of_birth_str: str = None):
     """
-    Books a new appointment for an unauthenticated guest visitor.
+    Books a new appointment via the public Maya Booking Concierge.
+    Automatically identifies existing vs new patients in the backend and dispatches receptionist notifications.
     Requires confirmed=True to commit the booking.
     """
     # 1. Validation
@@ -164,7 +205,6 @@ def public_book_appointment(patient_name: str, patient_mobile: str, patient_emai
     # Resolve doctor
     doctor_user = User.query.get(doctor_id)
     if not doctor_user:
-        # Check by Doctor table id
         doc_profile = Doctor.query.get(doctor_id)
         if doc_profile and doc_profile.user_id:
             doctor_user = User.query.get(doc_profile.user_id)
@@ -186,27 +226,9 @@ def public_book_appointment(patient_name: str, patient_mobile: str, patient_emai
     if not slot_t:
         return {'success': False, 'error': f'Invalid slot time: {slot_time_str}.'}
 
-    # If not confirmed yet, return summary for explicit user confirmation
-    if not confirmed:
-        return {
-            'success': True,
-            'requires_confirmation': True,
-            'booking_summary': {
-                'patient_name': patient_name.strip(),
-                'patient_mobile': patient_mobile.strip(),
-                'patient_email': patient_email.strip() if patient_email else None,
-                'doctor_name': doctor_user.name,
-                'doctor_specialization': doctor_user.specialization or (doctor_user.doctor_profile[0].specialization if doctor_user.doctor_profile else 'Consultant'),
-                'department': doctor_user.department or 'General OPD',
-                'appointment_date': apt_date.strftime('%Y-%m-%d'),
-                'appointment_date_formatted': apt_date.strftime('%A, %d %B %Y'),
-                'slot_time': slot_t.strftime('%I:%M %p'),
-                'reason': reason or 'General Consultation'
-            },
-            'confirmation_prompt': f"Please confirm: Book an appointment with {doctor_user.name} on {apt_date.strftime('%A, %d %B %Y')} at {slot_t.strftime('%I:%M %p')} for {patient_name.strip()}?"
-        }
+    dept_name = doctor_user.department or 'General OPD'
 
-    # 2. Duplicate Detection / Patient lookup or creation
+    # 2. Duplicate Detection / Patient lookup
     clean_mobile = patient_mobile.strip().replace('-', '').replace(' ', '')
     name_parts = patient_name.strip().split(' ', 1)
     first_name = name_parts[0]
@@ -214,13 +236,62 @@ def public_book_appointment(patient_name: str, patient_mobile: str, patient_emai
 
     # Check existing patient by mobile or email
     patient = None
-    if clean_mobile:
+    if len(clean_mobile) >= 10:
         patient = Patient.query.filter(Patient.mobile.like(f"%{clean_mobile[-10:]}%")).first()
     if not patient and patient_email:
         patient = Patient.query.filter_by(email=patient_email.strip()).first()
 
+    # Determine backend patient status
+    is_existing = (patient is not None)
+    computed_status = 'existing' if is_existing else 'new'
+    status_display = '🟢 Existing CareHub Patient' if is_existing else '🆕 New Patient'
+
+    # If not confirmed yet, return complete summary for explicit user confirmation
+    if not confirmed:
+        return {
+            'success': True,
+            'requires_confirmation': True,
+            'booking_summary': {
+                'patient_name': patient_name.strip(),
+                'patient_status': status_display,
+                'booked_for': booked_for or 'Myself',
+                'doctor_name': doctor_user.name,
+                'doctor_specialization': doctor_user.specialization or (doctor_user.doctor_profile[0].specialization if doctor_user.doctor_profile else 'Consultant'),
+                'department': dept_name,
+                'appointment_date': apt_date.strftime('%Y-%m-%d'),
+                'appointment_date_formatted': apt_date.strftime('%A, %d %B %Y'),
+                'slot_time': slot_t.strftime('%I:%M %p'),
+                'reason': reason or 'General Consultation',
+                'patient_mobile': clean_mobile,
+                'patient_email': patient_email.strip() if patient_email else None
+            },
+            'confirmation_prompt': (
+                f"Please confirm your appointment details:\n"
+                f"• Patient: {patient_name.strip()}\n"
+                f"• Patient Status: {status_display}\n"
+                f"• Booked For: {booked_for or 'Myself'}\n"
+                f"• Department: {dept_name}\n"
+                f"• Doctor: {doctor_user.name}\n"
+                f"• Date: {apt_date.strftime('%A, %d %B %Y')}\n"
+                f"• Time: {slot_t.strftime('%I:%M %p')}\n"
+                f"• Reason: {reason or 'General Consultation'}\n"
+                f"• Mobile: {clean_mobile}\n\n"
+                f"Would you like me to confirm this appointment?\n"
+                f"[Confirm Appointment] [Change Details]"
+            )
+        }
+
+    # 3. Create new unauthenticated patient record if not already registered
     if not patient:
-        # Create new unauthenticated patient record
+        parsed_dob = date(1990, 1, 1)
+        if date_of_birth_str:
+            for dfmt in ('%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%Y/%m/%d'):
+                try:
+                    parsed_dob = datetime.strptime(date_of_birth_str.strip(), dfmt).date()
+                    break
+                except ValueError:
+                    pass
+
         year = datetime.now().year
         last_pat = Patient.query.order_by(Patient.id.desc()).first()
         new_id = (last_pat.id + 1) if last_pat else 1
@@ -231,32 +302,39 @@ def public_book_appointment(patient_name: str, patient_mobile: str, patient_emai
             first_name=first_name,
             last_name=last_name,
             full_name=f"{first_name} {last_name}",
-            dob=date(1990, 1, 1), # Default placeholder for guest
+            dob=parsed_dob,
             gender='Other',
             mobile=clean_mobile,
             email=patient_email.strip() if patient_email else None,
-            address='Public AI Guest Booking',
+            address='Public AI Guest Booking (Maya Concierge)',
             portal_status='NOT_ACTIVATED'
         )
         db.session.add(patient)
         db.session.flush()
 
-    # 3. Double booking protection check right before insertion
-    existing = Appointment.query.filter(
+    # 4. Double booking protection check right before insertion
+    existing_apt = Appointment.query.filter(
         Appointment.doctor_id == doctor_user.id,
         Appointment.appointment_date == apt_date,
         Appointment.slot_time == slot_t,
         Appointment.status != 'CANCELLED'
     ).first()
 
-    if existing:
+    if existing_apt:
         return {
             'success': False,
             'error': f'Slot {slot_t.strftime("%I:%M %p")} on {apt_date.strftime("%d %b %Y")} was just booked. Please choose another available slot.'
         }
 
-    # 4. Insert Appointment
+    # 5. Insert Appointment with structured metadata
     apt_code = Appointment.generate_appointment_code()
+    notes_meta = (
+        f"[Booking Source: CareHub Website AI (Maya)] "
+        f"[Patient Status: {'EXISTING PATIENT' if is_existing else 'NEW PATIENT'}] "
+        f"[Booked For: {booked_for or 'Myself'}] "
+        f"{reason or 'General Consultation'}"
+    )
+
     appointment = Appointment(
         appointment_code=apt_code,
         patient_id=patient.id,
@@ -266,30 +344,82 @@ def public_book_appointment(patient_name: str, patient_mobile: str, patient_emai
         booking_type='Online',
         priority='Regular',
         status='BOOKED',
-        notes=f"[Public AI Booking] {reason}" if reason else "[Public AI Booking]"
+        notes=notes_meta
     )
     db.session.add(appointment)
     db.session.flush()
 
-    # 5. Audit Log & Notification
+    # 6. Audit Log
     audit = AuditLog(
         user_id=None,
         action='AI_PUBLIC_BOOKING',
         entity_type='Appointment',
         entity_id=appointment.id,
-        details=f"Public AI booked appointment {apt_code} for patient {patient.full_name} with doctor {doctor_user.name} on {apt_date} at {slot_t}"
+        details=f"Maya (Website AI) booked appointment {apt_code} for {'EXISTING' if is_existing else 'NEW'} patient {patient.full_name} with doctor {doctor_user.name} on {apt_date} at {slot_t}"
     )
     db.session.add(audit)
 
+    # 7. Patient Notification
     notif = Notification(
         patient_id=patient.id,
         type='APPOINTMENT_REMINDER',
         title=f'Appointment Confirmed: {apt_code}',
-        message=f'Your appointment with {doctor_user.name} is confirmed for {apt_date.strftime("%d %b %Y")} at {slot_t.strftime("%I:%M %p")}.',
+        message=f'Your appointment with {doctor_user.name} ({dept_name}) is confirmed for {apt_date.strftime("%d %b %Y")} at {slot_t.strftime("%I:%M %p")}. Appointment ID: {apt_code}.',
         channel='EMAIL' if patient.email else 'SMS',
         status='PENDING'
     )
     db.session.add(notif)
+
+    # 8. Receptionist Operational Notification (Categorized & Distinguishable)
+    if is_existing:
+        rec_title = "🔔 New Appointment Booked"
+        rec_message = (
+            f"Patient: {patient.full_name}\n"
+            f"Patient Status: 🟢 Existing Patient\n"
+            f"Booking Source: CareHub Website AI\n"
+            f"Booked For: {booked_for or 'Myself'}\n"
+            f"Department: {dept_name}\n"
+            f"Doctor: {doctor_user.name}\n"
+            f"Date: {apt_date.strftime('%d %b %Y')}\n"
+            f"Time: {slot_t.strftime('%I:%M %p')}\n"
+            f"Reason: {reason or 'General Consultation'}\n"
+            f"Phone: {clean_mobile}\n"
+            f"Email: {patient.email or 'N/A'}\n"
+            f"Appointment ID: {apt_code}\n"
+            f"Status: Confirmed"
+        )
+        rec_icon = 'bi-calendar-check-fill'
+        rec_color = '#10B981'
+    else:
+        rec_title = "🔔 New Appointment Booked"
+        rec_message = (
+            f"Patient: {patient.full_name}\n"
+            f"Patient Status: 🆕 NEW PATIENT\n"
+            f"Booking Source: CareHub Website AI\n"
+            f"Booked For: {booked_for or 'Myself'}\n"
+            f"Department: {dept_name}\n"
+            f"Doctor: {doctor_user.name}\n"
+            f"Date: {apt_date.strftime('%d %b %Y')}\n"
+            f"Time: {slot_t.strftime('%I:%M %p')}\n"
+            f"Reason: {reason or 'General Consultation'}\n"
+            f"Phone: {clean_mobile}\n"
+            f"Email: {patient.email or 'N/A'}\n"
+            f"Appointment ID: {apt_code}\n"
+            f"Action: Create/complete patient profile if required."
+        )
+        rec_icon = 'bi-person-plus-fill'
+        rec_color = '#2563EB'
+
+    create_reception_notification(
+        category='APPOINTMENT',
+        title=rec_title,
+        message=rec_message,
+        icon=rec_icon,
+        color=rec_color,
+        link=f"/reception/dashboard?q={apt_code}",
+        patient_id=patient.id,
+        reference_code=apt_code
+    )
 
     db.session.commit()
 
@@ -298,9 +428,18 @@ def public_book_appointment(patient_name: str, patient_mobile: str, patient_emai
         'appointment_code': apt_code,
         'patient_name': patient.full_name,
         'patient_code': patient.patient_code,
+        'patient_status': 'Existing Patient' if is_existing else 'New Patient',
+        'booked_for': booked_for or 'Myself',
         'doctor_name': doctor_user.name,
-        'department': doctor_user.department or 'General OPD',
+        'department': dept_name,
         'appointment_date': apt_date.strftime('%A, %d %B %Y'),
         'slot_time': slot_t.strftime('%I:%M %p'),
-        'message': f"🎉 Appointment {apt_code} successfully booked with {doctor_user.name} for {apt_date.strftime('%A, %d %B %Y')} at {slot_t.strftime('%I:%M %p')}!"
+        'message': (
+            f"🎉 Your appointment is booked!\n\n"
+            f"**{doctor_user.name}** — {dept_name}\n"
+            f"**{apt_date.strftime('%A, %B %d, %Y')}** at **{slot_t.strftime('%I:%M %p')}**\n\n"
+            f"Your appointment confirmation has been sent to your registered contact details.\n"
+            f"**Appointment ID:** `{apt_code}`\n\n"
+            f"Is there anything else I can help you with today?"
+        )
     }

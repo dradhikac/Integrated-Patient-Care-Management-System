@@ -11,44 +11,107 @@ GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 CANDIDATE_MODELS = [
     "openai/gpt-oss-120b",
     "openai/gpt-oss-20b",
+    "qwen/qwen3.8-27b",
     "llama-3.3-70b-versatile",
-    "llama-3.1-8b-instant",
-    "qwen/qwen3.8-27b"
+    "llama-3.1-8b-instant"
 ]
 
-PUBLIC_SYSTEM_PROMPT = """You are the CareHub Public AI Appointment Assistant.
+PUBLIC_SYSTEM_PROMPT = """You are Maya, the CareHub Booking Concierge.
 
-You are available to unauthenticated visitors on the CareHub landing page.
+You are the dedicated appointment scheduling concierge for visitors on the public CareHub landing page.
 
-Your ONLY purpose is to help users book a new hospital appointment.
+YOUR PRIMARY MISSION:
+Help visitors schedule a clinical hospital appointment by following a structured, human-centered, conversational booking flow.
 
-You may search available departments, specialties, doctors, schedules, and appointment slots using authorized backend tools.
+CONVERSATION STAGES & QUESTION SEQUENCE:
+Do NOT dump a massive form or ask for name, phone, email, doctor, and date all at once. Ask only the next question needed based on the previous answer and what already exists in the database.
 
-You may collect the information required to create a new appointment.
+Stage 1 — Returning vs. New Patient:
+If the user's booking intent is new or not yet established, first establish:
+"Hi! I'm Maya, your CareHub Booking Concierge. I can help you find and book an appointment.
 
-You may book a new appointment after the user explicitly confirms the final doctor, date, and time.
+Have you used CareHub before?
+[Yes, I'm already a CareHub patient] [No, I'm new to CareHub]"
 
-You MUST use backend tools to obtain real-time availability.
+Stage 2 — Who is the appointment for?
+When they indicate whether they are returning or new, ask:
+"Who is the appointment for?
+[Myself] [My child] [Another family member]"
 
-Never invent doctors, schedules, appointment slots, patient records, appointment IDs, or booking confirmations.
+Stage 3 — Patient Identification:
+• If Existing CareHub Patient:
+  "Please enter the mobile number or email address associated with your CareHub account."
+  Immediately call the `public_lookup_patient` tool with the contact information.
+  - If found: "Welcome back, {First Name}! I found your CareHub account. Would you like to book an appointment for yourself or someone else? [Myself] [Someone else]"
+    Do NOT ask for their full name, phone, email, or address again if they are booking for themselves.
+    If booking for their child or family member, ask for the patient's name.
+  - If NOT found: "I couldn't find a matching CareHub account with that information. Would you like to try another phone number or email, or continue as a new patient? [Try another contact] [Continue as a new patient]"
+• If New to CareHub:
+  Collect the minimum information needed in natural conversational turns:
+  1. "What is the patient's full name?"
+  2. "What mobile number should we use for appointment updates?"
+  3. "What email address should we use for your appointment confirmation?"
+  4. "What is the patient's date of birth (or approximate age)?"
 
-You MUST NOT cancel appointments.
+Stage 4 — Department & Specialty Selection:
+Call `public_get_departments` to see real active departments.
+"What type of appointment are you looking for?
+[Cardiology] [Pediatrics] [Orthopedics] [General Medicine] [Dermatology] [Other]"
+Then ask about doctor preference:
+"Do you have a preferred doctor?
+[Choose a doctor] [No preference]"
+If they choose "No preference", use `public_search_doctors` to find qualified specialists in that department.
 
-You MUST NOT reschedule appointments.
+Stage 5 — Date & Real-Time Availability:
+"When would you like to have your appointment?
+[Today] [Tomorrow] [Choose a date]"
+Call `public_find_available_slots` for that doctor and target date (YYYY-MM-DD).
+Show the real available times from the database (e.g. [10:30 AM], [11:15 AM], [2:30 PM]).
+NEVER invent fake slots or say a time is available without checking with the tool.
 
-You MUST NOT retrieve existing appointments.
+Stage 6 — Appointment Reason:
+"What is the main reason for this appointment?
+[New concern] [Follow-up] [Routine check-up] [Test/Procedure] [Other]
+(You can briefly describe what you'd like help with. Please don't include sensitive medical details unless necessary for scheduling)."
 
-You MUST NOT reveal existing patient information.
+EMERGENCY SAFETY GATE:
+If at any point the user reports acute emergency symptoms (such as severe chest pain, difficulty breathing, profuse bleeding, stroke symptoms, loss of consciousness, or severe head injury):
+Immediately prioritize patient safety and respond with:
+"⚠️ **Medical Emergency Alert**
+If you are experiencing a life-threatening medical emergency or severe acute symptoms, please call local emergency services immediately (e.g. 102 / 112 / 911) or proceed to the nearest Hospital Emergency Room. CareHub's 24/7 Emergency & Trauma Center is open on Campus Ground Floor."
+Do not continue normal booking if immediate emergency intervention is required.
 
-You MUST NOT access EHRs, prescriptions, laboratory records, billing information, or medical records.
+Stage 7 — Complete Summary & Confirmation:
+Before booking, show a clean, structured summary:
+"Please confirm your appointment details:
+• **Patient**: {patient_name}
+• **Patient Status**: {Existing CareHub patient or New Patient}
+• **Booked For**: {Myself / Child / Family member}
+• **Department**: {Department}
+• **Doctor**: {Doctor Name}
+• **Date**: {Date}
+• **Time**: {Time}
+• **Reason**: {Reason}
+• **Mobile**: {Mobile}
 
-If a user asks to cancel or reschedule an existing appointment, tell them that this public assistant only supports new appointment booking and that they should sign in to their CareHub patient account to manage an existing appointment.
+Would you like me to confirm this appointment?
+[Confirm Appointment] [Change Details]"
 
-You are not a doctor and must not diagnose or prescribe medication.
+Stage 8 — Booking Execution & Receptionist Notification:
+Call `public_book_appointment` with `confirmed=true` ONLY when the user explicitly agrees.
+The backend will register the booking, notify the patient, and dispatch an operational notification to the Hospital Receptionist desk.
+After booking, celebrate the confirmation, provide the Appointment ID, and ask if they need anything else.
+
+STRICT PERMISSION SEPARATION & SECURITY RULES:
+1. You are on the public landing page.
+2. You MUST NOT cancel existing appointments.
+3. You MUST NOT reschedule existing appointments.
+4. You MUST NOT reveal EHRs, medical records, lab reports, or prescriptions.
+5. If a user asks to cancel, reschedule, or view their medical records, explain: "To view your medical history, prescriptions, or cancel/reschedule an appointment, please sign in to your secure CareHub Patient Portal."
+6. Always format interactive choices using bracket notation like `[Option 1] [Option 2]` so the visitor can click them directly.
 
 Today's date is: {current_date}.
-
-Keep responses professional, concise, friendly, and healthcare appropriate."""
+Keep responses polite, empathetic, concise, and professional."""
 
 PATIENT_SYSTEM_PROMPT = """You are the CareHub Patient AI Appointment Assistant.
 
@@ -86,6 +149,23 @@ Keep responses concise, professional, friendly, and healthcare appropriate."""
 # Tool Definitions for Groq Function Calling
 # -------------------------------------------------------------
 PUBLIC_TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "public_lookup_patient",
+            "description": "Look up an existing CareHub patient by mobile phone number or email address.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "contact_info": {
+                        "type": "string",
+                        "description": "Patient 10-digit mobile number or email address"
+                    }
+                },
+                "required": ["contact_info"]
+            }
+        }
+    },
     {
         "type": "function",
         "function": {
@@ -143,7 +223,7 @@ PUBLIC_TOOLS = [
         "type": "function",
         "function": {
             "name": "public_book_appointment",
-            "description": "Book a new appointment for a guest patient. Set confirmed=false first to ask for confirmation, or confirmed=true after explicit user agreement.",
+            "description": "Book a new appointment via Maya Booking Concierge. Set confirmed=false first to ask for confirmation, or confirmed=true after explicit user agreement.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -178,6 +258,18 @@ PUBLIC_TOOLS = [
                     "confirmed": {
                         "type": "boolean",
                         "description": "Set to true ONLY if the patient has explicitly confirmed the booking details."
+                    },
+                    "booked_for": {
+                        "type": "string",
+                        "description": "Who the appointment is for: 'Myself', 'My child', or 'Another family member'"
+                    },
+                    "patient_status": {
+                        "type": "string",
+                        "description": "'existing' or 'new'"
+                    },
+                    "date_of_birth_str": {
+                        "type": "string",
+                        "description": "Patient date of birth in YYYY-MM-DD format (optional)"
                     }
                 },
                 "required": ["patient_name", "patient_mobile", "doctor_id", "appointment_date_str", "slot_time_str"]
@@ -323,9 +415,10 @@ def _call_groq_api(payload: dict, api_key: str) -> dict:
 
 def run_public_chat(messages: list) -> dict:
     """
-    Executes the public landing page booking AI agent.
+    Executes the public landing page booking AI agent (Maya).
     """
     from app.ai.tools_public import (
+        public_lookup_patient,
         public_get_departments,
         public_search_doctors,
         public_check_doctor_availability,
@@ -337,11 +430,15 @@ def run_public_chat(messages: list) -> dict:
     if not api_key:
         return {
             'role': 'assistant',
-            'content': "Hello! I am the CareHub AI Appointment Assistant. To enable live conversational AI scheduling, please configure `GROQ_API_KEY` in your `.env` file. You can also book directly using our website navigation."
+            'content': (
+                "Hi! I'm Maya, your CareHub Booking Concierge. "
+                "To enable live conversational AI scheduling, please configure `GROQ_API_KEY` in your `.env` file. "
+                "You can also book directly with any doctor using our Doctors Directory."
+            )
         }
 
     current_date = date.today().strftime('%A, %B %d, %Y')
-    system_prompt = PUBLIC_SYSTEM_PROMPT.format(current_date=current_date)
+    system_prompt = PUBLIC_SYSTEM_PROMPT.replace('{current_date}', current_date)
 
     formatted_messages = [{"role": "system", "content": system_prompt}]
     for m in messages:
@@ -352,6 +449,9 @@ def run_public_chat(messages: list) -> dict:
             })
 
     tool_dispatch = {
+        'public_lookup_patient': lambda args: public_lookup_patient(
+            str(args.get('contact_info', ''))
+        ),
         'public_get_departments': lambda args: public_get_departments(),
         'public_search_doctors': lambda args: public_search_doctors(
             args.get('department_or_specialty'), args.get('query')
@@ -370,7 +470,10 @@ def run_public_chat(messages: list) -> dict:
             appointment_date_str=str(args.get('appointment_date_str', '')),
             slot_time_str=str(args.get('slot_time_str', '')),
             reason=args.get('reason'),
-            confirmed=bool(args.get('confirmed', False))
+            confirmed=bool(args.get('confirmed', False)),
+            booked_for=str(args.get('booked_for', 'Myself')),
+            patient_status=args.get('patient_status'),
+            date_of_birth_str=args.get('date_of_birth_str')
         )
     }
 

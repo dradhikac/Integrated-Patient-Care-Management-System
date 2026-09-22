@@ -239,6 +239,45 @@
 .carehub-ai-msg p:last-child { margin-bottom: 0; }
 .carehub-ai-msg ul { margin: 4px 0 4px 18px; padding: 0; }
 .carehub-ai-msg strong { font-weight: 700; }
+.carehub-ai-msg code {
+  background: #F1F5F9;
+  color: #0F172A;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-family: monospace;
+}
+
+/* Interactive Choice Option Buttons inside chat messages */
+.carehub-ai-choice-btn {
+  display: inline-block;
+  margin: 4px 6px 4px 0;
+  padding: 6px 14px;
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1.5px solid #BFDBFE;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+  line-height: 1.3;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.08);
+}
+
+.carehub-ai-choice-btn:hover {
+  background: #2563EB;
+  color: #FFFFFF;
+  border-color: #2563EB;
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28);
+}
+
+.carehub-ai-choice-btn:active {
+  transform: translateY(0);
+}
 
 /* Typing indicator */
 .carehub-ai-typing {
