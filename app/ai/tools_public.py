@@ -207,6 +207,7 @@ def public_find_available_slots(doctor_id: int, target_date_str: str):
         'has_availability': True,
         'clinic_hours': windows.get('clinic_hours_str'),
         'available_slots_count': len(slots),
+        'slots': slots,
         'convenient_suggestions': convenient_suggestions,
         'popular_slots': [s['time_12h'] for s in slots[:16]]
     }
