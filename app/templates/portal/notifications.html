@@ -12,6 +12,9 @@
     <a href="{{ url_for('portal.notifications', type='ALL') }}" class="btn btn-sm rounded-pill {% if type_filter == 'ALL' %}btn-primary fw-bold{% else %}btn-light border{% endif %}">
       All Alerts
     </a>
+    <a href="{{ url_for('portal.notifications', type='FOLLOWUP_REMINDER') }}" class="btn btn-sm rounded-pill {% if type_filter == 'FOLLOWUP_REMINDER' %}btn-primary fw-bold{% else %}btn-light border{% endif %}">
+      <i class="bi bi-arrow-repeat me-1"></i> Follow-ups
+    </a>
     <a href="{{ url_for('portal.notifications', type='APPOINTMENT_REMINDER') }}" class="btn btn-sm rounded-pill {% if type_filter == 'APPOINTMENT_REMINDER' %}btn-primary fw-bold{% else %}btn-light border{% endif %}">
       <i class="bi bi-calendar-event me-1"></i> Appointments
     </a>
@@ -35,13 +38,15 @@
       <div class="card border-0 shadow-sm rounded-4 p-4" style="background: #FFFFFF; border: 1px solid var(--portal-border) !important;">
         <div class="d-flex align-items-start gap-3">
           <div style="width: 44px; height: 44px; border-radius: 12px;
-            {% if 'APPOINTMENT' in n.type %}background: #EFF6FF; color: #2563EB;
+            {% if 'FOLLOWUP' in n.type %}background: #FEF3C7; color: #D97706;
+            {% elif 'APPOINTMENT' in n.type %}background: #EFF6FF; color: #2563EB;
             {% elif 'PRESCRIPTION' in n.type %}background: #ECFDF5; color: #059669;
             {% elif 'LAB' in n.type %}background: #F0FDFA; color: #0D9488;
             {% elif 'PAYMENT' in n.type %}background: #FFFBEB; color: #D97706;
             {% else %}background: #F1F5F9; color: #475569;{% endif %}
             display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0;">
-            {% if 'APPOINTMENT' in n.type %}<i class="bi bi-calendar-check-fill"></i>
+            {% if 'FOLLOWUP' in n.type %}<i class="bi bi-arrow-repeat"></i>
+            {% elif 'APPOINTMENT' in n.type %}<i class="bi bi-calendar-check-fill"></i>
             {% elif 'PRESCRIPTION' in n.type %}<i class="bi bi-capsule-pill"></i>
             {% elif 'LAB' in n.type %}<i class="bi bi-clipboard2-pulse-fill"></i>
             {% elif 'PAYMENT' in n.type %}<i class="bi bi-receipt"></i>

@@ -5,6 +5,8 @@ from app.extensions import db
 from app.doctors.models import Doctor
 from app.auth.models import Role, User
 from app.appointments.models import Appointment
+from app.patients.models import Patient
+from app.notifications.models import Notification, NotificationLog
 
 class DoctorsApiTestCase(unittest.TestCase):
     def setUp(self):
@@ -117,6 +119,65 @@ class DoctorsApiTestCase(unittest.TestCase):
         response = self.client.get(f'/doctors/{self.test_doctor_id}')
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Cardiologist', response.data)
+
+    def test_schedule_followup_and_notification(self):
+        with self.app.app_context():
+            doc_user = User.query.filter_by(user_code='TEST-DOC-999').first()
+            patient = Patient(
+                patient_code='IPCMS-TEST-001',
+                first_name='Radhika',
+                last_name='Chougale',
+                full_name='Radhika D Chougale',
+                dob=date(2006, 4, 11),
+                gender='Female',
+                mobile='7019669582',
+                email='dcradhika004@gmail.com'
+            )
+            db.session.add(patient)
+            db.session.commit()
+            patient_id = patient.id
+            doc_id = doc_user.id
+
+        # Log in as Doctor
+        self.client.post('/login', data={'email': 'test.doctor@medicore.com', 'password': 'Password@123'})
+
+        # Schedule Follow-up
+        future_date = (date.today() + timedelta(days=7)).strftime('%Y-%m-%d')
+        post_data = {
+            'followup_date': future_date,
+            'slot_time': '10:30:00',
+            'priority': 'Regular',
+            'notes': 'Check BP and review blood panel reports after 1 week.'
+        }
+        resp = self.client.post(f'/doctor/patients/{patient_id}/schedule-followup', data=post_data, follow_redirects=True)
+        self.assertEqual(resp.status_code, 200)
+
+        with self.app.app_context():
+            # 1. Verify Appointment created
+            apt = Appointment.query.filter_by(patient_id=patient_id, doctor_id=doc_id, booking_type='Follow-Up').first()
+            self.assertIsNotNone(apt)
+            self.assertEqual(apt.status, 'BOOKED')
+            self.assertIn('Check BP and review', apt.notes)
+
+            # 2. Verify Patient Notification created and sent
+            notif = Notification.query.filter_by(patient_id=patient_id, type='FOLLOWUP_REMINDER').first()
+            self.assertIsNotNone(notif)
+            self.assertEqual(notif.status, 'SENT')
+            self.assertIn('Follow-Up Scheduled', notif.title)
+            self.assertIn('Check BP and review', notif.message)
+
+            # 3. Verify NotificationLog generated for SMS and/or EMAIL
+            logs = NotificationLog.query.filter_by(notification_id=notif.id).all()
+            self.assertGreaterEqual(len(logs), 1)
+
+    def test_doctor_available_slots_endpoint(self):
+        # Log in as Doctor
+        self.client.post('/login', data={'email': 'test.doctor@medicore.com', 'password': 'Password@123'})
+        target_date = (date.today() + timedelta(days=3)).strftime('%Y-%m-%d')
+        resp = self.client.get(f'/doctor/available-slots?date={target_date}')
+        self.assertEqual(resp.status_code, 200)
+        data = resp.get_json()
+        self.assertIn('slots', data)
 
 if __name__ == '__main__':
     unittest.main()

@@ -41,10 +41,13 @@
                 <span class="text-muted" style="font-size:0.82rem;">—</span>
               {% endif %}
             </td>
-            <td style="max-width:200px;">
+            <td style="max-width:220px;">
+              {% if apt.notes %}
+                <div style="font-size:0.8rem;color:#B45309;font-weight:600;"><i class="bi bi-chat-left-dots-fill me-1"></i>{{ apt.notes[:75] }}{% if apt.notes|length > 75 %}…{% endif %}</div>
+              {% endif %}
               {% if apt._last_consultation %}
-                <span style="font-size:0.82rem;color:#334155;">{{ apt._last_consultation.diagnosis[:80] }}{% if apt._last_consultation.diagnosis|length > 80 %}…{% endif %}</span>
-              {% else %}
+                <div style="font-size:0.77rem;color:#64748B;margin-top:2px;"><strong>Dx:</strong> {{ apt._last_consultation.diagnosis[:70] }}{% if apt._last_consultation.diagnosis|length > 70 %}…{% endif %}</div>
+              {% elif not apt.notes %}
                 <span class="text-muted" style="font-size:0.82rem;">—</span>
               {% endif %}
             </td>

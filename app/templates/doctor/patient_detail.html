@@ -32,6 +32,9 @@
         <a href="{{ url_for('doctor_portal.create_prescription', patient_id=patient.id) }}" class="btn-doc-teal">
           <i class="bi bi-capsule"></i> New Prescription
         </a>
+        <button type="button" class="btn-doc-amber" data-bs-toggle="modal" data-bs-target="#scheduleFollowupModal">
+          <i class="bi bi-arrow-repeat"></i> Schedule Follow-up
+        </button>
       </div>
     </div>
   </div>
@@ -176,8 +179,11 @@
 
     <!-- Appointment History -->
     <div class="doc-card">
-      <div class="doc-card-header">
+      <div class="doc-card-header d-flex justify-content-between align-items-center">
         <div class="doc-card-title"><i class="bi bi-calendar-check text-success"></i> Appointment History</div>
+        <button type="button" class="btn-doc-amber" style="padding:4px 10px;font-size:0.75rem;" data-bs-toggle="modal" data-bs-target="#scheduleFollowupModal">
+          <i class="bi bi-plus-lg"></i> Follow-up
+        </button>
       </div>
       {% if appointments %}
         <div class="table-responsive">
@@ -188,9 +194,20 @@
             <tbody>
               {% for apt in appointments %}
               <tr>
-                <td style="font-size:0.85rem;">{{ apt.appointment_date.strftime('%d %b %Y') }}</td>
+                <td style="font-size:0.85rem;">
+                  <span class="fw-semibold">{{ apt.appointment_date.strftime('%d %b %Y') }}</span>
+                  <div style="font-size:0.72rem;color:#94A3B8;">{{ apt.appointment_code }}</div>
+                </td>
                 <td style="font-size:0.85rem;">{{ apt.slot_time.strftime('%I:%M %p') }}</td>
-                <td style="font-size:0.83rem;">{{ apt.booking_type }}</td>
+                <td style="font-size:0.83rem;">
+                  {% if apt.booking_type == 'Follow-Up' %}
+                    <span style="background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;border-radius:6px;padding:2px 7px;font-size:0.75rem;font-weight:700;">
+                      <i class="bi bi-arrow-repeat me-1"></i>Follow-Up
+                    </span>
+                  {% else %}
+                    <span style="color:#475569;">{{ apt.booking_type }}</span>
+                  {% endif %}
+                </td>
                 <td>
                   {% set sc2 = {'BOOKED':'badge-booked','CHECKED_IN':'badge-checked-in','COMPLETED':'badge-completed','CANCELLED':'badge-cancelled','NO_SHOW':'badge-no-show'} %}
                   <span class="status-badge {{ sc2.get(apt.status,'badge-booked') }}">{{ apt.status.replace('_',' ').title() }}</span>
@@ -208,4 +225,184 @@
   </div>
 </div>
 
+<!-- Modal: Schedule Follow-up -->
+<div class="modal fade" id="scheduleFollowupModal" tabindex="-1" aria-labelledby="scheduleFollowupModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:16px;border:1px solid #E2E8F0;box-shadow:0 10px 25px rgba(15,23,42,0.12);">
+      <form action="{{ url_for('doctor_portal.schedule_followup', patient_id=patient.id) }}" method="POST">
+        {% if csrf_token %}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% endif %}
+        <div class="modal-header" style="border-bottom:1px solid #F1F5F9;padding:18px 24px;">
+          <div class="d-flex align-items-center gap-3">
+            <div style="width:42px;height:42px;border-radius:12px;background:#FEF3C7;color:#D97706;display:flex;align-items:center;justify-content:center;font-size:1.25rem;">
+              <i class="bi bi-arrow-repeat"></i>
+            </div>
+            <div>
+              <h6 class="modal-title fw-bold" id="scheduleFollowupModalLabel" style="font-size:1rem;color:#0F172A;line-height:1.2;">Schedule Clinical Follow-up</h6>
+              <span style="font-size:0.78rem;color:#64748B;">Patient: <strong>{{ patient.full_name }}</strong> ({{ patient.patient_code }})</span>
+            </div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body" style="padding:22px 24px;">
+          <!-- Quick Date Presets -->
+          <div class="mb-3">
+            <label class="form-label" style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#64748B;">Quick Interval</label>
+            <div class="d-flex gap-2 flex-wrap">
+              <button type="button" class="btn btn-sm btn-outline-secondary date-preset-btn" data-days="3" style="font-size:0.78rem;border-radius:8px;">+3 Days</button>
+              <button type="button" class="btn btn-sm btn-outline-primary active date-preset-btn" data-days="7" style="font-size:0.78rem;border-radius:8px;">+1 Week</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary date-preset-btn" data-days="14" style="font-size:0.78rem;border-radius:8px;">+2 Weeks</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary date-preset-btn" data-days="30" style="font-size:0.78rem;border-radius:8px;">+1 Month</button>
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <!-- Follow-up Date -->
+            <div class="col-sm-6">
+              <label class="form-label" style="font-size:0.78rem;font-weight:700;color:#334155;">Follow-up Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" name="followup_date" id="followupDateInput"
+                     min="{{ today.strftime('%Y-%m-%d') if today else '' }}" required
+                     style="font-size:0.85rem;border-radius:8px;">
+            </div>
+
+            <!-- Follow-up Time Slot -->
+            <div class="col-sm-6">
+              <label class="form-label" style="font-size:0.78rem;font-weight:700;color:#334155;">Arrival Window / Time</label>
+              <select class="form-select" name="slot_time" id="followupSlotSelect" style="font-size:0.85rem;border-radius:8px;">
+                <option value="09:00:00">09:00 AM</option>
+                <option value="09:30:00">09:30 AM</option>
+                <option value="10:00:00" selected>10:00 AM (Recommended)</option>
+                <option value="10:30:00">10:30 AM</option>
+                <option value="11:00:00">11:00 AM</option>
+                <option value="11:30:00">11:30 AM</option>
+                <option value="12:00:00">12:00 PM</option>
+                <option value="14:00:00">02:00 PM</option>
+                <option value="14:30:00">02:30 PM</option>
+                <option value="15:00:00">03:00 PM</option>
+                <option value="15:30:00">03:30 PM</option>
+                <option value="16:00:00">04:00 PM</option>
+                <option value="16:30:00">04:30 PM</option>
+                <option value="17:00:00">05:00 PM</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Priority -->
+          <div class="mb-3">
+            <label class="form-label" style="font-size:0.78rem;font-weight:700;color:#334155;">Clinical Priority</label>
+            <select class="form-select" name="priority" style="font-size:0.85rem;border-radius:8px;">
+              <option value="Regular" selected>Regular Review</option>
+              <option value="Post-Operative">Post-Operative Check</option>
+              <option value="High Priority">High Priority / Critical Monitoring</option>
+              <option value="Senior Citizen">Senior Citizen Care</option>
+            </select>
+          </div>
+
+          <!-- Instructions / Notes -->
+          <div class="mb-3">
+            <label class="form-label" style="font-size:0.78rem;font-weight:700;color:#334155;">Clinical Instructions for Patient</label>
+            <textarea class="form-control" name="notes" rows="3"
+                      placeholder="e.g., Review fasting blood sugar and lipid profile; assess blood pressure control; wound inspection and dressing."
+                      style="font-size:0.85rem;border-radius:8px;"></textarea>
+            <div style="font-size:0.72rem;color:#94A3B8;margin-top:4px;">These clinical instructions will be included in the automated SMS &amp; Email sent to the patient.</div>
+          </div>
+
+          <!-- Notification Guarantee Banner -->
+          <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;">
+            <i class="bi bi-bell-fill text-warning" style="font-size:1.1rem;margin-top:2px;"></i>
+            <div style="font-size:0.78rem;color:#92400E;line-height:1.4;">
+              <strong>Automated Patient Dispatch:</strong> An official SMS &amp; Email notification will be immediately dispatched to <strong>{{ patient.full_name }}</strong> (Mobile: {{ patient.mobile }}{% if patient.email %} &bull; {{ patient.email }}{% endif %}) and synchronized to their Patient Portal.
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="border-top:1px solid #F1F5F9;padding:14px 24px;display:flex;justify-content:space-between;">
+          <button type="button" class="btn btn-sm btn-light border" data-bs-dismiss="modal" style="font-weight:600;padding:7px 16px;">Cancel</button>
+          <button type="submit" class="btn-doc-amber" style="padding:8px 20px;font-size:0.84rem;">
+            <i class="bi bi-calendar-check me-1"></i> Confirm &amp; Notify Patient
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document-ready:
+(function() {
+  const dateInput = document.getElementById('followupDateInput');
+  const slotSelect = document.getElementById('followupSlotSelect');
+  const presetButtons = document.querySelectorAll('.date-preset-btn');
+
+  function formatDate(d) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function setDateOffset(days) {
+    const target = new Date();
+    target.setDate(target.getDate() + days);
+    if (dateInput) {
+      dateInput.value = formatDate(target);
+      fetchSlots(dateInput.value);
+    }
+  }
+
+  function fetchSlots(dateStr) {
+    if (!slotSelect) return;
+    fetch(`/doctor/available-slots?date=${dateStr}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.slots && data.slots.length > 0) {
+          const currentVal = slotSelect.value;
+          slotSelect.innerHTML = '';
+          data.slots.forEach(slot => {
+            const opt = document.createElement('option');
+            opt.value = slot.slot_time;
+            opt.textContent = `${slot.slot_display_time || slot.slot_time} ${slot.is_available ? '' : '(Occupied)'}`;
+            if (slot.slot_time === currentVal || slot.is_available) {
+              opt.selected = true;
+            }
+            slotSelect.appendChild(opt);
+          });
+        }
+      })
+      .catch(() => {
+        // Keep fallback slots
+      });
+  }
+
+  presetButtons.forEach(btn => {
+    btn.addEventListener('click', function() {
+      presetButtons.forEach(b => {
+        b.classList.remove('btn-outline-primary', 'active');
+        b.classList.add('btn-outline-secondary');
+      });
+      this.classList.remove('btn-outline-secondary');
+      this.classList.add('btn-outline-primary', 'active');
+      const days = parseInt(this.getAttribute('data-days'), 10);
+      setDateOffset(days);
+    });
+  });
+
+  if (dateInput) {
+    // Default to +7 days (1 week)
+    setDateOffset(7);
+    dateInput.addEventListener('change', function() {
+      fetchSlots(this.value);
+      presetButtons.forEach(b => {
+        b.classList.remove('btn-outline-primary', 'active');
+        b.classList.add('btn-outline-secondary');
+      });
+    });
+  }
+})();
+</script>
 {% endblock %}

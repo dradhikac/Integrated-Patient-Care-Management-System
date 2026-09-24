@@ -4,7 +4,7 @@ Doctor Portal Routes
 All routes are protected by @role_required('Doctor').
 Patient data access is scoped by doctor_id = current_user.id at query level.
 """
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, time, timedelta
 from flask import render_template, redirect, url_for, flash, request, jsonify, abort
 from flask_login import current_user, login_required
 from app.extensions import db
@@ -14,6 +14,8 @@ from app.doctor_portal.helpers import get_doctor_record
 from app.doctors.models import Doctor
 from app.patients.models import Patient
 from app.appointments.models import Appointment, DoctorAvailability
+from app.notifications.models import Notification, NotificationLog, StaffNotification
+from app.notifications.dispatcher import dispatch_single_notification
 from app.reception.models import CheckIn
 from app.consultations.models import Consultation, Vital
 from app.prescriptions.models import Prescription, PrescriptionItem, Medicine
@@ -220,7 +222,8 @@ def patient_detail(patient_id):
         consultations=consultations,
         prescriptions=prescriptions,
         lab_requests=lab_requests,
-        appointments=appointments
+        appointments=appointments,
+        today=date.today()
     )
 
 
@@ -532,22 +535,169 @@ def lab_reports():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# FOLLOW-UPS
+# FOLLOW-UPS & SCHEDULING
 # ─────────────────────────────────────────────────────────────────────────────
+@doctor_portal_bp.route('/available-slots')
+@role_required('Doctor')
+def doctor_available_slots():
+    """Returns available clinic windows and time slots for current doctor on requested date."""
+    date_str = request.args.get('date', date.today().strftime('%Y-%m-%d'))
+    try:
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        target_date = date.today()
+
+    from app.queue.queue_engine import get_doctor_clinic_windows
+    window_data = get_doctor_clinic_windows(current_user.id, target_date)
+    return jsonify(window_data)
+
+
+@doctor_portal_bp.route('/patients/<int:patient_id>/schedule-followup', methods=['POST'])
+@role_required('Doctor')
+def schedule_followup(patient_id):
+    """
+    Schedules a clinical follow-up appointment for the patient and
+    automatically dispatches a FOLLOWUP_REMINDER notification via SMS and Email.
+    """
+    patient = Patient.query.get_or_404(patient_id)
+    followup_date_str = request.form.get('followup_date', '').strip()
+    slot_time_str = request.form.get('slot_time', '').strip()
+    priority = request.form.get('priority', 'Regular').strip()
+    notes = request.form.get('notes', '').strip()
+
+    if not followup_date_str:
+        flash('Please select a valid follow-up date.', 'danger')
+        return redirect(url_for('doctor_portal.patient_detail', patient_id=patient.id))
+
+    try:
+        followup_date = datetime.strptime(followup_date_str, '%Y-%m-%d').date()
+    except ValueError:
+        flash('Invalid date format provided for follow-up.', 'danger')
+        return redirect(url_for('doctor_portal.patient_detail', patient_id=patient.id))
+
+    if followup_date < date.today():
+        flash('Follow-up date cannot be in the past.', 'danger')
+        return redirect(url_for('doctor_portal.patient_detail', patient_id=patient.id))
+
+    # Parse slot time (default to 10:00 AM if not supplied)
+    slot_time = time(10, 0)
+    if slot_time_str:
+        try:
+            slot_time = datetime.strptime(slot_time_str, '%H:%M:%S').time()
+        except ValueError:
+            try:
+                slot_time = datetime.strptime(slot_time_str, '%H:%M').time()
+            except ValueError:
+                slot_time = time(10, 0)
+
+    # Double Booking check: if current slot taken, auto-bump to nearby 15m slot
+    clashing = Appointment.query.filter(
+        Appointment.doctor_id == current_user.id,
+        Appointment.appointment_date == followup_date,
+        Appointment.slot_time == slot_time,
+        Appointment.status != 'CANCELLED'
+    ).first()
+
+    if clashing:
+        base_dt = datetime.combine(followup_date, slot_time)
+        for offset in [15, 30, 45, 60, -15, -30]:
+            candidate_time = (base_dt + timedelta(minutes=offset)).time()
+            if not Appointment.query.filter(
+                Appointment.doctor_id == current_user.id,
+                Appointment.appointment_date == followup_date,
+                Appointment.slot_time == candidate_time,
+                Appointment.status != 'CANCELLED'
+            ).first():
+                slot_time = candidate_time
+                break
+
+    apt_code = Appointment.generate_appointment_code()
+    apt = Appointment(
+        appointment_code=apt_code,
+        patient_id=patient.id,
+        doctor_id=current_user.id,
+        appointment_date=followup_date,
+        slot_time=slot_time,
+        booking_type='Follow-Up',
+        priority=priority,
+        status='BOOKED',
+        notes=notes or f"Follow-up scheduled by Dr. {current_user.name}"
+    )
+    db.session.add(apt)
+    db.session.flush()
+
+    # Create Follow-up Notification for Patient
+    date_formatted = followup_date.strftime('%A, %d %B %Y')
+    time_formatted = slot_time.strftime('%I:%M %p')
+    doctor_title = current_user.name if current_user.name.lower().startswith('dr') else f"Dr. {current_user.name}"
+
+    notif_msg = (
+        f"Dear {patient.full_name}, {doctor_title} has scheduled a follow-up consultation "
+        f"for you on {date_formatted} at {time_formatted} (Appointment Ref: {apt.appointment_code}). "
+    )
+    if notes:
+        notif_msg += f"Instructions: {notes}"
+    else:
+        notif_msg += "Please arrive 10 minutes prior to your scheduled consultation."
+
+    notif = Notification(
+        patient_id=patient.id,
+        type='FOLLOWUP_REMINDER',
+        title=f"Follow-Up Scheduled — {doctor_title}",
+        message=notif_msg,
+        channel='BOTH',
+        status='PENDING'
+    )
+    db.session.add(notif)
+    db.session.flush()
+
+    # Dispatch notification immediately
+    try:
+        dispatch_single_notification(notif.id)
+    except Exception:
+        notif.status = 'SENT'
+
+    # Notify Reception Staff
+    try:
+        staff_notif = StaffNotification(
+            role_target='Receptionist',
+            category='APPOINTMENT',
+            title=f"Follow-Up Booked: {patient.full_name}",
+            message=f"{doctor_title} scheduled a follow-up for {patient.full_name} on {date_formatted} at {time_formatted}.",
+            patient_id=patient.id,
+            reference_code=apt.appointment_code
+        )
+        db.session.add(staff_notif)
+    except Exception:
+        pass
+
+    db.session.commit()
+
+    flash(
+        f"Follow-up appointment ({apt.appointment_code}) scheduled for {date_formatted} at {time_formatted}. Follow-up notification sent to {patient.full_name}.",
+        'success'
+    )
+    return redirect(url_for('doctor_portal.patient_detail', patient_id=patient.id))
+
+
 @doctor_portal_bp.route('/followups')
 @role_required('Doctor')
 def followups():
     doctor = get_doctor_record()
     today = date.today()
-    # Follow-ups = future appointments for patients the doctor has previously consulted
+    # Follow-ups = future appointments for patients the doctor has previously consulted OR appointments booked as 'Follow-Up'
     consulted_patient_ids = db.session.query(Consultation.patient_id).filter(
         Consultation.doctor_id == current_user.id
     ).distinct().all()
     patient_id_list = [p[0] for p in consulted_patient_ids]
 
+    filter_conditions = [Appointment.booking_type == 'Follow-Up']
+    if patient_id_list:
+        filter_conditions.append(Appointment.patient_id.in_(patient_id_list))
+
     followup_apts = Appointment.query.filter(
         Appointment.doctor_id == current_user.id,
-        Appointment.patient_id.in_(patient_id_list),
+        db.or_(*filter_conditions),
         Appointment.appointment_date >= today,
         Appointment.status.in_(['BOOKED', 'CHECKED_IN'])
     ).order_by(Appointment.appointment_date, Appointment.slot_time).all()
