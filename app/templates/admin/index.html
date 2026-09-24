@@ -155,7 +155,7 @@
 
         <a href="{{ url_for('admin.emergency_view') }}" class="op-row">
           <div class="op-row-left">
-            <div class="op-icon-box bg-danger-subtle text-danger"><i class="bi bi-ambulance"></i></div>
+            <div class="op-icon-box bg-danger-subtle text-danger"><i class="fa-solid fa-truck-medical bi-ambulance"></i></div>
             <span class="op-name">Emergency Patients</span>
           </div>
           <span class="op-count text-danger" id="opEmergCnt">{{ emerg_count }}</span>
@@ -163,7 +163,7 @@
 
         <a href="{{ url_for('admin.master_lab_tests') }}" class="op-row">
           <div class="op-row-left">
-            <div class="op-icon-box bg-info-subtle text-info"><i class="bi bi-flask"></i></div>
+            <div class="op-icon-box bg-info-subtle text-info"><i class="fa-solid fa-flask bi-flask"></i></div>
             <span class="op-name">Lab Requests</span>
           </div>
           <span class="op-count text-info" id="opLabCnt">{{ lab_req_count }}</span>

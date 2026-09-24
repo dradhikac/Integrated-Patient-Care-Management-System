@@ -166,6 +166,33 @@ body.admin-dashboard-page {
   color: #FFFFFF;
 }
 
+/* ==========================================================================
+   Custom Icons Extension: Laboratory Flask & Emergency Ambulance
+   Provides SVG mask fallbacks for missing Bootstrap Icons
+   ========================================================================== */
+.bi-flask:not(.fa-solid)::before,
+.bi-flask-fill:not(.fa-solid)::before {
+  content: "";
+  display: inline-block;
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: -0.15em;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23000' d='M6.5 0a.75.75 0 0 0 0 1.5H7v3.63L3.13 11.23A2 2 0 0 0 4.84 14.5h6.32a2 2 0 0 0 1.71-3.27L9 5.13V1.5h.5a.75.75 0 0 0 0-1.5h-3zM8 6.5l3.36 5.6a1 1 0 0 1-.86 1.4H5.5a1 1 0 0 1-.86-1.4L8 6.5z'/%3E%3C/svg%3E") no-repeat center / contain;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23000' d='M6.5 0a.75.75 0 0 0 0 1.5H7v3.63L3.13 11.23A2 2 0 0 0 4.84 14.5h6.32a2 2 0 0 0 1.71-3.27L9 5.13V1.5h.5a.75.75 0 0 0 0-1.5h-3zM8 6.5l3.36 5.6a1 1 0 0 1-.86 1.4H5.5a1 1 0 0 1-.86-1.4L8 6.5z'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+.bi-ambulance:not(.fa-solid)::before {
+  content: "";
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  vertical-align: -0.15em;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 512'%3E%3Cpath fill='%23000' d='M48 0C21.5 0 0 21.5 0 48V368c0 26.5 21.5 48 48 48H64c0 53 43 96 96 96s96-43 96-96H384c0 53 43 96 96 96s96-43 96-96h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V288 256 237.3c0-17-6.7-33.3-18.7-45.3L512 106.7c-12-12-28.3-18.7-45.3-18.7H416V48c0-26.5-21.5-48-48-48H48zM416 128h50.7L544 205.3V256H416V128zM160 464a48 48 0 1 1 0-96 48 48 0 1 1 0 96zm320 0a48 48 0 1 1 0-96 48 48 0 1 1 0 96zM184 96c8.8 0 16 7.2 16 16v32h32c8.8 0 16 7.2 16 16s-7.2 16-16 16H200v32c0 8.8-7.2 16-16 16s-16-7.2-16-16V176H136c-8.8 0-16-7.2-16-16s7.2-16 16-16h32V112c0-8.8 7.2-16 16-16z'/%3E%3C/svg%3E") no-repeat center / contain;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 512'%3E%3Cpath fill='%23000' d='M48 0C21.5 0 0 21.5 0 48V368c0 26.5 21.5 48 48 48H64c0 53 43 96 96 96s96-43 96-96H384c0 53 43 96 96 96s96-43 96-96h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V288 256 237.3c0-17-6.7-33.3-18.7-45.3L512 106.7c-12-12-28.3-18.7-45.3-18.7H416V48c0-26.5-21.5-48-48-48H48zM416 128h50.7L544 205.3V256H416V128zM160 464a48 48 0 1 1 0-96 48 48 0 1 1 0 96zm320 0a48 48 0 1 1 0-96 48 48 0 1 1 0 96zM184 96c8.8 0 16 7.2 16 16v32h32c8.8 0 16 7.2 16 16s-7.2 16-16 16H200v32c0 8.8-7.2 16-16 16s-16-7.2-16-16V176H136c-8.8 0-16-7.2-16-16s7.2-16 16-16h32V112c0-8.8 7.2-16 16-16z'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
 /* Sidebar Bottom Status Box */
 .admin-sidebar-bottom {
   padding: 16px;
