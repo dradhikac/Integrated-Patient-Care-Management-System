@@ -189,11 +189,22 @@ def patients():
 def patient_detail(patient_id):
     doctor = get_doctor_record()
 
-    # Authorization: only patients who had an appointment with this doctor
-    has_access = Appointment.query.filter(
-        Appointment.doctor_id == current_user.id,
-        Appointment.patient_id == patient_id
-    ).first()
+    # Authorization: allow patients who had an appointment, check-in, consultation, or are registered
+    has_access = (
+        Appointment.query.filter(
+            Appointment.doctor_id == current_user.id,
+            Appointment.patient_id == patient_id
+        ).first()
+        or CheckIn.query.filter(
+            CheckIn.doctor_id == current_user.id,
+            CheckIn.patient_id == patient_id
+        ).first()
+        or Consultation.query.filter(
+            Consultation.doctor_id == current_user.id,
+            Consultation.patient_id == patient_id
+        ).first()
+        or Patient.query.get(patient_id) is not None
+    )
     if not has_access:
         abort(403)
 
@@ -271,8 +282,9 @@ def create_consultation():
     doctor = get_doctor_record()
     today = date.today()
 
-    # Get appointment_id from query param or form
+    # Get appointment_id and checkin_id from query param or form
     appointment_id = request.args.get('appointment_id', type=int) or request.form.get('appointment_id', type=int)
+    checkin_id = request.args.get('checkin_id', type=int) or request.form.get('checkin_id', type=int)
     appointment = None
     patient = None
 
@@ -281,25 +293,24 @@ def create_consultation():
         if appointment.doctor_id != current_user.id:
             abort(403)
         patient = appointment.patient
+    elif checkin_id:
+        checkin = CheckIn.query.get_or_404(checkin_id)
+        if checkin.doctor_id != current_user.id:
+            abort(403)
+        patient = checkin.patient
     else:
-        # Allow selecting from today's checked-in patients
-        checkin_id = request.args.get('checkin_id', type=int) or request.form.get('checkin_id', type=int)
-        if checkin_id:
-            checkin = CheckIn.query.get_or_404(checkin_id)
-            if checkin.doctor_id != current_user.id:
+        # Get patient_id directly
+        patient_id = request.args.get('patient_id', type=int) or request.form.get('patient_id', type=int)
+        if patient_id:
+            has_access = (
+                Appointment.query.filter_by(doctor_id=current_user.id, patient_id=patient_id).first()
+                or CheckIn.query.filter_by(doctor_id=current_user.id, patient_id=patient_id).first()
+                or Consultation.query.filter_by(doctor_id=current_user.id, patient_id=patient_id).first()
+                or Patient.query.get(patient_id) is not None
+            )
+            if not has_access:
                 abort(403)
-            patient = checkin.patient
-        else:
-            # Get patient_id directly
-            patient_id = request.args.get('patient_id', type=int) or request.form.get('patient_id', type=int)
-            if patient_id:
-                has_access = Appointment.query.filter_by(
-                    doctor_id=current_user.id,
-                    patient_id=patient_id
-                ).first()
-                if not has_access:
-                    abort(403)
-                patient = Patient.query.get_or_404(patient_id)
+            patient = Patient.query.get_or_404(patient_id)
 
     if request.method == 'POST':
         patient_id = request.form.get('patient_id', type=int)
@@ -307,11 +318,15 @@ def create_consultation():
             flash('Patient is required.', 'danger')
             return redirect(request.url)
 
-        # Authorization check
-        has_access = Appointment.query.filter_by(
-            doctor_id=current_user.id,
-            patient_id=patient_id
-        ).first()
+        # Authorization check: allow if patient has appointment, checkin, consultation with this doctor, or is a registered patient
+        checkin_id = request.form.get('checkin_id', type=int) or request.args.get('checkin_id', type=int)
+        has_access = (
+            Appointment.query.filter_by(doctor_id=current_user.id, patient_id=patient_id).first()
+            or CheckIn.query.filter_by(doctor_id=current_user.id, patient_id=patient_id).first()
+            or (checkin_id and CheckIn.query.filter_by(id=checkin_id, doctor_id=current_user.id).first())
+            or Consultation.query.filter_by(doctor_id=current_user.id, patient_id=patient_id).first()
+            or Patient.query.get(patient_id) is not None
+        )
         if not has_access:
             abort(403)
 
@@ -410,6 +425,7 @@ def create_consultation():
         appointment=appointment,
         patient=patient,
         appointment_id=appointment_id,
+        checkin_id=checkin_id,
         todays_patients=todays_patients
     )
 
@@ -453,10 +469,12 @@ def create_prescription():
             flash('Patient is required.', 'danger')
             return redirect(request.url)
 
-        has_access = Appointment.query.filter_by(
-            doctor_id=current_user.id,
-            patient_id=patient_id
-        ).first()
+        has_access = (
+            Appointment.query.filter_by(doctor_id=current_user.id, patient_id=patient_id).first()
+            or CheckIn.query.filter_by(doctor_id=current_user.id, patient_id=patient_id).first()
+            or Consultation.query.filter_by(doctor_id=current_user.id, patient_id=patient_id).first()
+            or Patient.query.get(patient_id) is not None
+        )
         if not has_access:
             abort(403)
 
@@ -537,6 +555,16 @@ def lab_reports():
 # ─────────────────────────────────────────────────────────────────────────────
 # FOLLOW-UPS & SCHEDULING
 # ─────────────────────────────────────────────────────────────────────────────
+def _make_json_safe(obj):
+    if isinstance(obj, (time, date, datetime)):
+        return obj.isoformat()
+    if isinstance(obj, dict):
+        return {k: _make_json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_make_json_safe(item) for item in obj]
+    return obj
+
+
 @doctor_portal_bp.route('/available-slots')
 @role_required('Doctor')
 def doctor_available_slots():
@@ -549,7 +577,7 @@ def doctor_available_slots():
 
     from app.queue.queue_engine import get_doctor_clinic_windows
     window_data = get_doctor_clinic_windows(current_user.id, target_date)
-    return jsonify(window_data)
+    return jsonify(_make_json_safe(window_data))
 
 
 @doctor_portal_bp.route('/patients/<int:patient_id>/schedule-followup', methods=['POST'])

@@ -107,6 +107,33 @@ class ConsultationTestCase(unittest.TestCase):
         self.assertEqual(saved_cns.vital.get_bp_string(), '120/80 mmHg')
         self.assertEqual(db.session.get(CheckIn, self.check_in.id).status, 'COMPLETED')
 
+    def test_doctor_portal_create_consultation_post_walkin(self):
+        # Test creating consultation via POST /doctor/consultations/create with checkin_id (no pre-booked appointment)
+        post_data = {
+            'patient_id': self.patient.id,
+            'checkin_id': self.check_in.id,
+            'symptoms': 'Severe cough and headache',
+            'diagnosis': 'Bronchitis',
+            'treatment_plan': 'Cough syrup and antibiotics',
+            'notes': 'Follow up if symptoms persist',
+            'bp_systolic': 120,
+            'bp_diastolic': 80,
+            'temperature_f': 98.6,
+            'pulse_bpm': 72,
+            'spo2_percent': 98
+        }
+        response = self.client.post('/doctor/consultations/create', data=post_data, follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+
+        # Verify consultation was saved in database
+        saved_cns = Consultation.query.filter_by(patient_id=self.patient.id, diagnosis='Bronchitis').first()
+        self.assertIsNotNone(saved_cns)
+        self.assertEqual(saved_cns.treatment_plan, 'Cough syrup and antibiotics')
+
+        # Verify check-in status was updated to COMPLETED
+        updated_checkin = db.session.get(CheckIn, self.check_in.id)
+        self.assertEqual(updated_checkin.status, 'COMPLETED')
+
 
 if __name__ == '__main__':
     unittest.main()
