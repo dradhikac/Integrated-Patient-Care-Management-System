@@ -12,7 +12,21 @@ IPCMS streamlines the complete 360-degree patient care lifecycle across **15 ful
 
 ---
 
-##  Key Features & 15 Subsystem Modules
+## 🎥 Landing Page Demo
+
+<div align="center">
+  <video src="landing_page_video.mp4" width="100%" controls autoplay loop muted>
+    Your browser does not support the video tag.
+  </video>
+  <p>
+    <sub>🎬 <em>Walkthrough demonstration of the IPCMS Landing Page and modern healthcare portal interface.</em></sub><br/>
+    <sub>Direct link: <a href="landing_page_video.mp4">landing_page_video.mp4</a></sub>
+  </p>
+</div>
+
+---
+
+## 🏥 Key Features & 15 Subsystem Modules
 
 | Subsystem Module | Core Capabilities & Highlights |
 | :--- | :--- |
