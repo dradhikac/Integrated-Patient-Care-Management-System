@@ -12,15 +12,21 @@ IPCMS streamlines the complete 360-degree patient care lifecycle across **15 ful
 
 ---
 
-## 🎥 Landing Page Demo
+## 🎥 Landing Page Video & Walkthrough
 
 <div align="center">
-  <video src="landing_page_video.mp4" width="100%" controls autoplay loop muted>
-    Your browser does not support the video tag.
-  </video>
+  <a href="landing_page_video.mp4">
+    <img src="app/static/images/hero_doctor_patient.jpg" alt="IPCMS Landing Page Walkthrough Preview" width="85%" style="border-radius: 10px; max-width: 800px;"/>
+  </a>
+  <br/><br/>
+  <a href="landing_page_video.mp4">
+    <img src="https://img.shields.io/badge/▶_PLAY_VIDEO-landing__page__video.mp4-2563eb?style=for-the-badge" alt="Play Video"/>
+  </a>
+  <a href="https://raw.githubusercontent.com/dradhikac/Integrated-Patient-Care-Management-System/main/landing_page_video.mp4">
+    <img src="https://img.shields.io/badge/⬇_DIRECT_STREAM-MP4_Format-10b981?style=for-the-badge" alt="Direct Stream"/>
+  </a>
   <p>
-    <sub>🎬 <em>Walkthrough demonstration of the IPCMS Landing Page and modern healthcare portal interface.</em></sub><br/>
-    <sub>Direct link: <a href="landing_page_video.mp4">landing_page_video.mp4</a></sub>
+    <sub>🎬 <em>Click the preview banner or buttons above to stream/download the full high-definition video walkthrough of the IPCMS Landing Page.</em></sub>
   </p>
 </div>
 
