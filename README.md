@@ -12,6 +12,15 @@ IPCMS streamlines the complete 360-degree patient care lifecycle across **15 ful
 
 ---
 
+## 🎥 Landing Page Walkthrough
+
+<div align="center">
+  <img src="landing_page.gif" alt="IPCMS Landing Page Walkthrough" width="100%" />
+  <p><sub>🎬 <em>Live walkthrough of the CareHub / IPCMS Landing Page and patient services portal.</em></sub></p>
+</div>
+
+---
+
 ## 🏥 Key Features & 15 Subsystem Modules
 
 | Subsystem Module | Core Capabilities & Highlights |
