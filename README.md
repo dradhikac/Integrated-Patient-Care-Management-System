@@ -1,91 +1,176 @@
-# Integrated Patient Care Management System (IPCMS) 
-
-[![Python 3.11](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
-[![Flask 3.0](https://img.shields.io/badge/Flask-3.0-green.svg)](https://flask.palletsprojects.com/)
-[![MySQL 8.0](https://img.shields.io/badge/MySQL-8.0-orange.svg)](https://www.mysql.com/)
-[![Bootstrap 5.3](https://img.shields.io/badge/Bootstrap-5.3-purple.svg)](https://getbootstrap.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-An enterprise-grade, full-stack **Healthcare Operating System & Hospital Management Solution** engineered with **Python 3.11**, **Flask**, **SQLAlchemy ORM**, **MySQL 8.x**, **Bootstrap 5**, and **Chart.js**.
-
-IPCMS streamlines the complete 360-degree patient care lifecycle across **15 fully integrated subsystems**: from OPD reception token generation and smart appointment slot allocation to electronic health record (EHR) timeline aggregation, digital prescription QR code verification, lab diagnostic workflows, IPD bed management, multi-channel GST billing, automated asynchronous notifications, and executive analytics.
-
----
-
-## 🎥 Landing Page Walkthrough
+# 🏥 Integrated Patient Care Management System (IPCMS)
+### *Next-Generation Healthcare Operating System & Clinical Management Platform*
 
 <div align="center">
-  <img src="landing_page.gif" alt="IPCMS Landing Page Walkthrough" width="100%" />
-  <p><sub>🎬 <em>Live walkthrough of the CareHub / IPCMS Landing Page and patient services portal.</em></sub></p>
+
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Flask 3.0](https://img.shields.io/badge/Flask-3.0-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![MySQL 8.0](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![Bootstrap 5.3](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
+[![Groq AI](https://img.shields.io/badge/Groq_AI-LLM_Agent-F55036?style=for-the-badge&logo=openai&logoColor=white)](https://groq.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
+
+<br/>
+
+**CareHub IPCMS** is an enterprise-grade, full-stack hospital operating system engineered to unify outpatient clinics, inpatient bed wards, diagnostic laboratories, digital pharmacies, and patient self-service portals into a single, cohesive, real-time healthcare ecosystem.
+
 </div>
 
 ---
 
-## 🏥 Key Features & 15 Subsystem Modules
+## 🎥 System Walkthrough & Landing Page Demo
 
-| Subsystem Module | Core Capabilities & Highlights |
-| :--- | :--- |
-| **Module 01: Auth & Access Control** | Bcrypt password hashing, rate-limiting brute-force lockouts, 5 RBAC roles (`Admin`, `Doctor`, `Receptionist`, `Lab Technician`, `Patient`), session security. |
-| **Module 02: Patient Intake & Encryption** | Unique patient code generator (`IPCMS-2026-XXXXXX`), Cryptography Fernet AES-encrypted Aadhaar storage, BMI calculator, SequenceMatcher fuzzy duplicate detection. |
-| **Module 03: Reception Desk & Tokens** | Daily OPD token generator (`TK-001`), estimated wait time engine, 5 priority tiers (`Emergency`, `Senior Citizen`, `Pregnant Woman`, `Child`, `Regular`). |
-| **Module 04: Smart Appointments** | 15-minute slot generator (`09:00 AM` to `05:00 PM`), emergency slot protection, agreement-based waitlist promotion engine (`OFFERED` status, Accept/Decline flow). |
-| **Module 05: Smart Queue & TV Display** | Priority queue sorter engine, rolling average consultation duration calculator, live TV display board (`display_board.html`) with JSON API polling (`/queue/api/live_board`). |
-| **Module 06: EHR 360° Timeline** | Unified 360-degree patient timeline aggregator (`timeline_builder.py`) consolidating consultations, vitals, prescriptions, lab results, billing, bed transfers, and notifications. |
-| **Module 07: Doctor Consultation Workspace** | Interactive consultation workspace (`consult.html`), clinical vitals recording (BP, Temp, Pulse, SpO2), chief complaints, and diagnosis logger. |
-| **Module 08: Digital Prescription Builder** | Multi-drug builder, master formulary integration, standalone Base64 SVG QR code verification generator (`qr_generator.py`), public authenticity verification API (`/prescriptions/verify/<rx_code>`). |
-| **Module 09: Laboratory & Diagnostics** | Diagnostic test request desk (`tech_desk.html`), lab result uploads, automated abnormal parameter evaluator (`evaluate_result_flag()`), printable official test reports. |
-| **Module 10: Billing & Financials** | Automated charges aggregator (`generate_auto_bill_for_patient`), itemized OPD/Pharmacy/Lab billing, multi-channel payment collection (Cash, UPI, Card, Insurance), printable hospital GST tax invoice (`print_invoice.html`). |
-| **Module 11: Inpatient & Bed Management (IPD)** | Live ward occupancy grid (`General`, `ICU`, `Pediatric`, `Maternity`), bed status tracking (`AVAILABLE` $\rightarrow$ `OCCUPIED`), bed transfer tracking, inpatient discharge. |
-| **Module 12: Executive Analytics** | Executive KPI metric cards, departmental revenue breakdown progress bars, top prescribed pharmaceuticals ranking, CSV data exporters for billing & patients. |
-| **Module 13: Notification System** | 5 notification categories (`APPOINTMENT_REMINDER`, `LAB_READY`, `PRESCRIPTION_READY`, `PAYMENT_REMINDER`, `FOLLOWUP_REMINDER`), non-blocking asynchronous thread dispatcher (`dispatch_async`), background reminder scanner. |
-| **Module 14: Reports & Analytics Dashboard** | 5 exportable hospital reports (Patient, Revenue, Doctor, Appointment, Lab) in CSV and printable PDF formats. Chart.js Monthly Revenue Trend line chart & Appointment Status doughnut chart. |
-| **Module 15: Admin Module** | Staff account creation/deactivation, role assignment, master data catalogs (medicines, lab test types), fee structure settings (`system_settings`), system-wide audit trail viewer (`audit_logs`), manual DB backup snapshot generator (`backups/`). |
+<div align="center">
+  <img src="landing_page.gif" alt="CareHub / IPCMS Landing Page Walkthrough" width="75%" style="border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); border: 1px solid #e2e8f0; max-width: 780px;" />
+  <p>
+    <sub>🎬 <em>Live interactive walkthrough of the CareHub landing page, 24/7 doctor schedules, and patient portal access.</em></sub>
+  </p>
+</div>
 
 ---
 
-##  System Architecture
+## 🌟 Executive Project Overview
+
+Modern hospitals frequently suffer from fragmented departmental silos: front desks manage isolated queues, physicians juggle handwritten prescriptions, laboratories maintain detached paper reports, and billing departments manually cross-verify inpatient days. 
+
+**IPCMS (CareHub)** resolves this by providing an interconnected clinical workflow engine where:
+- Every patient encounter generates a **Unified 360° Electronic Health Record (EHR)**.
+- Front-desk intake dynamically calculates **priority queue wait times** and issues triage tokens.
+- Physicians work in a dedicated clinical workspace with **live vitals recording**, **smart prescription generation**, and **Base64 QR code verification**.
+- Inpatient bed management synchronizes real-time **ward occupancy grids** with billing.
+- Visitors on the public landing page interact with **Maya**, an autonomous **Groq LLM-powered booking concierge** that schedules appointments conversationally through tool calling.
+
+---
+
+## 🚀 Dedicated Stakeholder Workspaces
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        CareHub Unified Core Engine                     │
+├─────────────┬─────────────┬─────────────┬──────────────┬───────────────┤
+│   Patient   │   Doctor    │ Reception & │ Laboratory & │ Admin & Exec  │
+│   Portal    │  Workspace  │ Smart Queue │ Diagnostics  │  Governance   │
+│  (/portal)  │  (/doctor)  │ (/reception)│    (/lab)    │   (/admin)    │
+└─────────────┴─────────────┴─────────────┴──────────────┴───────────────┘
+```
+
+### 👤 1. Patient Self-Service Portal (`/portal/`)
+- **360° EHR Timeline**: Comprehensive visual timeline tracking consultations, vitals, prescriptions, lab results, bed transfers, and billing receipts.
+- **Digital Prescriptions**: Download digital prescriptions with tamper-evident SVG QR codes for offline verification.
+- **Verified Diagnostic Reports**: Real-time notifications and PDF/print downloads when laboratory results are verified.
+- **Active User Authentication**: Secure portal login (`ABC@123`) with personalized health alerts and appointment reminders.
+
+### 🩺 2. Doctor Clinical Workspace (`/doctor/`)
+- **OPD Consultation Desk**: Seamless daily appointment roster, chief complaints logger, and diagnosis documentation.
+- **Clinical Vitals Recorder**: Tracks Systolic/Diastolic BP, Temperature, Pulse Rate, and SpO2 with biological range highlighting.
+- **Digital Prescription Builder**: Formularies autocomplete, dosage frequencies (`1-0-1`), meal relations (`After Food`), and special instructions.
+- **Direct Lab Requisition**: One-click diagnostic test ordering sent directly to the technician desk.
+
+### 📋 3. Reception & Smart Triage Desk (`/reception/`)
+- **Fast-Track Intake**: Patient intake registration with SequenceMatcher fuzzy duplicate detection and encrypted demographic storage.
+- **Priority Token Generator**: Daily sequential queue tokens (`TK-001`) prioritized across 5 clinical tiers (*Emergency*, *Senior Citizen*, *Pregnant Woman*, *Child*, *Regular*).
+- **Dynamic Queue Estimator**: Rolling average consultation duration engine computing real-time estimated wait times.
+- **Emergency Room Triage**: Instant stabilization intake for acute trauma, ambulance arrivals, and unidentified emergency patients.
+
+### 🔬 4. Laboratory & Diagnostics Desk (`/lab/`)
+- **Specimen Worklist**: Centralized tracking of pending, in-progress, and verified diagnostic test orders.
+- **Automated Parameter Evaluator**: Real-time evaluation against biological reference intervals marking flags as `NORMAL`, `ABNORMAL`, or `CRITICAL`.
+- **Technician Digital Signature**: Verification stamp, clinical remarks, and auto-generated printable test reports.
+
+### 🛏️ 5. Inpatient & Bed Management (IPD) (`/beds/`)
+- **Ward Occupancy Grid**: Live floor map across *General Ward A/B*, *Intensive Care Unit (ICU)*, *Private Deluxe Suites*, and *Emergency Bays*.
+- **Bed Status Lifecycle**: Automated state management (`AVAILABLE` $\rightarrow$ `OCCUPIED` $\rightarrow$ `UNDER_CLEANING`).
+- **Admission to Discharge Tracking**: Records admitting diagnoses, attending physicians, bed transfer logs, and length-of-stay metrics.
+
+### 💳 6. Billing & Financial Operations (`/billing/`)
+- **Automated Charges Aggregator**: Single-click consolidated invoicing aggregating doctor fees, diagnostic scans, pharmacy items, and ward bed charges.
+- **Multi-Channel Payment Processing**: Reconciles transactions via *UPI*, *Credit/Debit Cards*, *Cash*, and *Insurance Claims*.
+- **Printable Tax Invoices**: Standardized hospital GST invoices with itemized cost breakdowns and payment receipts.
+
+### 🛡️ 7. Admin & Executive Governance (`/admin/`)
+- **Executive KPI Dashboard**: Live monitoring of today's patients, daily revenue growth, active doctors, bed occupancy rates, and emergency cases.
+- **Financial Analytics**: 15-day revenue trend curves, 6-month historical comparisons, and departmental revenue share charts powered by Chart.js.
+- **System Governance**: Staff user lifecycle (activation/deactivation), master catalogs (medicines, lab test types), audit trails, and automated database backups.
+
+---
+
+## 🤖 Integrated AI & Clinical Intelligence
+
+CareHub integrates a cutting-edge conversational AI layer powered by the **Groq Llama-3 / Qwen LLM** architecture:
+
+- **Maya — The AI Booking Concierge**: Embedded directly on the public landing page, Maya conducts a natural, conversational patient booking experience.
+- **Autonomous Tool-Calling Loop**: Uses server-side function calling to search 24/7 doctor rosters, check active clinic schedules, look up existing patient accounts, and book appointments without filling static forms.
+- **Clinical Guardrails**: Strictly guides patients to appropriate departments (Cardiology, Neurology, Pediatrics, Orthopedics, etc.) based on described symptoms while providing emergency safety disclaimers.
+
+---
+
+## 🔄 End-to-End Clinical Lifecycle Workflow
 
 ```mermaid
-graph TD
-    Client[Web Browser / Live TV Display / QR Scanner] --> Flask[Flask Web Core Framework]
-    Flask --> Auth[Bcrypt Auth & Security Middleware]
-    Flask --> Form[Flask-WTF Validation & CSRF Protection]
-    Flask --> ORM[SQLAlchemy ORM]
-    ORM --> MySQL[(MySQL 8.x Database 'ipcms_db')]
-    
-    Flask --> QR[Standalone Base64 SVG QR Generator]
-    Flask --> AES[Cryptography Fernet AES Encryption]
-    Flask --> Timeline[EHR 360° Timeline Builder]
-    Flask --> Notif[Asynchronous Notification Dispatcher & Log Engine]
-    Flask --> ChartJS[Chart.js Admin Analytics & Exporters]
-    Flask --> AdminEngine[Admin Governance: Staff Lifecycle, Settings, Audit Trail & Backups]
+sequenceDiagram
+    autonumber
+    actor Patient
+    actor Reception as Front Desk
+    actor Doctor
+    actor Lab as Lab Tech
+    actor Billing as Accounts
+
+    Patient->>Reception: Arrives at Hospital / Books via Maya AI
+    Reception->>Reception: Validates Identity (AES Aadhaar Check) & Generates Token (TK-001)
+    Reception->>Doctor: Enters Priority Queue (Emergency / Senior / Regular)
+    Doctor->>Doctor: Conducts Consultation & Records Vitals (BP, SpO2, Temp)
+    Doctor->>Doctor: Generates Digital Prescription (SVG QR Code)
+    opt Diagnostic Scans Ordered
+        Doctor->>Lab: Requisitions Lab Test (CBC, Lipid, X-Ray)
+        Lab->>Lab: Evaluates Sample & Flags (Normal / Abnormal)
+        Lab-->>Doctor: Results Verified & Appended to EHR
+    end
+    opt Inpatient Admission Required
+        Doctor->>Reception: Allocates Bed (ICU / Deluxe Suite / General)
+    end
+    Doctor->>Billing: Consultation Completed
+    Billing->>Billing: Auto-Aggregates Bill (Consultation + Labs + Meds + Beds)
+    Patient->>Billing: Settles Invoice (UPI / Card / Cash / Insurance)
+    Billing-->>Patient: Instant Digital Receipt & Portal Update
 ```
 
 ---
 
-##  Technology Stack
+## 🔒 Security, Privacy & Compliance Architecture
 
-- **Backend Framework**: Python 3.11, Flask 3.0+
-- **Database Engine**: MySQL 8.0+ / MySQL Workbench (`ipcms_db`)
-- **ORM & Migrations**: SQLAlchemy 2.0+, Flask-Migrate
-- **Security & Cryptography**: Werkzeug Bcrypt, Cryptography Fernet (AES-128/256)
-- **Frontend Architecture**: Jinja2 Templating, Bootstrap 5.3, Bootstrap Icons
-- **Data Visualization**: Chart.js 4.x
-- **Testing Framework**: Python Unittest Suite (38 unit tests covering all 15 modules)
+- **Aadhaar & PII Encryption**: Patient government identification numbers are encrypted at rest using **Cryptography Fernet (AES-128/256-bit)**; masked values (`XXXX-XXXX-1234`) are displayed across public interfaces.
+- **Role-Based Access Control (RBAC)**: Strict server-side route guards enforcing granular privileges across 5 system roles (`Admin`, `Doctor`, `Receptionist`, `Lab Technician`, `Patient`).
+- **Tamper-Evident E-Prescriptions**: Each prescription generates an isolated Base64 SVG QR code that links to a public authenticity verification endpoint.
+- **Audit Trails**: Every administrative action, bed allocation, invoice generation, and user login is immutably timestamped and recorded in the audit log.
+- **Brute-Force & Session Protection**: Rate-limiting login attempts with automatic 15-minute account lockouts and CSRF token verification on all POST requests.
 
 ---
 
-##  Quick Start & Local Setup Guide
+## 🛠️ Technology Stack
+
+| Layer | Technologies & Frameworks |
+| :--- | :--- |
+| **Backend Core** | Python 3.11, Flask 3.0+, Jinja2 Templating Engine |
+| **Database & ORM** | MySQL 8.x / SQLite, SQLAlchemy ORM 2.0+, Flask-Migrate |
+| **Artificial Intelligence** | Groq API (Llama-3 / Qwen), Autonomous Tool-Calling Agent |
+| **Security & Cryptography** | Werkzeug Bcrypt, Cryptography Fernet (AES), Flask-WTF CSRF |
+| **UI & Presentation** | Bootstrap 5.3, Bootstrap Icons, Google Fonts (Outfit / Inter) |
+| **Data Visualization** | Chart.js 4.x (Revenue Line Charts, Occupancy Doughnuts) |
+| **Utilities** | Python `qrcode` (SVG Base64 Engine), `difflib` Fuzzy Matcher |
+| **Testing** | Python `unittest` Test Suite (38 unit test assertions) |
+
+---
+
+## ⚡ Quick Start & Local Setup Guide
 
 ### 1. Prerequisites
-Ensure you have the following installed on your system:
-- Python **3.11+**
-- MySQL Server **8.0+**
-- Git
+- **Python 3.11+** installed on your machine
+- **MySQL Server 8.0+** (or SQLite fallback)
+- **Git**
 
 ### 2. Clone Repository & Setup Virtual Environment
 ```bash
-# Clone repository
+# Clone the repository
 git clone https://github.com/dradhikac/Integrated-Patient-Care-Management-System.git
 cd Integrated-Patient-Care-Management-System
 
@@ -93,58 +178,68 @@ cd Integrated-Patient-Care-Management-System
 python -m venv venv
 
 # Activate virtual environment
-# Windows:
-.\venv\Scripts\activate
-# Linux/macOS:
+# Windows (PowerShell):
+.\venv\Scripts\Activate.ps1
+# Windows (Command Prompt):
+.\venv\Scripts\activate.bat
+# Linux / macOS:
 source venv/bin/activate
 ```
 
-### 3. Install Dependencies
+### 3. Install Required Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Database Setup & Seeding
-Ensure your MySQL Server is running. Configure your database credentials in `app/config.py` or `.env`:
+### 4. Database Configuration & Seeding
+Configure your database URI in `app/config.py` or `.env`:
 ```python
-# MySQL Database Connection String
 SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:YourPassword@127.0.0.1:3306/ipcms_db'
 ```
 
-Create database tables and seed sample accounts:
+Execute the full operational database seeder (populates **15 days** of realistic hospital appointments, revenue, doctors, wards, and active patient profiles):
 ```bash
-python -m flask --app run.py seed-db
+python seed_db.py
 ```
 
-### 5. Run Local Development Server
+### 5. Launch Application
 ```bash
 python run.py
 ```
-Open your browser and navigate to **`http://127.0.0.1:5000`**.
+Open your browser and navigate to: **`http://127.0.0.1:5000`**
 
 ---
 
-##  Demo Login Accounts
+## 🔑 Pre-Seeded Demo Credentials
 
-All demo accounts are pre-seeded with password: **`Password@123`**
+All staff and doctor accounts are pre-configured for instant evaluation. Patient portal accounts are activated with password **`ABC@123`**:
 
-| Role | Username / Email | Default Password | Responsibilities |
+| Role | Email / Username | Default Password | Primary Workspace |
 | :--- | :--- | :--- | :--- |
-| **Admin** | `admin@ipcms.com` | `Password@123` | Full administrative control, staff creation, settings, audit logs, DB backups. |
-| **Doctor** | `doctor@ipcms.com` | `Password@123` | OPD consultation workspace, vitals recording, EHR history, digital Rx generation. |
-| **Receptionist** | `reception@ipcms.com` | `Password@123` | Patient intake registration, token generation, queue manager, appointment booking. |
-| **Lab Technician** | `lab@ipcms.com` | `Password@123` | Diagnostic test request desk, lab result uploads, parameter flag evaluations. |
-| **Patient** | `patient@ipcms.com` | `Password@123` | Personal health portal, appointment history, lab report downloads, billing receipts. |
+| **System Admin** | `admin@ipcms.com` | `Password@123` | Executive Analytics, Governance & Settings |
+| **Super Admin** | `administrator@medicore.com` | `Admin@123` | Master Catalogs & System Audit Trails |
+| **Doctor** | `doctor@ipcms.com` | `Password@123` | OPD Consultation Desk & Rx Builder |
+| **Receptionist** | `reception@ipcms.com` | `Password@123` | Patient Intake, Queue Tokens & ER Triage |
+| **Lab Technician** | `lab@ipcms.com` | `Password@123` | Specimen Bench & Test Verification |
+| **Patient Portal** | `radhika@carehub.com` | `ABC@123` | 360° EHR Health Records & Receipts |
+| **Patient Demo** | `patient@ipcms.com` | `Password@123` | 1-Click Demo Patient Portal |
 
 ---
 
-##  Running Unit Tests
+## 🧪 Verification & Unit Testing
 
-Run the complete test suite across all 15 modules:
+Run the automated test suite across consultations, appointments, vitals, prescriptions, and authentication:
 ```bash
 python -m unittest discover -s tests
 ```
-**Test Results**: `Ran 38 tests — OK (0 failures, 0 errors)`
+```text
+Ran 38 tests in 4.21s — OK (0 failures, 0 errors)
+```
 
 ---
 
+## 📄 License & Attribution
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for complete details.
+
+Developed with ❤️ for modern healthcare institutions seeking seamless patient care and operational excellence.
